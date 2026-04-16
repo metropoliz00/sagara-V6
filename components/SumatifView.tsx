@@ -1034,7 +1034,7 @@ const SumatifTokenEntry: React.FC<{
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-100 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+      <div className="bg-white w-full max-w-[1440px] rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
         {/* Left Side: Info */}
         <div className="bg-[#5AB2FF] p-8 md:w-1/3 text-white flex flex-col justify-between">
           <div>
@@ -1296,7 +1296,7 @@ const SumatifTaking: React.FC<{
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Question Area */}
         <div className="flex-1 flex flex-col overflow-y-auto p-4 md:p-8">
-          <div className="max-w-4xl w-full mx-auto space-y-6">
+          <div className="max-w-[1440px] w-full mx-auto space-y-6">
             {/* Question Card */}
             <div className="bg-white rounded-2xl shadow-xl shadow-blue-900/5 border border-slate-200 overflow-hidden min-h-[500px] flex flex-col">
               {/* Question Header */}
@@ -1330,10 +1330,10 @@ const SumatifTaking: React.FC<{
               </div>
 
               {/* Question Content */}
-              <div className="p-8 flex-1">
+              <div className={`p-8 flex-1 ${currentQuestion.imageUrl ? 'grid grid-cols-1 lg:grid-cols-2 gap-12' : ''}`}>
                 {currentQuestion.imageUrl && (
-                  <div className="mb-6 space-y-2">
-                    <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-sm max-h-[300px] flex justify-center bg-slate-50">
+                  <div className="space-y-4">
+                    <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-sm max-h-[500px] flex justify-center bg-slate-50">
                       <img 
                         src={currentQuestion.imageUrl} 
                         alt="Question" 
@@ -1346,13 +1346,15 @@ const SumatifTaking: React.FC<{
                     )}
                   </div>
                 )}
-                <div className={`text-slate-800 font-medium leading-relaxed mb-10 ${
-                  fontSize === 'sm' ? 'text-base' : fontSize === 'md' ? 'text-xl' : 'text-2xl'
-                }`}>
-                  {currentQuestion.text}
-                </div>
+                
+                <div className="flex flex-col">
+                  <div className={`text-slate-800 font-medium leading-relaxed mb-10 ${
+                    fontSize === 'sm' ? 'text-base' : fontSize === 'md' ? 'text-xl' : 'text-2xl'
+                  }`}>
+                    {currentQuestion.text}
+                  </div>
 
-                <div className="space-y-4">
+                  <div className="space-y-4">
                   {currentQuestion.type === 'pg' && (currentQuestion.options || []).map((opt, idx) => {
                     if (!opt && !currentQuestion.optionImages?.[idx]) return null;
                     return (
@@ -1525,6 +1527,7 @@ const SumatifTaking: React.FC<{
                 </div>
               </div>
             </div>
+          </div>
 
       {/* CBT Footer Controls */}
       <div className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-lg border border-slate-200">
