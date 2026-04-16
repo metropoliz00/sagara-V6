@@ -1128,7 +1128,7 @@ const SumatifTaking: React.FC<{
 }> = ({ sumatif, studentId, studentName, onComplete, onCancel }) => {
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
-  const [timeLeft, setTimeLeft] = useState(sumatif.duration * 60);
+  const [timeLeft, setTimeLeft] = useState((sumatif.duration || 0) * 60);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
@@ -1283,15 +1283,22 @@ const SumatifTaking: React.FC<{
           </div>
         </div>
 
-        <div className="flex items-center space-x-8">
-          <div className="hidden md:flex flex-col items-end">
-            <p className="text-[10px] font-bold opacity-70 uppercase">Nama Peserta</p>
-            <p className="font-bold text-sm">{studentName}</p>
+        <div className="flex items-center space-x-4 md:space-x-8">
+          <div className="flex flex-col items-end">
+            <p className="hidden md:block text-[10px] font-black opacity-70 uppercase tracking-widest text-white/80">Sisa Waktu</p>
+            <div className={`flex items-center px-3 md:px-4 py-1.5 rounded-xl backdrop-blur-sm border transition-all duration-300 ${
+              timeLeft < 300 
+                ? 'bg-red-500/20 border-red-500/40 text-red-100' 
+                : 'bg-white/20 border-white/10 text-white'
+            }`}>
+              <Clock size={16} className="md:mr-2" />
+              <span className="font-mono font-black text-base md:text-xl ml-1 md:ml-0">{formatTime(timeLeft)}</span>
+            </div>
           </div>
           
-          <div className="flex items-center bg-white/20 px-4 py-2 rounded-xl backdrop-blur-sm border border-white/10">
-            <Clock size={18} className="mr-2" />
-            <span className="font-mono font-black text-xl">{formatTime(timeLeft)}</span>
+          <div className="hidden sm:flex flex-col items-end border-l border-white/20 pl-4 md:pl-8">
+            <p className="text-[10px] font-bold opacity-70 uppercase">Nama Peserta</p>
+            <p className="font-bold text-xs md:text-sm">{studentName}</p>
           </div>
 
           <button
@@ -1336,6 +1343,14 @@ const SumatifTaking: React.FC<{
                     {currentQuestionIdx + 1}
                   </span>
                   <span className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-none">CBT - EXAM</span>
+                </div>
+
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Sisa Waktu</span>
+                  <div className={`flex items-center font-mono font-black text-xl transition-all duration-300 ${timeLeft < 300 ? 'text-red-500 animate-pulse' : 'text-[#5AB2FF]'}`}>
+                    <Clock size={20} className="mr-2" />
+                    {formatTime(timeLeft)}
+                  </div>
                 </div>
               </div>
 
