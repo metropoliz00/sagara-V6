@@ -418,14 +418,19 @@ export type ViewState =
 
 export type QuestionType = 'pg' | 'pgk' | 'bs';
 
+export interface QuestionOption {
+  id: string;
+  text: string;
+  imageUrl?: string;
+}
+
 export interface Question {
   id: string;
   text: string;
   imageUrl?: string;
   imageCaption?: string;
   type: QuestionType;
-  options?: string[]; // For PG and PGK
-  optionImages?: string[]; // New: image links for options
+  options?: QuestionOption[]; // Updated for shuffling
   correctAnswer: any; // string | string[] | Record<string, string>
   points: number;
   difficulty?: 'mudah' | 'sedang' | 'sulit';

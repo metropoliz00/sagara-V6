@@ -18,16 +18,16 @@ const checkCorrect = (q: Question, studentAnswer: any) => {
   if (studentAnswer === undefined || studentAnswer === null) return false;
   
   if (q.type === 'pg') {
-    const sAns = studentAnswer;
+    const sAns = studentAnswer; // Now contains option id (string)
     const cAns = q.correctAnswer;
     
-    if (typeof sAns === 'number' && typeof cAns === 'number') return sAns === cAns;
-    if (typeof sAns === 'number') return String(q.options?.[sAns]).trim().toLowerCase() === String(cAns).trim().toLowerCase();
-    if (typeof cAns === 'number') return String(sAns).trim().toLowerCase() === String(q.options?.[cAns]).trim().toLowerCase();
+    // Find option text from ID if necessary
+    const sAnsText = q.options?.find(o => o.id === sAns)?.text || sAns;
+    const cAnsText = q.options?.find(o => o.id === cAns)?.text || cAns;
     
-    return String(sAns).trim().toLowerCase() === String(cAns).trim().toLowerCase();
+    return String(sAnsText).trim().toLowerCase() === String(cAnsText).trim().toLowerCase();
   } else if (q.type === 'pgk') {
-    const sOnes = Array.isArray(studentAnswer) ? studentAnswer : [];
+    const sOnes = Array.isArray(studentAnswer) ? studentAnswer : []; // Array of IDs
     const cOnes = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
     
     if (cOnes.length === 0) return false;
@@ -35,12 +35,12 @@ const checkCorrect = (q: Question, studentAnswer: any) => {
     
     // Normalize both to text for reliable comparison
     const sTexts = sOnes.map(s => {
-      const val = typeof s === 'number' ? q.options?.[s] : s;
+      const val = q.options?.find(o => o.id === s)?.text || s;
       return String(val || '').trim().toLowerCase();
     }).sort();
 
     const cTexts = cOnes.map(c => {
-      const val = typeof c === 'number' ? q.options?.[c] : c;
+      const val = q.options?.find(o => o.id === c)?.text || c;
       return String(val || '').trim().toLowerCase();
     }).sort();
     
@@ -672,8 +672,12 @@ const SumatifEditor: React.FC<{
       id: Math.random().toString(36).substr(2, 9),
       text: '',
       type: 'pg',
-      options: ['', '', '', ''],
-      optionImages: ['', '', '', ''],
+      options: [
+        { id: 'o1', text: '' },
+        { id: 'o2', text: '' },
+        { id: 'o3', text: '' },
+        { id: 'o4', text: '' }
+      ],
       correctAnswer: '',
       points: 1,
       subQuestions: [
@@ -888,7 +892,9 @@ const SumatifEditor: React.FC<{
                     onChange={e => updateQuestion(idx, { 
                       type: e.target.value as QuestionType,
                       correctAnswer: e.target.value === 'pgk' ? [] : '',
-                      options: e.target.value === 'bs' ? ['Benar', 'Salah'] : ['', '', '', '']
+                      options: e.target.value === 'bs' 
+                        ? [{ id: 'o1', text: 'Benar' }, { id: 'o2', text: 'Salah' }]
+                        : [{ id: 'o1', text: '' }, { id: 'o2', text: '' }, { id: 'o3', text: '' }, { id: 'o4', text: '' }]
                     })}
                     className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-bold text-slate-600 outline-none"
                   >
@@ -954,8 +960,8 @@ const SumatifEditor: React.FC<{
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {(q.options || []).map((opt, optIdx) => {
                         const isCorrect = q.type === 'pg' 
-                          ? q.correctAnswer === optIdx 
-                          : (Array.isArray(q.correctAnswer) && q.correctAnswer.includes(optIdx));
+                          ? q.correctAnswer === opt.id 
+                          : (Array.isArray(q.correctAnswer) && q.correctAnswer.includes(opt.id));
                         
                         return (
                           <div key={optIdx} className={`space-y-3 p-4 rounded-2xl border transition-all ${
@@ -969,10 +975,10 @@ const SumatifEditor: React.FC<{
                               </div>
                               <input
                                 type="text"
-                                value={opt}
+                                value={opt.text}
                                 onChange={e => {
                                   const newOpts = [...(q.options || [])];
-                                  newOpts[optIdx] = e.target.value;
+                                  newOpts[optIdx] = { ...newOpts[optIdx], text: e.target.value };
                                   updateQuestion(idx, { options: newOpts });
                                 }}
                                 placeholder={`Teks Opsi ${String.fromCharCode(65 + optIdx)}`}
@@ -981,12 +987,12 @@ const SumatifEditor: React.FC<{
                               <button
                                 onClick={() => {
                                   if (q.type === 'pg') {
-                                    updateQuestion(idx, { correctAnswer: optIdx });
+                                    updateQuestion(idx, { correctAnswer: opt.id });
                                   } else {
                                     const current = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
-                                    const next = current.includes(optIdx) 
-                                      ? current.filter(c => c !== optIdx)
-                                      : [...current, optIdx];
+                                    const next = current.includes(opt.id) 
+                                      ? current.filter(c => c !== opt.id)
+                                      : [...current, opt.id];
                                     updateQuestion(idx, { correctAnswer: next });
                                   }
                                 }}
@@ -1251,6 +1257,12 @@ const SumatifTaking: React.FC<{
   onComplete: () => void,
   onCancel: () => void
 }> = ({ sumatif, studentId, studentName, onComplete, onCancel }) => {
+  const [shuffledQuestions] = useState(() => {
+    return [...sumatif.questions].sort(() => Math.random() - 0.5).map(q => ({
+      ...q,
+      options: q.options ? [...q.options].sort(() => Math.random() - 0.5) : undefined
+    }));
+  });
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [timeLeft, setTimeLeft] = useState((sumatif.duration || 0) * 60);
@@ -1330,7 +1342,7 @@ const SumatifTaking: React.FC<{
     let totalPoints = 0;
     let earnedPoints = 0;
 
-    sumatif.questions.forEach(q => {
+    shuffledQuestions.forEach(q => {
       const qPoints = Number(q.points) || 0;
       totalPoints += qPoints;
       const studentAnswer = answers[q.id];
@@ -1373,8 +1385,8 @@ const SumatifTaking: React.FC<{
     }
   };
 
-  const currentQuestion = sumatif.questions[currentQuestionIdx];
-  const isLastQuestion = currentQuestionIdx === sumatif.questions.length - 1;
+  const currentQuestion = shuffledQuestions[currentQuestionIdx];
+  const isLastQuestion = currentQuestionIdx === shuffledQuestions.length - 1;
 
   // Adaptive Font Size Calculation
   const adaptiveFontSize = useMemo(() => {
@@ -1553,29 +1565,28 @@ const SumatifTaking: React.FC<{
 
                   <div className="space-y-4">
                   {currentQuestion.type === 'pg' && (currentQuestion.options || []).map((opt, idx) => {
-                    if (!opt && !currentQuestion.optionImages?.[idx]) return null;
                     return (
                       <button
-                        key={idx}
-                        onClick={() => handleAnswer(currentQuestion.id, idx)}
+                        key={opt.id}
+                        onClick={() => handleAnswer(currentQuestion.id, opt.id)}
                         className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center space-x-4 group relative overflow-hidden ${
-                          answers[currentQuestion.id] === idx
+                          answers[currentQuestion.id] === opt.id
                             ? 'border-[#5AB2FF] bg-blue-50/50'
                             : 'border-slate-100 hover:border-[#5AB2FF]/30 bg-white'
                         }`}
                       >
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black transition-all z-10 shrink-0 ${
-                          answers[currentQuestion.id] === idx
+                          answers[currentQuestion.id] === opt.id
                             ? 'bg-[#5AB2FF] text-white shadow-lg'
                             : 'bg-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-[#5AB2FF]'
                         }`}>
                           {String.fromCharCode(65 + idx)}
                         </div>
                         <div className="flex-1 flex items-center space-x-4 z-10">
-                          {currentQuestion.optionImages?.[idx] && (
+                          {opt.imageUrl && (
                             <div className="w-20 h-20 rounded-lg overflow-hidden border border-slate-100 shrink-0 bg-slate-50">
                               <img 
-                                src={currentQuestion.optionImages[idx]} 
+                                src={opt.imageUrl} 
                                 alt={`Option ${idx}`} 
                                 className="w-full h-full object-cover"
                                 referrerPolicy="no-referrer"
@@ -1583,12 +1594,12 @@ const SumatifTaking: React.FC<{
                             </div>
                           )}
                           <span className={`font-bold ${
-                            answers[currentQuestion.id] === idx ? 'text-slate-800' : 'text-slate-600'
+                            answers[currentQuestion.id] === opt.id ? 'text-slate-800' : 'text-slate-600'
                           } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
-                            {opt}
+                            {opt.text}
                           </span>
                         </div>
-                        {answers[currentQuestion.id] === idx && (
+                        {answers[currentQuestion.id] === opt.id && (
                           <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5AB2FF]">
                             <CheckCircle size={24} />
                           </div>
@@ -1598,16 +1609,15 @@ const SumatifTaking: React.FC<{
                   })}
 
                   {currentQuestion.type === 'pgk' && (currentQuestion.options || []).map((opt, idx) => {
-                    if (!opt && !currentQuestion.optionImages?.[idx]) return null;
-                    const isSelected = (answers[currentQuestion.id] || []).includes(idx);
+                    const isSelected = (answers[currentQuestion.id] || []).includes(opt.id);
                     return (
                       <button
-                        key={idx}
+                        key={opt.id}
                         onClick={() => {
                           const current = answers[currentQuestion.id] || [];
-                          const next = current.includes(idx)
-                            ? current.filter((c: number) => c !== idx)
-                            : [...current, idx];
+                          const next = current.includes(opt.id)
+                            ? current.filter((c: string) => c !== opt.id)
+                            : [...current, opt.id];
                           handleAnswer(currentQuestion.id, next);
                         }}
                         className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center space-x-4 group relative overflow-hidden ${
@@ -1628,10 +1638,10 @@ const SumatifTaking: React.FC<{
                           </div>
                         </div>
                         <div className="flex-1 flex items-center space-x-4 z-10">
-                          {currentQuestion.optionImages?.[idx] && (
+                          {opt.imageUrl && (
                             <div className="w-20 h-20 rounded-lg overflow-hidden border border-slate-100 shrink-0 bg-slate-50">
                               <img 
-                                src={currentQuestion.optionImages[idx]} 
+                                src={opt.imageUrl} 
                                 alt={`Option ${idx}`} 
                                 className="w-full h-full object-cover"
                                 referrerPolicy="no-referrer"
@@ -1641,7 +1651,7 @@ const SumatifTaking: React.FC<{
                           <span className={`font-bold ${
                             isSelected ? 'text-slate-800' : 'text-slate-600'
                           } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
-                            {opt}
+                            {opt.text}
                           </span>
                         </div>
                       </button>
