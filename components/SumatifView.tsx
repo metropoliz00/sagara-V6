@@ -805,13 +805,23 @@ const SumatifEditor: React.FC<{
                       />
                     </div>
                     {q.imageUrl && (
-                      <input
-                        type="text"
-                        value={q.imageCaption || ''}
-                        onChange={e => updateQuestion(idx, { imageCaption: e.target.value })}
-                        placeholder="Keterangan Gambar"
-                        className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-xs"
-                      />
+                      <div className="space-y-2">
+                        <div className="w-full max-h-[200px] rounded-xl overflow-hidden border border-slate-200 bg-white flex justify-center">
+                          <img 
+                            src={q.imageUrl} 
+                            alt="Question Preview" 
+                            className="max-w-full h-auto object-contain"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={q.imageCaption || ''}
+                          onChange={e => updateQuestion(idx, { imageCaption: e.target.value })}
+                          placeholder="Keterangan Gambar"
+                          className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-xs"
+                        />
+                      </div>
                     )}
                   </div>
 
@@ -948,6 +958,16 @@ const SumatifEditor: React.FC<{
                                 placeholder="Link Gambar Pernyataan"
                                 className="w-full px-3 py-1.5 rounded-lg border border-slate-100 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-[10px]"
                               />
+                              {sq.imageUrl && (
+                                <div className="w-full h-20 rounded-lg overflow-hidden border border-slate-100 bg-slate-50 flex justify-center">
+                                  <img 
+                                    src={sq.imageUrl} 
+                                    alt={`Preview SQ ${sqIdx}`} 
+                                    className="max-w-full h-full object-contain"
+                                    referrerPolicy="no-referrer"
+                                  />
+                                </div>
+                              )}
                               {sq.imageUrl && (
                                 <input
                                   type="text"
