@@ -4,7 +4,7 @@ import {
   Clock, BookOpen, AlertCircle, Save, ChevronLeft, ChevronRight,
   HelpCircle, Check, X, ListFilter, User as UserIcon, LogIn, Monitor,
   Maximize2, Minimize2, Type, ArrowLeft, ArrowRight, Flag, RefreshCw,
-  Image as ImageIcon, Copy, Download, Upload
+  Image as ImageIcon, Copy, Download, Upload, LayoutGrid
 } from 'lucide-react';
 import { Sumatif, Question, QuestionType, User, Student, Subject, SumatifResult } from '../types';
 import { apiService } from '../services/apiService';
@@ -1132,6 +1132,7 @@ const SumatifTaking: React.FC<{
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
+  const [showNavigation, setShowNavigation] = useState(true);
   const [modal, setModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -1273,6 +1274,14 @@ const SumatifTaking: React.FC<{
           </div>
 
           <button
+            onClick={() => setShowNavigation(!showNavigation)}
+            className={`p-2 rounded-xl transition-all ${showNavigation ? 'bg-white text-[#5AB2FF]' : 'bg-white/20 text-white hover:bg-white/30'}`}
+            title={showNavigation ? 'Sembunyikan Navigasi' : 'Tampilkan Navigasi'}
+          >
+            <LayoutGrid size={20} />
+          </button>
+
+          <button
             onClick={() => {
               setModal({
                 isOpen: true,
@@ -1293,12 +1302,12 @@ const SumatifTaking: React.FC<{
       </div>
 
       {/* Main CBT Layout */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Left: Question Area */}
-        <div className="flex-1 flex flex-col overflow-y-auto p-4 md:p-8">
-          <div className="max-w-[1440px] w-full mx-auto space-y-6">
+        <div className="flex-1 flex flex-col overflow-y-auto p-4 md:p-8 transition-all duration-500">
+          <div className={`max-w-[1440px] w-full mx-auto space-y-6 transition-all duration-500 ${!showNavigation ? 'flex flex-col items-center' : ''}`}>
             {/* Question Card */}
-            <div className="bg-white rounded-2xl shadow-xl shadow-blue-900/5 border border-slate-200 overflow-hidden min-h-[500px] flex flex-col">
+            <div className={`bg-white rounded-2xl shadow-xl shadow-blue-900/5 border border-slate-200 overflow-hidden min-h-[500px] flex flex-col transition-all duration-500 ${!showNavigation ? 'w-full max-w-4xl' : 'w-full'}`}>
               {/* Question Header */}
               <div className="bg-slate-50 px-8 py-4 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -1530,7 +1539,7 @@ const SumatifTaking: React.FC<{
           </div>
 
       {/* CBT Footer Controls */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-lg border border-slate-200">
+      <div className={`flex items-center justify-between bg-white p-4 rounded-2xl shadow-lg border border-slate-200 transition-all duration-500 ${!showNavigation ? 'w-full max-w-4xl mx-auto' : ''}`}>
               <button
                 disabled={currentQuestionIdx === 0}
                 onClick={() => setCurrentQuestionIdx(prev => prev - 1)}
@@ -1581,8 +1590,8 @@ const SumatifTaking: React.FC<{
         </div>
 
         {/* Right: Navigation Grid */}
-        <div className="w-80 bg-white border-l border-slate-200 flex flex-col shadow-2xl z-10">
-          <div className="p-6 border-b border-slate-100 bg-slate-50">
+        <div className={`bg-white border-l border-slate-200 flex flex-col shadow-2xl z-10 transition-all duration-500 overflow-hidden ${showNavigation ? 'w-80 opacity-100' : 'w-0 opacity-0 border-none'}`}>
+          <div className="p-6 border-b border-slate-100 bg-slate-50 min-w-[320px]">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Navigasi Soal</h3>
             <div className="grid grid-cols-5 gap-2">
               {sumatif.questions.map((q, idx) => (
