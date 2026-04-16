@@ -31,6 +31,8 @@ DROP TABLE IF EXISTS agendas CASCADE;
 DROP TABLE IF EXISTS students CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS graduates CASCADE;
+DROP TABLE IF EXISTS sumatif_results CASCADE;
+DROP TABLE IF EXISTS sumatifs CASCADE;
 
 -- 1. Users table
 CREATE TABLE users (
@@ -463,6 +465,48 @@ ALTER TABLE graduates ENABLE ROW LEVEL SECURITY;
 
 -- Create policies to allow access for all users
 CREATE POLICY "Enable all access for all users" ON "public"."graduates"
+AS PERMISSIVE FOR ALL
+TO public
+USING (true)
+WITH CHECK (true);
+
+-- 29. Sumatifs table
+CREATE TABLE sumatifs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  class_id TEXT NOT NULL,
+  subject_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  type TEXT NOT NULL, -- sum1, sum2, sum3, sum4, sas
+  duration NUMERIC DEFAULT 60,
+  start_time TIMESTAMPTZ,
+  end_time TIMESTAMPTZ,
+  is_active BOOLEAN DEFAULT FALSE,
+  questions JSONB DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 30. Sumatif Results table
+CREATE TABLE sumatif_results (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sumatif_id UUID REFERENCES sumatifs(id) ON DELETE CASCADE,
+  student_id TEXT NOT NULL,
+  score NUMERIC DEFAULT 0,
+  answers JSONB DEFAULT '{}',
+  submitted_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(sumatif_id, student_id)
+);
+
+-- Enable RLS for Sumatifs
+ALTER TABLE sumatifs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Enable all access for all users" ON "public"."sumatifs"
+AS PERMISSIVE FOR ALL
+TO public
+USING (true)
+WITH CHECK (true);
+
+-- Enable RLS for Sumatif Results
+ALTER TABLE sumatif_results ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Enable all access for all users" ON "public"."sumatif_results"
 AS PERMISSIVE FOR ALL
 TO public
 USING (true)

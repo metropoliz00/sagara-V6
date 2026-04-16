@@ -6,7 +6,8 @@ import {
   ScheduleItem, PiketGroup, SikapAssessment, KarakterAssessment, SeatingLayouts, 
   AcademicCalendarData, EmploymentLink, LearningReport, LiaisonLog, PermissionRequest, 
   LearningJournalEntry, SupportDocument, OrganizationStructure, SchoolAsset, 
-  BOSTransaction, LearningDocumentation, BookLoan, BookInventory, Graduate, Material
+  BOSTransaction, LearningDocumentation, BookLoan, BookInventory, Graduate, Material,
+  Sumatif, SumatifResult
 } from '../types';
 
 const isApiConfigured = () => {
@@ -1306,5 +1307,80 @@ export const apiService = {
   },
   restoreData: async (data: any): Promise<any> => {
     return { message: 'Restore logic needs implementation' };
+  },
+
+  // --- Sumatif ---
+  getSumatifs: async (classId: string): Promise<Sumatif[]> => {
+    const { data, error } = await supabase
+      .from('sumatifs')
+      .select('*')
+      .eq('class_id', classId);
+    if (error) return [];
+    return data.map((s: any) => ({
+      ...s,
+      classId: s.class_id,
+      subjectId: s.subject_id,
+      startTime: s.start_time,
+      endTime: s.end_time,
+      isActive: s.is_active,
+      createdAt: s.created_at
+    }));
+  },
+  saveSumatif: async (sumatif: Sumatif): Promise<Sumatif> => {
+    const dbSumatif = {
+      class_id: sumatif.classId,
+      subject_id: sumatif.subjectId,
+      title: sumatif.title,
+      type: sumatif.type,
+      duration: sumatif.duration,
+      start_time: sumatif.startTime,
+      end_time: sumatif.endTime,
+      is_active: sumatif.isActive,
+      questions: sumatif.questions
+    };
+
+    if (sumatif.id) {
+      const { data, error } = await supabase
+        .from('sumatifs')
+        .update(dbSumatif)
+        .eq('id', sumatif.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return { ...data, classId: data.class_id, subjectId: data.subject_id };
+    } else {
+      const { data, error } = await supabase
+        .from('sumatifs')
+        .insert([dbSumatif])
+        .select()
+        .single();
+      if (error) throw error;
+      return { ...data, classId: data.class_id, subjectId: data.subject_id };
+    }
+  },
+  deleteSumatif: async (id: string): Promise<void> => {
+    await supabase.from('sumatifs').delete().eq('id', id);
+  },
+  getSumatifResults: async (sumatifId: string): Promise<SumatifResult[]> => {
+    const { data, error } = await supabase
+      .from('sumatif_results')
+      .select('*')
+      .eq('sumatif_id', sumatifId);
+    if (error) return [];
+    return data.map((r: any) => ({
+      ...r,
+      sumatifId: r.sumatif_id,
+      studentId: r.student_id,
+      submittedAt: r.submitted_at
+    }));
+  },
+  submitSumatifResult: async (result: Omit<SumatifResult, 'id' | 'submittedAt'>): Promise<void> => {
+    const { error } = await supabase.from('sumatif_results').upsert({
+      sumatif_id: result.sumatifId,
+      student_id: result.studentId,
+      score: result.score,
+      answers: result.answers
+    }, { onConflict: 'sumatif_id,student_id' });
+    if (error) throw error;
   },
 };

@@ -412,7 +412,43 @@ export type ViewState =
   | 'supervisi'
   | 'administrasi/sarana-prasarana'
   | 'administrasi/dana-bos'
-  | 'administrasi/peminjaman-buku';
+  | 'administrasi/peminjaman-buku'
+  | 'sumatif'
+  | 'sumatif/manage';
+
+export type QuestionType = 'pg' | 'pgk' | 'bs';
+
+export interface Question {
+  id: string;
+  text: string;
+  type: QuestionType;
+  options?: string[]; // For PG and PGK
+  correctAnswer: string | string[]; // string for PG/BS, string[] for PGK
+  points: number;
+}
+
+export interface Sumatif {
+  id: string;
+  classId: string;
+  subjectId: string;
+  title: string;
+  type: 'sum1' | 'sum2' | 'sum3' | 'sum4' | 'sas'; // Maps to GradeData fields
+  questions: Question[];
+  duration: number; // in minutes
+  startTime?: string;
+  endTime?: string;
+  isActive: boolean;
+  createdAt?: string;
+}
+
+export interface SumatifResult {
+  id: string;
+  sumatifId: string;
+  studentId: string;
+  score: number;
+  answers: Record<string, any>; // questionId -> answer
+  submittedAt: string;
+}
 
 export interface BookLoan {
   id: string;

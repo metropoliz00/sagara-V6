@@ -30,9 +30,10 @@ import BookLoanView from './components/BookLoanView';
 import GraduatesView from './components/GraduatesView';
 import AgendaView from './components/AgendaView';
 import MaterialsView from './components/MaterialsView';
+import SumatifView from './components/SumatifView';
 import CustomModal from './components/CustomModal'; 
 import PaperPlaneIcon from './components/PaperPlaneIcon';
-import { ViewState, Student, AgendaItem, Material, Extracurricular, BehaviorLog, GradeRecord, TeacherProfileData, SchoolProfileData, User, Holiday, SikapAssessment, KarakterAssessment, EmploymentLink, LearningReport, LiaisonLog, PermissionRequest, LearningJournalEntry, SupportDocument, InventoryItem, SchoolAsset, BOSTransaction, LearningDocumentation, BookLoan, BookInventory } from './types';
+import { ViewState, Student, AgendaItem, Material, Extracurricular, BehaviorLog, GradeRecord, TeacherProfileData, SchoolProfileData, User, Holiday, SikapAssessment, KarakterAssessment, EmploymentLink, LearningReport, LiaisonLog, PermissionRequest, LearningJournalEntry, SupportDocument, InventoryItem, SchoolAsset, BOSTransaction, LearningDocumentation, BookLoan, BookInventory, Sumatif } from './types';
 import { MOCK_SUBJECTS, MOCK_STUDENTS, MOCK_EXTRACURRICULARS } from './constants';
 import { apiService } from './services/apiService';
 import { cacheService } from './src/services/cacheService';
@@ -93,7 +94,9 @@ const AppContent: React.FC = () => {
       'supervisi': 'Supervisi',
       'administrasi/sarana-prasarana': 'Sarana Prasarana',
       'administrasi/dana-bos': 'Manajemen BOS',
-      'administrasi/peminjaman-buku': 'Peminjaman Buku'
+      'administrasi/peminjaman-buku': 'Peminjaman Buku',
+      'sumatif': 'Sumatif & Asesmen',
+      'sumatif/manage': 'Kelola Sumatif'
     };
 
     const title = viewTitles[currentView] || 'Sistem Akademik';
@@ -131,6 +134,7 @@ const AppContent: React.FC = () => {
   const [schoolAssets, setSchoolAssets] = useState<SchoolAsset[]>(() => cacheService.get<SchoolAsset[]>('schoolAssets') || []);
   const [bosTransactions, setBosTransactions] = useState<BOSTransaction[]>(() => cacheService.get<BOSTransaction[]>('bosTransactions') || []);
   const [bookLoans, setBookLoans] = useState<BookLoan[]>(() => cacheService.get<BookLoan[]>('bookLoans') || []);
+  const [sumatifs, setSumatifs] = useState<Sumatif[]>(() => cacheService.get<Sumatif[]>('sumatifs') || []);
   const [kktpMap, setKktpMap] = useState<Record<string, number>>({});
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error' | 'warning'} | null>(null);
   
@@ -1351,6 +1355,7 @@ const AppContent: React.FC = () => {
         apiService.getPermissionRequests(currentUser),
         apiService.getSupportDocuments(currentUser),
         apiService.getBookLoans(currentUser),
+        apiService.getSumatifs(classIdToFetch),
         apiService.getClassConfig(classIdToFetch),
       ];
 
@@ -1386,7 +1391,7 @@ const AppContent: React.FC = () => {
       const [
           fUsers, fStudents, fAgendas, fMaterials, fGrades, fCounseling, fExtracurriculars, 
           fProfiles, fHolidays, fAttendance, fSikap, fKarakter, fLinks, fReports, 
-          fLearningDocs, fLiaison, fPermissions, fSupportDocs, fBookLoans, fClassConfig, fInventory, fSchoolAssets, fBOS,
+          fLearningDocs, fLiaison, fPermissions, fSupportDocs, fBookLoans, fSumatifs, fClassConfig, fInventory, fSchoolAssets, fBOS,
           _delay // Placeholder for minDelay
       ] = results;
       
@@ -1407,6 +1412,11 @@ const AppContent: React.FC = () => {
       if (fLiaison !== null) setLiaisonLogs(Array.isArray(fLiaison) ? fLiaison as LiaisonLog[] : []);
       if (fSupportDocs !== null) setSupportDocuments(Array.isArray(fSupportDocs) ? fSupportDocs as SupportDocument[] : []);
       if (fBookLoans !== null) setBookLoans(Array.isArray(fBookLoans) ? fBookLoans as BookLoan[] : []);
+      if (fSumatifs !== null) {
+        const sumatifsData = Array.isArray(fSumatifs) ? fSumatifs as Sumatif[] : [];
+        setSumatifs(sumatifsData);
+        cacheService.set('sumatifs', sumatifsData);
+      }
       
       // Set global inventory state
       if (fInventory !== null && Array.isArray(fInventory)) {
@@ -2079,6 +2089,15 @@ const AppContent: React.FC = () => {
                             bosTransactions
                         }} 
                         onRestore={handleRestoreData} 
+                    />
+                } />
+                <Route path="/sumatif" element={
+                    <SumatifView 
+                        currentUser={currentUser} 
+                        activeClassId={activeClassId} 
+                        students={filteredStudents} 
+                        onShowNotification={handleShowNotification} 
+                        onRefresh={() => fetchData(true)}
                     />
                 } />
                 <Route path="/supervisi" element={
