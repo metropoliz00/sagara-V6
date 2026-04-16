@@ -967,47 +967,13 @@ const SumatifEditor: React.FC<{
                           <div key={optIdx} className={`space-y-3 p-4 rounded-2xl border transition-all ${
                             isCorrect ? 'bg-green-50 border-green-200 shadow-sm' : 'bg-white border-slate-100'
                           }`}>
-                            <div className="flex items-center space-x-2">
-                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold border ${
-                                isCorrect ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-200 text-slate-400'
-                              }`}>
-                                {String.fromCharCode(65 + optIdx)}
-                              </div>
-                              <input
-                                type="text"
-                                value={opt.text}
-                                onChange={e => {
-                                  const newOpts = [...(q.options || [])];
-                                  newOpts[optIdx] = { ...newOpts[optIdx], text: e.target.value };
-                                  updateQuestion(idx, { options: newOpts });
-                                }}
-                                placeholder={`Teks Opsi ${String.fromCharCode(65 + optIdx)}`}
-                                className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-sm"
-                              />
-                              <button
-                                onClick={() => {
-                                  if (q.type === 'pg') {
-                                    updateQuestion(idx, { correctAnswer: opt.id });
-                                  } else {
-                                    const current = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
-                                    const next = current.includes(opt.id) 
-                                      ? current.filter(c => c !== opt.id)
-                                      : [...current, opt.id];
-                                    updateQuestion(idx, { correctAnswer: next });
-                                  }
-                                }}
-                                className={`p-2 rounded-lg transition-colors ${
-                                  isCorrect ? 'text-green-600 bg-green-100' : 'text-slate-300 hover:text-green-500'
-                                }`}
-                                title="Set sebagai Jawaban Benar"
-                              >
-                                <CheckCircle size={20} />
-                              </button>
-                            </div>
-                            
-                            <div className="space-y-2">
+                            <div className="flex flex-col space-y-2">
                               <div className="flex items-center space-x-2">
-                                <ImageIcon size={14} className="text-slate-300" />
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold border ${
+                                  isCorrect ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-200 text-slate-400'
+                                }`}>
+                                  {String.fromCharCode(65 + optIdx)}
+                                </div>
                                 <input
                                   type="text"
                                   value={opt.imageUrl || opt.text || ''}
@@ -1022,12 +988,32 @@ const SumatifEditor: React.FC<{
                                     };
                                     updateQuestion(idx, { options: newOpts });
                                   }}
-                                  placeholder="Teks Opsi atau Link Gambar"
-                                  className="flex-1 px-3 py-1.5 rounded-lg border border-slate-100 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-[10px]"
+                                  placeholder={`Teks Opsi atau Link Gambar URL opsi ${String.fromCharCode(65 + optIdx)}`}
+                                  className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-sm"
                                 />
+                                <button
+                                  onClick={() => {
+                                    if (q.type === 'pg') {
+                                      updateQuestion(idx, { correctAnswer: opt.id });
+                                    } else {
+                                      const current = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
+                                      const next = current.includes(opt.id) 
+                                        ? current.filter(c => c !== opt.id)
+                                        : [...current, opt.id];
+                                      updateQuestion(idx, { correctAnswer: next });
+                                    }
+                                  }}
+                                  className={`p-2 shrink-0 rounded-lg transition-colors ${
+                                    isCorrect ? 'text-green-600 bg-green-100' : 'text-slate-300 hover:text-green-500'
+                                  }`}
+                                  title="Set sebagai Jawaban Benar"
+                                >
+                                  <CheckCircle size={20} />
+                                </button>
                               </div>
+                              
                               {opt.imageUrl && (
-                                <div className="w-full h-24 rounded-lg overflow-hidden border border-slate-100 bg-slate-50">
+                                <div className="ml-10 w-[calc(100%-2.5rem)] h-24 rounded-lg overflow-hidden border border-slate-100 bg-slate-50">
                                   <img 
                                     src={opt.imageUrl} 
                                     alt={`Preview ${optIdx}`} 
