@@ -537,40 +537,38 @@ const SumatifEditor: React.FC<{
       {
         No: 1,
         Pertanyaan: 'Contoh Pertanyaan Pilihan Ganda',
-        Tipe: 'pg',
+        Tipe: 'PG',
         Bobot: 1,
         Opsi_A: 'Pilihan A',
         Opsi_B: 'Pilihan B',
         Opsi_C: 'Pilihan C',
         Opsi_D: 'Pilihan D',
-        Jawaban_Benar: 'Pilihan A',
+        Jawaban_Benar: 'A',
         Gambar_URL: '',
         Keterangan_Gambar: ''
       },
       {
         No: 2,
         Pertanyaan: 'Contoh Pertanyaan Pilihan Ganda Kompleks',
-        Tipe: 'pgk',
+        Tipe: 'PGK',
         Bobot: 1,
         Opsi_A: 'Pilihan A',
         Opsi_B: 'Pilihan B',
         Opsi_C: 'Pilihan C',
         Opsi_D: 'Pilihan D',
-        Jawaban_Benar: 'Pilihan A, Pilihan B',
+        Jawaban_Benar: 'A, B',
         Gambar_URL: '',
         Keterangan_Gambar: ''
       },
       {
         No: 3,
         Pertanyaan: 'Contoh Pertanyaan Benar Salah',
-        Tipe: 'bs',
+        Tipe: 'BS',
         Bobot: 1,
         Pernyataan_1: 'Pernyataan 1',
-        Jawaban_1: 'Benar',
         Pernyataan_2: 'Pernyataan 2',
-        Jawaban_2: 'Salah',
         Pernyataan_3: 'Pernyataan 3',
-        Jawaban_3: 'Benar',
+        Jawaban_Benar: 'B, S, B',
         Gambar_URL: '',
         Keterangan_Gambar: ''
       }
@@ -596,7 +594,8 @@ const SumatifEditor: React.FC<{
         const data = XLSX.utils.sheet_to_json(ws) as any[];
 
         const newQuestions: Question[] = data.map((row) => {
-          const type = (row.Tipe || 'pg').toLowerCase() as QuestionType;
+          const rawType = String(row.Tipe || 'PG').trim().toUpperCase();
+          const type = (rawType === 'PGK' ? 'pgk' : rawType === 'BS' ? 'bs' : 'pg') as QuestionType;
           const q: Question = {
             id: Math.random().toString(36).substr(2, 9),
             text: row.Pertanyaan || '',
@@ -610,29 +609,48 @@ const SumatifEditor: React.FC<{
           };
 
           if (type === 'pg' || type === 'pgk') {
-            q.options = [row.Opsi_A, row.Opsi_B, row.Opsi_C, row.Opsi_D].map(o => o || '');
+            const rawOptions = [row.Opsi_A, row.Opsi_B, row.Opsi_C, row.Opsi_D].map(o => String(o || '').trim());
+            q.options = rawOptions.map(opt => {
+               const isUrl = opt.startsWith('http://') || opt.startsWith('https://');
+               return {
+                 id: Math.random().toString(36).substr(2, 9),
+                 text: isUrl ? '' : opt,
+                 imageUrl: isUrl ? opt : ''
+               };
+            });
             
-            const mapAnsToIdx = (ans: any) => {
+            const mapAnsToId = (ans: any) => {
               if (!ans) return '';
               const a = String(ans).trim().toUpperCase();
-              if (a === 'A') return 0;
-              if (a === 'B') return 1;
-              if (a === 'C') return 2;
-              if (a === 'D') return 3;
-              return ans;
+              if (a === 'A') return q.options![0]?.id;
+              if (a === 'B') return q.options![1]?.id;
+              if (a === 'C') return q.options![2]?.id;
+              if (a === 'D') return q.options![3]?.id;
+              
+              // Fallback to text match
+              const found = q.options!.find(o => o.text && o.text.toUpperCase() === a);
+              return found ? found.id : '';
             };
 
             if (type === 'pg') {
-              q.correctAnswer = mapAnsToIdx(row.Jawaban_Benar);
+              q.correctAnswer = mapAnsToId(row.Jawaban_Benar) || "";
             } else {
-              q.correctAnswer = String(row.Jawaban_Benar || '').split(',').map(s => mapAnsToIdx(s.trim()));
+              q.correctAnswer = String(row.Jawaban_Benar || '').split(',').map(s => mapAnsToId(s)).filter(id => id);
             }
           } else if (type === 'bs') {
+            const bsAnswers = String(row.Jawaban_Benar || '').split(',').map(s => s.trim().toUpperCase());
+            const getBsAns = (idx: number) => {
+              const val = bsAnswers[idx];
+              if (val === 'B') return 'Benar';
+              if (val === 'S') return 'Salah';
+              return 'Benar'; // Default
+            };
+
             q.subQuestions = [
-              { id: 'sq1', text: row.Pernyataan_1 || '', correctAnswer: (row.Jawaban_1 || 'Benar') as any },
-              { id: 'sq2', text: row.Pernyataan_2 || '', correctAnswer: (row.Jawaban_2 || 'Benar') as any },
-              { id: 'sq3', text: row.Pernyataan_3 || '', correctAnswer: (row.Jawaban_3 || 'Benar') as any }
-            ];
+              { id: 'sq1', text: row.Pernyataan_1 || '', correctAnswer: getBsAns(0) as any },
+              { id: 'sq2', text: row.Pernyataan_2 || '', correctAnswer: getBsAns(1) as any },
+              { id: 'sq3', text: row.Pernyataan_3 || '', correctAnswer: getBsAns(2) as any }
+            ].filter(sq => sq.text.trim() !== ''); // Hanya ambil pernyataan yang ada isinya
           }
 
           return q;
