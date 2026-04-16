@@ -18,22 +18,45 @@ const checkCorrect = (q: Question, studentAnswer: any) => {
   if (studentAnswer === undefined || studentAnswer === null) return false;
   
   if (q.type === 'pg') {
-    const sAns = studentAnswer; // Now contains option id (string)
-    const cAns = q.correctAnswer;
+    const sAns = String(studentAnswer).trim();
+    const cAns = String(q.correctAnswer || '').trim();
     
-    // Find option text from ID if necessary
-    const sAnsText = q.options?.find(o => o.id === sAns)?.text || sAns;
-    const cAnsText = q.options?.find(o => o.id === cAns)?.text || cAns;
+    if (!sAns || !cAns) return false;
+    
+    // If exact ID match
+    if (sAns === cAns) return true;
+    
+    // Fallback for legacy data checking text
+    const sOpt = q.options?.find(o => o.id === sAns);
+    const cOpt = q.options?.find(o => o.id === cAns);
+    
+    // If BOTH are valid existing options from the current question but IDs didn't match, they chose the wrong option.
+    // Do NOT fall back to text comparison because that could falsely pass or fail if options have identical texts or empty texts.
+    if (sOpt && cOpt) return false;
+    
+    const sAnsText = sOpt?.text || sAns;
+    const cAnsText = cOpt?.text || cAns;
     
     return String(sAnsText).trim().toLowerCase() === String(cAnsText).trim().toLowerCase();
   } else if (q.type === 'pgk') {
-    const sOnes = Array.isArray(studentAnswer) ? studentAnswer : []; // Array of IDs
-    const cOnes = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
+    const sOnes = Array.isArray(studentAnswer) ? studentAnswer.map(s => String(s).trim()) : [];
+    const cOnes = Array.isArray(q.correctAnswer) ? q.correctAnswer.map(c => String(c).trim()) : [];
     
     if (cOnes.length === 0) return false;
     if (sOnes.length !== cOnes.length) return false;
     
-    // Normalize both to text for reliable comparison
+    // Exact IDs match check
+    const sSorted = [...sOnes].sort();
+    const cSorted = [...cOnes].sort();
+    if (sSorted.every((val, index) => val === cSorted[index])) return true;
+    
+    // Fallback for legacy data checking text
+    const allSFound = sOnes.every(s => q.options?.some(o => o.id === s));
+    const allCFound = cOnes.every(c => q.options?.some(o => o.id === c));
+    
+    if (allSFound && allCFound) return false; // Both are modern IDs but mismatched
+
+    // Normalize both to text for legacy reliable comparison
     const sTexts = sOnes.map(s => {
       const val = q.options?.find(o => o.id === s)?.text || s;
       return String(val || '').trim().toLowerCase();
