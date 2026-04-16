@@ -9,7 +9,7 @@ import {
   Edit, Save, Loader2, PlusCircle, History, MessageSquare,
   ClipboardList, Bell, Activity, Sparkles, GraduationCap, ChevronDown,
   Camera, ChevronLeft, ChevronRight,
-  Sun, Moon, CloudSun, Sunset
+  Sun, Moon, CloudSun, Sunset, Menu
 } from 'lucide-react';
 import { apiService } from '../services/apiService';
 import { useModal } from '../context/ModalContext';
@@ -40,6 +40,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
   onSaveLiaison, onSavePermission, onSaveKarakter, onUpdateStudent, learningDocumentation = [], bookLoans = [], materials = []
 }) => {
   const [activeTab, setActiveTab] = useState<PortalTab>('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [viewingMaterialLink, setViewingMaterialLink] = useState<string | null>(null);
   const { showAlert } = useModal();
   
@@ -557,11 +558,16 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-[#5AB2FF] to-[#A0DEFF] z-0"></div>
           
           <div className="relative z-10 flex flex-col md:flex-row justify-center md:justify-between items-center mb-6 gap-4">
-            <div className="flex items-center space-x-3 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-xl shadow-sm border border-gray-100">
-                <Calendar size={24} className="text-[#5AB2FF] shrink-0" />
-                <div>
-                    <p className="text-lg font-bold text-gray-800 tabular-nums tracking-wider">{formattedTime}</p>
-                    <p className="text-xs font-medium text-gray-500 capitalize">{formattedDate}</p>
+            <div className="flex items-center gap-2">
+                <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-white/20 rounded-lg hover:bg-white/40 text-white">
+                    <Menu size={24} />
+                </button>
+                <div className="flex items-center space-x-3 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-xl shadow-sm border border-gray-100">
+                    <Calendar size={24} className="text-[#5AB2FF] shrink-0" />
+                    <div>
+                        <p className="text-lg font-bold text-gray-800 tabular-nums tracking-wider">{formattedTime}</p>
+                        <p className="text-xs font-medium text-gray-500 capitalize">{formattedDate}</p>
+                    </div>
                 </div>
             </div>
             
@@ -628,27 +634,42 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           </div>
       </div>
 
-      {/* 2. STICKY NAVIGATION */}
-      <div className="sticky top-0 z-30 bg-gray-50/95 backdrop-blur-md py-2 -mx-4 px-4 border-b border-gray-200 shadow-sm overflow-x-auto no-scrollbar">
-        <div className="flex gap-2 min-w-max pb-1">
-            {TABS.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-                return (
-                    <button 
-                        key={tab.id}
-                        onClick={() => handleTabChange(tab.id as PortalTab)} 
-                        className={`flex items-center px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap border ${
-                            isActive 
-                            ? 'bg-[#5AB2FF] text-white border-[#5AB2FF] shadow-md' 
-                            : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-100'
-                        }`}
-                    >
-                        <Icon size={16} className="mr-2"/> {tab.label}
-                    </button>
-                )
-            })}
-        </div>
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+          <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setIsSidebarOpen(false)} />
+      )}
+
+      {/* Sidebar Navigation */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r shadow-2xl transform transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="p-6 border-b flex justify-between items-center">
+              <h2 className="font-bold text-lg text-slate-700">Menu Siswa</h2>
+              <button onClick={() => setIsSidebarOpen(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                  <X size={20}/>
+              </button>
+          </div>
+          <div className="p-2 space-y-1">
+              {TABS.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                      <button 
+                          key={tab.id}
+                          onClick={() => { 
+                            setActiveTab(tab.id as PortalTab); 
+                            setViewingMaterialLink(null);
+                            setIsSidebarOpen(false); 
+                          }} 
+                          className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                              isActive 
+                              ? 'bg-[#5AB2FF] text-white shadow-md' 
+                              : 'text-gray-600 hover:bg-gray-100'
+                          }`}
+                      >
+                          <Icon size={20} className="mr-3"/> {tab.label}
+                      </button>
+                  )
+              })}
+          </div>
       </div>
 
       {/* 3. MAIN CONTENT */}
