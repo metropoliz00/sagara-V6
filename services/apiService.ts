@@ -1323,6 +1323,7 @@ export const apiService = {
       startTime: s.start_time,
       endTime: s.end_time,
       isActive: s.is_active,
+      token: s.token,
       createdAt: s.created_at
     }));
   },
@@ -1336,6 +1337,7 @@ export const apiService = {
       start_time: sumatif.startTime,
       end_time: sumatif.endTime,
       is_active: sumatif.isActive,
+      token: sumatif.token,
       questions: sumatif.questions
     };
 

@@ -2,13 +2,15 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, Play, Pause, Eye, CheckCircle, XCircle, 
   Clock, BookOpen, AlertCircle, Save, ChevronLeft, ChevronRight,
-  HelpCircle, Check, X, ListFilter
+  HelpCircle, Check, X, ListFilter, User as UserIcon, LogIn, Monitor,
+  Maximize2, Minimize2, Type, ArrowLeft, ArrowRight, Flag
 } from 'lucide-react';
 import { Sumatif, Question, QuestionType, User, Student, Subject, SumatifResult } from '../types';
 import { apiService } from '../services/apiService';
 import { MOCK_SUBJECTS } from '../constants';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SumatifViewProps {
   currentUser: User | null;
@@ -29,6 +31,7 @@ const SumatifView: React.FC<SumatifViewProps> = ({
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isTaking, setIsTaking] = useState(false);
+  const [isEnteringToken, setIsEnteringToken] = useState(false);
   const [currentSumatif, setCurrentSumatif] = useState<Sumatif | null>(null);
   const [viewingResults, setViewingResults] = useState<Sumatif | null>(null);
   const [results, setResults] = useState<SumatifResult[]>([]);
@@ -144,11 +147,28 @@ const SumatifView: React.FC<SumatifViewProps> = ({
     );
   }
 
-  if (isTaking && currentSumatif && currentUser?.studentId) {
+  if (isEnteringToken && currentSumatif && isStudent) {
+    const student = students[0]; // In student portal, students array has only the current student
+    return (
+      <SumatifTokenEntry 
+        sumatif={currentSumatif}
+        student={student}
+        onConfirm={() => {
+          setIsEnteringToken(false);
+          setIsTaking(true);
+        }}
+        onCancel={() => setIsEnteringToken(false)}
+      />
+    );
+  }
+
+  if (isTaking && currentSumatif && (currentUser?.studentId || isStudent)) {
+    const studentId = currentUser?.studentId || (isStudent ? students[0]?.id : '');
     return (
       <SumatifTaking 
         sumatif={currentSumatif} 
-        studentId={currentUser.studentId}
+        studentId={studentId}
+        studentName={currentUser?.fullName || students[0]?.name || ''}
         onComplete={() => {
           setIsTaking(false);
           fetchSumatifs();
@@ -283,7 +303,11 @@ const SumatifView: React.FC<SumatifViewProps> = ({
                     disabled={!s.isActive}
                     onClick={() => {
                       setCurrentSumatif(s);
-                      setIsTaking(true);
+                      if (s.token) {
+                        setIsEnteringToken(true);
+                      } else {
+                        setIsTaking(true);
+                      }
                     }}
                     className={`w-full py-2.5 rounded-xl font-bold transition-all flex items-center justify-center space-x-2 ${
                       s.isActive 
@@ -426,6 +450,16 @@ const SumatifEditor: React.FC<{
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] focus:border-transparent outline-none transition-all"
                 />
               </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">Token Ujian (Opsional)</label>
+                <input
+                  type="text"
+                  value={formData.token || ''}
+                  onChange={e => setFormData({ ...formData, token: e.target.value.toUpperCase() })}
+                  placeholder="Contoh: ABCDEF"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] focus:border-transparent outline-none transition-all"
+                />
+              </div>
             </div>
           </div>
         ) : (
@@ -548,17 +582,124 @@ const SumatifEditor: React.FC<{
   );
 };
 
+// --- TOKEN ENTRY COMPONENT ---
+const SumatifTokenEntry: React.FC<{
+  sumatif: Sumatif,
+  student: Student,
+  onConfirm: () => void,
+  onCancel: () => void
+}> = ({ sumatif, student, onConfirm, onCancel }) => {
+  const [token, setToken] = useState('');
+  const [error, setError] = useState('');
+
+  const handleConfirm = () => {
+    if (token.toUpperCase() === sumatif.token?.toUpperCase()) {
+      onConfirm();
+    } else {
+      setError('Token yang Anda masukkan salah.');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-100 flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+        {/* Left Side: Info */}
+        <div className="bg-[#5AB2FF] p-8 md:w-1/3 text-white flex flex-col justify-between">
+          <div>
+            <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
+              <Monitor size={32} />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Konfirmasi Data Peserta</h2>
+            <p className="text-blue-50 text-sm">Silakan periksa data Anda sebelum memulai ujian.</p>
+          </div>
+          <div className="mt-8 space-y-4">
+            <div className="flex items-center space-x-3">
+              <UserIcon size={20} className="text-blue-200" />
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-blue-200 font-bold">Nama Peserta</p>
+                <p className="font-bold">{student.name}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <LogIn size={20} className="text-blue-200" />
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-blue-200 font-bold">NIS / Username</p>
+                <p className="font-bold">{student.nis}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Token Input */}
+        <div className="p-8 md:w-2/3 bg-white">
+          <div className="mb-8">
+            <h3 className="text-xl font-bold text-slate-800 mb-4">Detail Ujian</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-slate-50 rounded-2xl">
+                <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Mata Pelajaran</p>
+                <p className="font-bold text-slate-700">{MOCK_SUBJECTS.find(s => s.id === sumatif.subjectId)?.name}</p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-2xl">
+                <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Waktu</p>
+                <p className="font-bold text-slate-700">{sumatif.duration} Menit</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Masukkan Token</label>
+              <input
+                type="text"
+                value={token}
+                onChange={e => {
+                  setToken(e.target.value.toUpperCase());
+                  setError('');
+                }}
+                placeholder="TOKEN"
+                className={`w-full px-6 py-4 text-2xl font-mono font-bold tracking-[0.5em] text-center rounded-2xl border-2 transition-all outline-none ${
+                  error ? 'border-red-200 bg-red-50 text-red-600' : 'border-slate-100 bg-slate-50 focus:border-[#5AB2FF] focus:bg-white'
+                }`}
+              />
+              {error && <p className="text-red-500 text-xs mt-2 font-bold flex items-center"><AlertCircle size={14} className="mr-1" /> {error}</p>}
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <button
+                onClick={onCancel}
+                className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleConfirm}
+                className="flex-[2] py-4 bg-[#5AB2FF] text-white rounded-2xl font-bold hover:bg-[#4A9FE6] shadow-lg shadow-blue-200 transition-all flex items-center justify-center space-x-2"
+              >
+                <Play size={20} />
+                <span>Mulai Ujian</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- TAKING COMPONENT ---
 const SumatifTaking: React.FC<{
   sumatif: Sumatif,
   studentId: string,
+  studentName: string,
   onComplete: () => void,
   onCancel: () => void
-}> = ({ sumatif, studentId, onComplete, onCancel }) => {
+}> = ({ sumatif, studentId, studentName, onComplete, onCancel }) => {
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [timeLeft, setTimeLeft] = useState(sumatif.duration * 60);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
+  const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -585,11 +726,19 @@ const SumatifTaking: React.FC<{
     setAnswers(prev => ({ ...prev, [questionId]: answer }));
   };
 
+  const toggleFlag = (questionId: string) => {
+    setFlaggedQuestions(prev => {
+      const next = new Set(prev);
+      if (next.has(questionId)) next.delete(questionId);
+      else next.add(questionId);
+      return next;
+    });
+  };
+
   const handleSubmit = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    // Calculate score
     let totalPoints = 0;
     let earnedPoints = 0;
 
@@ -626,192 +775,271 @@ const SumatifTaking: React.FC<{
   };
 
   const currentQuestion = sumatif.questions[currentQuestionIdx];
+  const isLastQuestion = currentQuestionIdx === sumatif.questions.length - 1;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-50 flex flex-col">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm">
+    <div className="fixed inset-0 z-50 bg-[#F0F4F8] flex flex-col font-sans">
+      {/* CBT Header */}
+      <div className="bg-[#5AB2FF] text-white px-6 py-3 flex items-center justify-between shadow-lg z-10">
         <div className="flex items-center space-x-4">
-          <div className="w-10 h-10 bg-[#5AB2FF] rounded-xl flex items-center justify-center text-white">
-            <BookOpen size={20} />
+          <div className="bg-white p-1.5 rounded-lg">
+            <Monitor size={24} className="text-[#5AB2FF]" />
           </div>
           <div>
-            <h2 className="font-bold text-slate-800 line-clamp-1">{sumatif.title}</h2>
-            <p className="text-xs text-slate-500">Soal {currentQuestionIdx + 1} dari {sumatif.questions.length}</p>
+            <h1 className="font-black text-lg leading-tight uppercase tracking-tight">CBT - {sumatif.title}</h1>
+            <p className="text-[10px] font-bold opacity-80 uppercase tracking-widest">{MOCK_SUBJECTS.find(s => s.id === sumatif.subjectId)?.name}</p>
           </div>
         </div>
-        <div className="flex items-center space-x-6">
-          <div className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-mono font-bold ${
-            timeLeft < 300 ? 'bg-red-50 text-red-600 animate-pulse' : 'bg-slate-100 text-slate-700'
-          }`}>
-            <Clock size={18} />
-            <span>{formatTime(timeLeft)}</span>
+
+        <div className="flex items-center space-x-8">
+          <div className="hidden md:flex flex-col items-end">
+            <p className="text-[10px] font-bold opacity-70 uppercase">Nama Peserta</p>
+            <p className="font-bold text-sm">{studentName}</p>
           </div>
+          
+          <div className="flex items-center bg-white/20 px-4 py-2 rounded-xl backdrop-blur-sm border border-white/10">
+            <Clock size={18} className="mr-2" />
+            <span className="font-mono font-black text-xl">{formatTime(timeLeft)}</span>
+          </div>
+
           <button
             onClick={() => {
               if (window.confirm('Apakah Anda yakin ingin mengakhiri ujian?')) {
                 handleSubmit();
               }
             }}
-            className="px-6 py-2 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all shadow-md"
+            className="bg-white text-[#5AB2FF] px-6 py-2 rounded-xl font-black text-sm uppercase tracking-wider hover:bg-blue-50 transition-all shadow-md active:scale-95"
           >
             Selesai
           </button>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto p-6 md:p-12">
-        <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Question Area */}
-          <div className="lg:col-span-3 space-y-8">
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 min-h-[400px] flex flex-col">
-              <div className="text-lg font-medium text-slate-800 mb-8 leading-relaxed">
-                {currentQuestion.text}
+      {/* Main CBT Layout */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left: Question Area */}
+        <div className="flex-1 flex flex-col overflow-y-auto p-4 md:p-8">
+          <div className="max-w-4xl w-full mx-auto space-y-6">
+            {/* Question Card */}
+            <div className="bg-white rounded-2xl shadow-xl shadow-blue-900/5 border border-slate-200 overflow-hidden min-h-[500px] flex flex-col">
+              {/* Question Header */}
+              <div className="bg-slate-50 px-8 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <span className="bg-[#5AB2FF] text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg shadow-md">
+                    {currentQuestionIdx + 1}
+                  </span>
+                  <span className="text-slate-400 font-bold text-sm uppercase tracking-widest">Pertanyaan</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button 
+                    onClick={() => setFontSize('sm')}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold transition-all ${fontSize === 'sm' ? 'bg-[#5AB2FF] text-white' : 'bg-white text-slate-400 border border-slate-200 hover:border-[#5AB2FF]'}`}
+                  >
+                    A
+                  </button>
+                  <button 
+                    onClick={() => setFontSize('md')}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold transition-all ${fontSize === 'md' ? 'bg-[#5AB2FF] text-white' : 'bg-white text-slate-400 border border-slate-200 hover:border-[#5AB2FF]'}`}
+                  >
+                    A
+                  </button>
+                  <button 
+                    onClick={() => setFontSize('lg')}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold transition-all ${fontSize === 'lg' ? 'bg-[#5AB2FF] text-white' : 'bg-white text-slate-400 border border-slate-200 hover:border-[#5AB2FF]'}`}
+                  >
+                    A
+                  </button>
+                </div>
               </div>
 
-              <div className="space-y-4 mt-auto">
-                {currentQuestion.type === 'pg' && (currentQuestion.options || []).map((opt, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleAnswer(currentQuestion.id, opt)}
-                    className={`w-full p-4 rounded-2xl border-2 text-left transition-all flex items-center space-x-4 group ${
-                      answers[currentQuestion.id] === opt
-                        ? 'border-[#5AB2FF] bg-blue-50/50'
-                        : 'border-slate-100 hover:border-slate-200 bg-slate-50/30'
-                    }`}
-                  >
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold transition-all ${
-                      answers[currentQuestion.id] === opt
-                        ? 'bg-[#5AB2FF] text-white'
-                        : 'bg-white text-slate-400 group-hover:text-slate-600'
-                    }`}>
-                      {String.fromCharCode(65 + idx)}
-                    </div>
-                    <span className={`font-medium ${answers[currentQuestion.id] === opt ? 'text-slate-800' : 'text-slate-600'}`}>
-                      {opt}
-                    </span>
-                  </button>
-                ))}
+              {/* Question Content */}
+              <div className="p-8 flex-1">
+                <div className={`text-slate-800 font-medium leading-relaxed mb-10 ${
+                  fontSize === 'sm' ? 'text-base' : fontSize === 'md' ? 'text-xl' : 'text-2xl'
+                }`}>
+                  {currentQuestion.text}
+                </div>
 
-                {currentQuestion.type === 'pgk' && (currentQuestion.options || []).map((opt, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      const current = answers[currentQuestion.id] || [];
-                      const next = current.includes(opt)
-                        ? current.filter((c: string) => c !== opt)
-                        : [...current, opt];
-                      handleAnswer(currentQuestion.id, next);
-                    }}
-                    className={`w-full p-4 rounded-2xl border-2 text-left transition-all flex items-center space-x-4 group ${
-                      (answers[currentQuestion.id] || []).includes(opt)
-                        ? 'border-[#5AB2FF] bg-blue-50/50'
-                        : 'border-slate-100 hover:border-slate-200 bg-slate-50/30'
-                    }`}
-                  >
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold transition-all ${
-                      (answers[currentQuestion.id] || []).includes(opt)
-                        ? 'bg-[#5AB2FF] text-white'
-                        : 'bg-white text-slate-400 group-hover:text-slate-600'
-                    }`}>
-                      <div className={`w-5 h-5 border-2 rounded flex items-center justify-center ${
-                        (answers[currentQuestion.id] || []).includes(opt) ? 'border-white' : 'border-slate-300'
+                <div className="space-y-4">
+                  {(currentQuestion.type === 'pg' || currentQuestion.type === 'bs') && (currentQuestion.options || []).map((opt, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleAnswer(currentQuestion.id, opt)}
+                      className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center space-x-4 group relative overflow-hidden ${
+                        answers[currentQuestion.id] === opt
+                          ? 'border-[#5AB2FF] bg-blue-50/50'
+                          : 'border-slate-100 hover:border-[#5AB2FF]/30 bg-white'
+                      }`}
+                    >
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black transition-all z-10 ${
+                        answers[currentQuestion.id] === opt
+                          ? 'bg-[#5AB2FF] text-white shadow-lg'
+                          : 'bg-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-[#5AB2FF]'
                       }`}>
-                        {(answers[currentQuestion.id] || []).includes(opt) && <Check size={14} />}
+                        {String.fromCharCode(65 + idx)}
                       </div>
-                    </div>
-                    <span className={`font-medium ${(answers[currentQuestion.id] || []).includes(opt) ? 'text-slate-800' : 'text-slate-600'}`}>
-                      {opt}
-                    </span>
-                  </button>
-                ))}
-
-                {currentQuestion.type === 'bs' && (
-                  <div className="grid grid-cols-2 gap-6">
-                    {['Benar', 'Salah'].map(opt => (
-                      <button
-                        key={opt}
-                        onClick={() => handleAnswer(currentQuestion.id, opt)}
-                        className={`p-8 rounded-3xl border-2 text-center transition-all flex flex-col items-center space-y-4 ${
-                          answers[currentQuestion.id] === opt
-                            ? 'border-[#5AB2FF] bg-blue-50/50'
-                            : 'border-slate-100 hover:border-slate-200 bg-slate-50/30'
-                        }`}
-                      >
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                          answers[currentQuestion.id] === opt
-                            ? 'bg-[#5AB2FF] text-white'
-                            : 'bg-white text-slate-200'
-                        }`}>
-                          {opt === 'Benar' ? <CheckCircle size={40} /> : <XCircle size={40} />}
+                      <span className={`font-bold z-10 flex-1 ${
+                        answers[currentQuestion.id] === opt ? 'text-slate-800' : 'text-slate-600'
+                      } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
+                        {opt}
+                      </span>
+                      {answers[currentQuestion.id] === opt && (
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5AB2FF]">
+                          <CheckCircle size={24} />
                         </div>
-                        <span className={`text-xl font-bold ${answers[currentQuestion.id] === opt ? 'text-slate-800' : 'text-slate-400'}`}>
-                          {opt}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                      )}
+                    </button>
+                  ))}
+
+                  {currentQuestion.type === 'pgk' && (currentQuestion.options || []).map((opt, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        const current = answers[currentQuestion.id] || [];
+                        const next = current.includes(opt)
+                          ? current.filter((c: string) => c !== opt)
+                          : [...current, opt];
+                        handleAnswer(currentQuestion.id, next);
+                      }}
+                      className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center space-x-4 group relative overflow-hidden ${
+                        (answers[currentQuestion.id] || []).includes(opt)
+                          ? 'border-[#5AB2FF] bg-blue-50/50'
+                          : 'border-slate-100 hover:border-[#5AB2FF]/30 bg-white'
+                      }`}
+                    >
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black transition-all z-10 ${
+                        (answers[currentQuestion.id] || []).includes(opt)
+                          ? 'bg-[#5AB2FF] text-white shadow-lg'
+                          : 'bg-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-[#5AB2FF]'
+                      }`}>
+                        <div className={`w-5 h-5 border-2 rounded flex items-center justify-center ${
+                          (answers[currentQuestion.id] || []).includes(opt) ? 'border-white' : 'border-slate-300'
+                        }`}>
+                          {(answers[currentQuestion.id] || []).includes(opt) && <Check size={14} />}
+                        </div>
+                      </div>
+                      <span className={`font-bold z-10 flex-1 ${
+                        (answers[currentQuestion.id] || []).includes(opt) ? 'text-slate-800' : 'text-slate-600'
+                      } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
+                        {opt}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            {/* CBT Footer Controls */}
+            <div className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-lg border border-slate-200">
               <button
                 disabled={currentQuestionIdx === 0}
                 onClick={() => setCurrentQuestionIdx(prev => prev - 1)}
-                className="flex items-center space-x-2 px-6 py-3 rounded-2xl font-bold text-slate-600 hover:bg-white transition-all disabled:opacity-30"
+                className="flex items-center space-x-2 px-6 py-3 rounded-xl font-black text-slate-500 hover:bg-slate-50 transition-all disabled:opacity-30 uppercase text-sm tracking-widest"
               >
-                <ChevronLeft size={20} />
+                <ArrowLeft size={20} />
                 <span>Sebelumnya</span>
               </button>
+
               <button
-                disabled={currentQuestionIdx === sumatif.questions.length - 1}
-                onClick={() => setCurrentQuestionIdx(prev => prev + 1)}
-                className="flex items-center space-x-2 px-6 py-3 rounded-2xl font-bold text-slate-600 hover:bg-white transition-all disabled:opacity-30"
+                onClick={() => toggleFlag(currentQuestion.id)}
+                className={`flex items-center space-x-2 px-8 py-3 rounded-xl font-black transition-all uppercase text-sm tracking-widest border-2 ${
+                  flaggedQuestions.has(currentQuestion.id)
+                    ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-200'
+                    : 'bg-white border-amber-500 text-amber-500 hover:bg-amber-50'
+                }`}
               >
-                <span>Selanjutnya</span>
-                <ChevronRight size={20} />
+                <Flag size={20} fill={flaggedQuestions.has(currentQuestion.id) ? 'currentColor' : 'none'} />
+                <span>Ragu-Ragu</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  if (isLastQuestion) {
+                    if (window.confirm('Apakah Anda yakin ingin mengakhiri ujian?')) {
+                      handleSubmit();
+                    }
+                  } else {
+                    setCurrentQuestionIdx(prev => prev + 1);
+                  }
+                }}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-black text-white transition-all uppercase text-sm tracking-widest shadow-lg ${
+                  isLastQuestion ? 'bg-green-500 hover:bg-green-600 shadow-green-200' : 'bg-[#5AB2FF] hover:bg-[#4A9FE6] shadow-blue-200'
+                }`}
+              >
+                <span>{isLastQuestion ? 'Selesai' : 'Berikutnya'}</span>
+                <ArrowRight size={20} />
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Navigation Grid */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-              <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center">
-                <ListFilter size={16} className="mr-2 text-[#5AB2FF]" />
-                Navigasi Soal
-              </h3>
-              <div className="grid grid-cols-4 gap-2">
-                {sumatif.questions.map((q, idx) => (
-                  <button
-                    key={q.id}
-                    onClick={() => setCurrentQuestionIdx(idx)}
-                    className={`w-full aspect-square rounded-xl flex items-center justify-center text-sm font-bold transition-all ${
-                      currentQuestionIdx === idx
-                        ? 'bg-[#5AB2FF] text-white shadow-md ring-4 ring-blue-100'
+        {/* Right: Navigation Grid */}
+        <div className="w-80 bg-white border-l border-slate-200 flex flex-col shadow-2xl z-10">
+          <div className="p-6 border-b border-slate-100 bg-slate-50">
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Navigasi Soal</h3>
+            <div className="grid grid-cols-5 gap-2">
+              {sumatif.questions.map((q, idx) => (
+                <button
+                  key={q.id}
+                  onClick={() => setCurrentQuestionIdx(idx)}
+                  className={`w-full aspect-square rounded-lg flex items-center justify-center text-xs font-black transition-all relative ${
+                    currentQuestionIdx === idx
+                      ? 'bg-[#5AB2FF] text-white shadow-lg ring-4 ring-blue-100 scale-110 z-10'
+                      : flaggedQuestions.has(q.id)
+                        ? 'bg-amber-500 text-white'
                         : answers[q.id]
-                          ? 'bg-green-100 text-green-600'
-                          : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
-                    }`}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
+                          ? 'bg-green-500 text-white'
+                          : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                  }`}
+                >
+                  {idx + 1}
+                  {flaggedQuestions.has(q.id) && !answers[q.id] && (
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-6 flex-1 overflow-y-auto space-y-6">
+            <div>
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Keterangan</h4>
+              <div className="space-y-2">
+                <div className="flex items-center text-[10px] font-bold text-slate-500 uppercase">
+                  <div className="w-4 h-4 bg-[#5AB2FF] rounded mr-3 shadow-sm"></div>
+                  <span>Posisi Sekarang</span>
+                </div>
+                <div className="flex items-center text-[10px] font-bold text-slate-500 uppercase">
+                  <div className="w-4 h-4 bg-green-500 rounded mr-3 shadow-sm"></div>
+                  <span>Sudah Terjawab</span>
+                </div>
+                <div className="flex items-center text-[10px] font-bold text-slate-500 uppercase">
+                  <div className="w-4 h-4 bg-amber-500 rounded mr-3 shadow-sm"></div>
+                  <span>Ragu-Ragu</span>
+                </div>
+                <div className="flex items-center text-[10px] font-bold text-slate-500 uppercase">
+                  <div className="w-4 h-4 bg-slate-100 rounded mr-3"></div>
+                  <span>Belum Terjawab</span>
+                </div>
               </div>
-              <div className="mt-6 pt-6 border-t border-slate-50 space-y-3">
-                <div className="flex items-center text-xs text-slate-400">
-                  <div className="w-3 h-3 bg-[#5AB2FF] rounded-sm mr-2"></div>
-                  <span>Sedang Dikerjakan</span>
+            </div>
+
+            <div className="pt-6 border-t border-slate-100">
+              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <p className="text-[10px] font-black text-blue-400 uppercase mb-1">Progress</p>
+                <div className="flex items-end justify-between mb-2">
+                  <span className="text-2xl font-black text-[#5AB2FF]">
+                    {Math.round((Object.keys(answers).length / sumatif.questions.length) * 100)}%
+                  </span>
+                  <span className="text-[10px] font-bold text-blue-400">
+                    {Object.keys(answers).length}/{sumatif.questions.length} Soal
+                  </span>
                 </div>
-                <div className="flex items-center text-xs text-slate-400">
-                  <div className="w-3 h-3 bg-green-100 rounded-sm mr-2"></div>
-                  <span>Sudah Dijawab</span>
-                </div>
-                <div className="flex items-center text-xs text-slate-400">
-                  <div className="w-3 h-3 bg-slate-50 rounded-sm mr-2"></div>
-                  <span>Belum Dijawab</span>
+                <div className="w-full h-2 bg-white rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-[#5AB2FF] transition-all duration-500"
+                    style={{ width: `${(Object.keys(answers).length / sumatif.questions.length) * 100}%` }}
+                  ></div>
                 </div>
               </div>
             </div>

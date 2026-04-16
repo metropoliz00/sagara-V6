@@ -481,6 +481,7 @@ CREATE TABLE sumatifs (
   start_time TIMESTAMPTZ,
   end_time TIMESTAMPTZ,
   is_active BOOLEAN DEFAULT FALSE,
+  token TEXT,
   questions JSONB DEFAULT '[]',
   created_at TIMESTAMPTZ DEFAULT now()
 );

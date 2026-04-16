@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { apiService } from '../services/apiService';
 import { useModal } from '../context/ModalContext';
+import SumatifView from './SumatifView';
 
 interface StudentPortalProps {
   student: Student;
@@ -32,7 +33,7 @@ interface StudentPortalProps {
   materials?: Material[];
 }
 
-type PortalTab = 'dashboard' | 'attendance' | 'liaison' | 'profile' | 'character' | 'materi';
+type PortalTab = 'dashboard' | 'attendance' | 'liaison' | 'profile' | 'character' | 'materi' | 'sumatif';
 
 const StudentPortal: React.FC<StudentPortalProps> = ({
   student, allAttendance, grades, liaisonLogs, agendas, behaviorLogs, permissionRequests, karakterAssessments,
@@ -521,6 +522,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
     { id: 'dashboard', label: 'Ringkasan', icon: LayoutDashboard },
     { id: 'attendance', label: 'Izin & Absensi', icon: Calendar },
     { id: 'materi', label: 'Materi', icon: BookOpen },
+    { id: 'sumatif', label: 'Sumatif', icon: FileText },
     { id: 'liaison', label: 'Buku Penghubung', icon: MessageSquare },
     { id: 'profile', label: 'Profil Siswa', icon: User },
     { id: 'character', label: 'Karakter', icon: HeartHandshake },
@@ -1265,6 +1267,23 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                       )}
                   </div>
               </div>
+          )}
+
+          {/* --- SUMATIF TAB --- */}
+          {activeTab === 'sumatif' && (
+              <SumatifView 
+                  currentUser={{ 
+                      id: student.id, 
+                      fullName: student.name, 
+                      role: 'siswa', 
+                      classId: student.classId,
+                      username: student.nis,
+                      studentId: student.id
+                  } as any}
+                  activeClassId={student.classId}
+                  students={[student]}
+                  onShowNotification={(msg, type) => showAlert(msg, type === 'warning' ? 'alert' : type)}
+              />
           )}
 
           {/* --- LIAISON BOOK TAB --- */}
