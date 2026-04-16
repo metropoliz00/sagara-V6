@@ -1010,13 +1010,19 @@ const SumatifEditor: React.FC<{
                                 <ImageIcon size={14} className="text-slate-300" />
                                 <input
                                   type="text"
-                                  value={opt.imageUrl || ''}
+                                  value={opt.imageUrl || opt.text || ''}
                                   onChange={e => {
+                                    const val = e.target.value;
+                                    const isUrl = val.startsWith('http://') || val.startsWith('https://');
                                     const newOpts = [...(q.options || [])];
-                                    newOpts[optIdx] = { ...newOpts[optIdx], imageUrl: e.target.value };
+                                    newOpts[optIdx] = { 
+                                      ...newOpts[optIdx], 
+                                      text: isUrl ? '' : val,
+                                      imageUrl: isUrl ? val : ''
+                                    };
                                     updateQuestion(idx, { options: newOpts });
                                   }}
-                                  placeholder="Link Gambar Opsi (Opsional)"
+                                  placeholder="Teks Opsi atau Link Gambar"
                                   className="flex-1 px-3 py-1.5 rounded-lg border border-slate-100 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-[10px]"
                                 />
                               </div>
@@ -1272,8 +1278,8 @@ const SumatifTaking: React.FC<{
             imageUrl: rawImages[idx] || o.imageUrl
           };
         }
-        // If already in new format, ensure imageUrl is taken from optionImages if missing
-        if (!o.imageUrl && rawImages[idx]) {
+        // If already in new format, ensure imageUrl is updated if rawImages has data at this index
+        if (rawImages[idx]) {
           return { ...o, imageUrl: rawImages[idx] };
         }
         return o;
