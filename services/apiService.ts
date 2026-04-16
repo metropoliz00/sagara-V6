@@ -1410,4 +1410,12 @@ export const apiService = {
     }, { onConflict: 'sumatif_id,student_id' });
     if (error) throw error;
   },
+  deleteSumatifResult: async (sumatifId: string, studentId: string): Promise<void> => {
+    const { error } = await supabase
+      .from('sumatif_results')
+      .delete()
+      .eq('sumatif_id', sumatifId)
+      .eq('student_id', studentId);
+    if (error) throw error;
+  },
 };

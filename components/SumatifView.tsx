@@ -193,6 +193,54 @@ const SumatifView: React.FC<SumatifViewProps> = ({
     }
   };
 
+  const handleResetResult = async (studentId: string, sumatif: Sumatif) => {
+    setModal({
+      isOpen: true,
+      title: 'Reset Hasil Ujian',
+      message: 'Apakah Anda yakin ingin mereset hasil ujian siswa ini? Siswa akan dapat mengerjakan ulang sumatif ini.',
+      type: 'confirm',
+      onConfirm: async () => {
+        setModal(prev => ({ ...prev, isOpen: false }));
+        try {
+          await apiService.deleteSumatifResult(sumatif.id, studentId);
+          onShowNotification('Hasil ujian berhasil direset', 'success');
+          // Refresh results
+          const updatedResults = await apiService.getSumatifResults(sumatif.id);
+          setResults(updatedResults);
+        } catch (error) {
+          onShowNotification('Gagal mereset hasil ujian', 'error');
+        }
+      }
+    });
+  };
+
+  const checkStudentAttempt = async (sumatif: Sumatif) => {
+    if (!isStudent && !currentUser?.studentId) return true;
+    
+    const studentId = isStudent ? students[0]?.id : currentUser?.studentId;
+    if (!studentId) return true;
+
+    try {
+      const allResults = await apiService.getSumatifResults(sumatif.id);
+      const studentResult = allResults.find(r => r.studentId === studentId);
+      
+      if (studentResult) {
+        setModal({
+          isOpen: true,
+          title: 'Akses Dibatasi',
+          message: `Anda sudah pernah mengerjakan sumatif "${sumatif.title}". Silakan hubungi guru untuk mereset hasil pengerjaan Anda jika ingin mengerjakan ulang.`,
+          type: 'alert',
+          onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
+        });
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Error checking attempt:", error);
+      return true; // Proceed if check fails? Or block? Better proceed for now but normally block.
+    }
+  };
+
   if (loading && !isTaking && !isEditing) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -252,6 +300,7 @@ const SumatifView: React.FC<SumatifViewProps> = ({
         students={students}
         onBack={() => setViewingResults(null)}
         onSync={() => handleSyncToGrades(viewingResults, results)}
+        onReset={(studentId) => handleResetResult(studentId, viewingResults)}
       />
     );
   }
@@ -386,7 +435,10 @@ const SumatifView: React.FC<SumatifViewProps> = ({
                 ) : (
                   <button
                     disabled={!s.isActive}
-                    onClick={() => {
+                    onClick={async () => {
+                      const canProceed = await checkStudentAttempt(s);
+                      if (!canProceed) return;
+                      
                       setCurrentSumatif(s);
                       if (s.token) {
                         setIsEnteringToken(true);
@@ -1732,8 +1784,9 @@ const SumatifResultsView: React.FC<{
   results: SumatifResult[],
   students: Student[],
   onBack: () => void,
-  onSync: () => void
-}> = ({ sumatif, results, students, onBack, onSync }) => {
+  onSync: () => void,
+  onReset: (studentId: string) => void
+}> = ({ sumatif, results, students, onBack, onSync, onReset }) => {
   const [viewMode, setViewMode] = useState<'list' | 'analysis'>('list');
 
   return (
@@ -1781,7 +1834,7 @@ const SumatifResultsView: React.FC<{
                 <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Siswa</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Skor</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Waktu Selesai</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Status</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -1811,9 +1864,14 @@ const SumatifResultsView: React.FC<{
                       {format(new Date(r.submittedAt), 'dd MMM yyyy HH:mm', { locale: id })}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className="px-3 py-1 bg-green-50 text-green-600 rounded-full text-xs font-bold">
-                        Selesai
-                      </span>
+                      <button
+                        onClick={() => onReset(r.studentId)}
+                        className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-100 transition-all flex items-center space-x-1 mx-auto"
+                        title="Reset Hasil Ujian"
+                      >
+                        <RefreshCw size={14} />
+                        <span>Reset</span>
+                      </button>
                     </td>
                   </tr>
                 );
