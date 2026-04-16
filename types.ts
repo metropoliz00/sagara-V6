@@ -421,10 +421,18 @@ export type QuestionType = 'pg' | 'pgk' | 'bs';
 export interface Question {
   id: string;
   text: string;
+  imageUrl?: string;
   type: QuestionType;
   options?: string[]; // For PG and PGK
-  correctAnswer: string | string[]; // string for PG/BS, string[] for PGK
+  optionImages?: string[]; // New: image links for options
+  correctAnswer: any; // string | string[] | Record<string, string>
   points: number;
+  subQuestions?: { // For BS with 3 statements
+    id: string;
+    text: string;
+    imageUrl?: string;
+    correctAnswer: 'Benar' | 'Salah';
+  }[];
 }
 
 export interface Sumatif {

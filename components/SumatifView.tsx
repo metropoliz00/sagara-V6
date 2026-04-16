@@ -3,7 +3,8 @@ import {
   Plus, Edit2, Trash2, Play, Pause, Eye, CheckCircle, XCircle, 
   Clock, BookOpen, AlertCircle, Save, ChevronLeft, ChevronRight,
   HelpCircle, Check, X, ListFilter, User as UserIcon, LogIn, Monitor,
-  Maximize2, Minimize2, Type, ArrowLeft, ArrowRight, Flag
+  Maximize2, Minimize2, Type, ArrowLeft, ArrowRight, Flag, RefreshCw,
+  Image as ImageIcon
 } from 'lucide-react';
 import { Sumatif, Question, QuestionType, User, Student, Subject, SumatifResult } from '../types';
 import { apiService } from '../services/apiService';
@@ -344,8 +345,14 @@ const SumatifEditor: React.FC<{
       text: '',
       type: 'pg',
       options: ['', '', '', ''],
+      optionImages: ['', '', '', ''],
       correctAnswer: '',
-      points: 10
+      points: 10,
+      subQuestions: [
+        { id: 'sq1', text: '', correctAnswer: 'Benar' },
+        { id: 'sq2', text: '', correctAnswer: 'Benar' },
+        { id: 'sq3', text: '', correctAnswer: 'Benar' }
+      ]
     };
     setFormData({ ...formData, questions: [...formData.questions, newQuestion] });
   };
@@ -452,13 +459,29 @@ const SumatifEditor: React.FC<{
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">Token Ujian (Opsional)</label>
-                <input
-                  type="text"
-                  value={formData.token || ''}
-                  onChange={e => setFormData({ ...formData, token: e.target.value.toUpperCase() })}
-                  placeholder="Contoh: ABCDEF"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] focus:border-transparent outline-none transition-all"
-                />
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={formData.token || ''}
+                    onChange={e => setFormData({ ...formData, token: e.target.value.toUpperCase() })}
+                    placeholder="Contoh: ABCDEF"
+                    className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] focus:border-transparent outline-none transition-all"
+                  />
+                  <button
+                    onClick={() => {
+                      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                      let result = '';
+                      for (let i = 0; i < 6; i++) {
+                        result += chars.charAt(Math.floor(Math.random() * chars.length));
+                      }
+                      setFormData({ ...formData, token: result });
+                    }}
+                    className="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all"
+                    title="Generate Token"
+                  >
+                    <RefreshCw size={20} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -500,67 +523,135 @@ const SumatifEditor: React.FC<{
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] focus:border-transparent outline-none transition-all min-h-[100px]"
                   />
 
+                  <div className="flex items-center space-x-2">
+                    <div className="bg-white p-2 rounded-lg border border-slate-200">
+                      <ImageIcon size={18} className="text-slate-400" />
+                    </div>
+                    <input
+                      type="text"
+                      value={q.imageUrl || ''}
+                      onChange={e => updateQuestion(idx, { imageUrl: e.target.value })}
+                      placeholder="Link Gambar Soal (Opsional)"
+                      className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-sm"
+                    />
+                  </div>
+
                   {q.type !== 'bs' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {(q.options || []).map((opt, optIdx) => (
-                        <div key={optIdx} className="flex items-center space-x-2">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold border ${
-                            q.type === 'pg' 
-                              ? (q.correctAnswer === opt && opt !== '' ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-200 text-slate-400')
-                              : (Array.isArray(q.correctAnswer) && q.correctAnswer.includes(opt) && opt !== '' ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-200 text-slate-400')
-                          }`}>
-                            {String.fromCharCode(65 + optIdx)}
+                        <div key={optIdx} className="space-y-2 p-4 bg-white rounded-2xl border border-slate-100">
+                          <div className="flex items-center space-x-2">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold border ${
+                              q.type === 'pg' 
+                                ? (q.correctAnswer === opt && opt !== '' ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-200 text-slate-400')
+                                : (Array.isArray(q.correctAnswer) && q.correctAnswer.includes(opt) && opt !== '' ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-200 text-slate-400')
+                            }`}>
+                              {String.fromCharCode(65 + optIdx)}
+                            </div>
+                            <input
+                              type="text"
+                              value={opt}
+                              onChange={e => {
+                                const newOpts = [...(q.options || [])];
+                                newOpts[optIdx] = e.target.value;
+                                updateQuestion(idx, { options: newOpts });
+                              }}
+                              placeholder={`Opsi ${String.fromCharCode(65 + optIdx)}`}
+                              className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-sm"
+                            />
+                            <button
+                              onClick={() => {
+                                if (q.type === 'pg') {
+                                  updateQuestion(idx, { correctAnswer: opt });
+                                } else {
+                                  const current = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
+                                  const next = current.includes(opt) 
+                                    ? current.filter(c => c !== opt)
+                                    : [...current, opt];
+                                  updateQuestion(idx, { correctAnswer: next });
+                                }
+                              }}
+                              className={`p-2 rounded-lg transition-colors ${
+                                (q.type === 'pg' ? q.correctAnswer === opt : Array.isArray(q.correctAnswer) && q.correctAnswer.includes(opt)) && opt !== ''
+                                  ? 'text-green-600 bg-green-50'
+                                  : 'text-slate-300 hover:text-green-500'
+                              }`}
+                            >
+                              <CheckCircle size={20} />
+                            </button>
                           </div>
-                          <input
-                            type="text"
-                            value={opt}
-                            onChange={e => {
-                              const newOpts = [...(q.options || [])];
-                              newOpts[optIdx] = e.target.value;
-                              updateQuestion(idx, { options: newOpts });
-                            }}
-                            placeholder={`Opsi ${String.fromCharCode(65 + optIdx)}`}
-                            className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all"
-                          />
-                          <button
-                            onClick={() => {
-                              if (q.type === 'pg') {
-                                updateQuestion(idx, { correctAnswer: opt });
-                              } else {
-                                const current = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
-                                const next = current.includes(opt) 
-                                  ? current.filter(c => c !== opt)
-                                  : [...current, opt];
-                                updateQuestion(idx, { correctAnswer: next });
-                              }
-                            }}
-                            className={`p-2 rounded-lg transition-colors ${
-                              (q.type === 'pg' ? q.correctAnswer === opt : Array.isArray(q.correctAnswer) && q.correctAnswer.includes(opt)) && opt !== ''
-                                ? 'text-green-600 bg-green-50'
-                                : 'text-slate-300 hover:text-green-500'
-                            }`}
-                          >
-                            <CheckCircle size={20} />
-                          </button>
+                          <div className="flex items-center space-x-2">
+                            <ImageIcon size={14} className="text-slate-300" />
+                            <input
+                              type="text"
+                              value={q.optionImages?.[optIdx] || ''}
+                              onChange={e => {
+                                const newOptImgs = [...(q.optionImages || ['', '', '', ''])];
+                                newOptImgs[optIdx] = e.target.value;
+                                updateQuestion(idx, { optionImages: newOptImgs });
+                              }}
+                              placeholder="Link Gambar Opsi"
+                              className="flex-1 px-3 py-1.5 rounded-lg border border-slate-100 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-[10px]"
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>
                   )}
 
                   {q.type === 'bs' && (
-                    <div className="flex space-x-4">
-                      {['Benar', 'Salah'].map(opt => (
-                        <button
-                          key={opt}
-                          onClick={() => updateQuestion(idx, { correctAnswer: opt })}
-                          className={`px-6 py-2 rounded-xl font-bold border transition-all ${
-                            q.correctAnswer === opt
-                              ? 'bg-green-500 border-green-500 text-white shadow-md'
-                              : 'bg-white border-slate-200 text-slate-500 hover:border-green-500'
-                          }`}
-                        >
-                          {opt}
-                        </button>
+                    <div className="space-y-4">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">3 Pernyataan Benar/Salah</p>
+                      {(q.subQuestions || []).map((sq, sqIdx) => (
+                        <div key={sq.id} className="p-4 bg-white rounded-2xl border border-slate-100 space-y-3">
+                          <div className="flex items-center space-x-3">
+                            <span className="text-xs font-bold text-slate-400">{sqIdx + 1}.</span>
+                            <input
+                              type="text"
+                              value={sq.text}
+                              onChange={e => {
+                                const newSQs = [...(q.subQuestions || [])];
+                                newSQs[sqIdx] = { ...newSQs[sqIdx], text: e.target.value };
+                                updateQuestion(idx, { subQuestions: newSQs });
+                              }}
+                              placeholder={`Pernyataan ${sqIdx + 1}`}
+                              className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-sm"
+                            />
+                            <div className="flex bg-slate-50 p-1 rounded-lg border border-slate-100">
+                              {['Benar', 'Salah'].map(ans => (
+                                <button
+                                  key={ans}
+                                  onClick={() => {
+                                    const newSQs = [...(q.subQuestions || [])];
+                                    newSQs[sqIdx] = { ...newSQs[sqIdx], correctAnswer: ans as any };
+                                    updateQuestion(idx, { subQuestions: newSQs });
+                                  }}
+                                  className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${
+                                    sq.correctAnswer === ans 
+                                      ? 'bg-white text-[#5AB2FF] shadow-sm' 
+                                      : 'text-slate-400 hover:text-slate-600'
+                                  }`}
+                                >
+                                  {ans}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2 pl-6">
+                            <ImageIcon size={14} className="text-slate-300" />
+                            <input
+                              type="text"
+                              value={sq.imageUrl || ''}
+                              onChange={e => {
+                                const newSQs = [...(q.subQuestions || [])];
+                                newSQs[sqIdx] = { ...newSQs[sqIdx], imageUrl: e.target.value };
+                                updateQuestion(idx, { subQuestions: newSQs });
+                              }}
+                              placeholder="Link Gambar Pernyataan"
+                              className="flex-1 px-3 py-1.5 rounded-lg border border-slate-100 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-[10px]"
+                            />
+                          </div>
+                        </div>
                       ))}
                     </div>
                   )}
@@ -746,13 +837,24 @@ const SumatifTaking: React.FC<{
       totalPoints += q.points;
       const studentAnswer = answers[q.id];
       
-      if (q.type === 'pg' || q.type === 'bs') {
+      if (q.type === 'pg') {
         if (studentAnswer === q.correctAnswer) earnedPoints += q.points;
       } else if (q.type === 'pgk') {
         const correctOnes = q.correctAnswer as string[];
         const studentOnes = studentAnswer as string[] || [];
         if (correctOnes.length === studentOnes.length && correctOnes.every(c => studentOnes.includes(c))) {
           earnedPoints += q.points;
+        }
+      } else if (q.type === 'bs') {
+        // BS now has 3 sub-questions
+        const subAnswers = studentAnswer as Record<string, string> || {};
+        let correctSubs = 0;
+        q.subQuestions?.forEach(sq => {
+          if (subAnswers[sq.id] === sq.correctAnswer) correctSubs++;
+        });
+        // Points are proportional to correct sub-questions
+        if (q.subQuestions && q.subQuestions.length > 0) {
+          earnedPoints += (correctSubs / q.subQuestions.length) * q.points;
         }
       }
     });
@@ -854,6 +956,16 @@ const SumatifTaking: React.FC<{
 
               {/* Question Content */}
               <div className="p-8 flex-1">
+                {currentQuestion.imageUrl && (
+                  <div className="mb-6 rounded-2xl overflow-hidden border border-slate-100 shadow-sm max-h-[300px] flex justify-center bg-slate-50">
+                    <img 
+                      src={currentQuestion.imageUrl} 
+                      alt="Question" 
+                      className="max-w-full h-auto object-contain"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                )}
                 <div className={`text-slate-800 font-medium leading-relaxed mb-10 ${
                   fontSize === 'sm' ? 'text-base' : fontSize === 'md' ? 'text-xl' : 'text-2xl'
                 }`}>
@@ -861,70 +973,152 @@ const SumatifTaking: React.FC<{
                 </div>
 
                 <div className="space-y-4">
-                  {(currentQuestion.type === 'pg' || currentQuestion.type === 'bs') && (currentQuestion.options || []).map((opt, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleAnswer(currentQuestion.id, opt)}
-                      className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center space-x-4 group relative overflow-hidden ${
-                        answers[currentQuestion.id] === opt
-                          ? 'border-[#5AB2FF] bg-blue-50/50'
-                          : 'border-slate-100 hover:border-[#5AB2FF]/30 bg-white'
-                      }`}
-                    >
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black transition-all z-10 ${
-                        answers[currentQuestion.id] === opt
-                          ? 'bg-[#5AB2FF] text-white shadow-lg'
-                          : 'bg-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-[#5AB2FF]'
-                      }`}>
-                        {String.fromCharCode(65 + idx)}
-                      </div>
-                      <span className={`font-bold z-10 flex-1 ${
-                        answers[currentQuestion.id] === opt ? 'text-slate-800' : 'text-slate-600'
-                      } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
-                        {opt}
-                      </span>
-                      {answers[currentQuestion.id] === opt && (
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5AB2FF]">
-                          <CheckCircle size={24} />
-                        </div>
-                      )}
-                    </button>
-                  ))}
-
-                  {currentQuestion.type === 'pgk' && (currentQuestion.options || []).map((opt, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        const current = answers[currentQuestion.id] || [];
-                        const next = current.includes(opt)
-                          ? current.filter((c: string) => c !== opt)
-                          : [...current, opt];
-                        handleAnswer(currentQuestion.id, next);
-                      }}
-                      className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center space-x-4 group relative overflow-hidden ${
-                        (answers[currentQuestion.id] || []).includes(opt)
-                          ? 'border-[#5AB2FF] bg-blue-50/50'
-                          : 'border-slate-100 hover:border-[#5AB2FF]/30 bg-white'
-                      }`}
-                    >
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black transition-all z-10 ${
-                        (answers[currentQuestion.id] || []).includes(opt)
-                          ? 'bg-[#5AB2FF] text-white shadow-lg'
-                          : 'bg-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-[#5AB2FF]'
-                      }`}>
-                        <div className={`w-5 h-5 border-2 rounded flex items-center justify-center ${
-                          (answers[currentQuestion.id] || []).includes(opt) ? 'border-white' : 'border-slate-300'
+                  {currentQuestion.type === 'pg' && (currentQuestion.options || []).map((opt, idx) => {
+                    if (!opt && !currentQuestion.optionImages?.[idx]) return null;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => handleAnswer(currentQuestion.id, opt)}
+                        className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center space-x-4 group relative overflow-hidden ${
+                          answers[currentQuestion.id] === opt
+                            ? 'border-[#5AB2FF] bg-blue-50/50'
+                            : 'border-slate-100 hover:border-[#5AB2FF]/30 bg-white'
+                        }`}
+                      >
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black transition-all z-10 shrink-0 ${
+                          answers[currentQuestion.id] === opt
+                            ? 'bg-[#5AB2FF] text-white shadow-lg'
+                            : 'bg-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-[#5AB2FF]'
                         }`}>
-                          {(answers[currentQuestion.id] || []).includes(opt) && <Check size={14} />}
+                          {String.fromCharCode(65 + idx)}
                         </div>
-                      </div>
-                      <span className={`font-bold z-10 flex-1 ${
-                        (answers[currentQuestion.id] || []).includes(opt) ? 'text-slate-800' : 'text-slate-600'
-                      } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
-                        {opt}
-                      </span>
-                    </button>
-                  ))}
+                        <div className="flex-1 flex items-center space-x-4 z-10">
+                          {currentQuestion.optionImages?.[idx] && (
+                            <div className="w-20 h-20 rounded-lg overflow-hidden border border-slate-100 shrink-0 bg-slate-50">
+                              <img 
+                                src={currentQuestion.optionImages[idx]} 
+                                alt={`Option ${idx}`} 
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                          )}
+                          <span className={`font-bold ${
+                            answers[currentQuestion.id] === opt ? 'text-slate-800' : 'text-slate-600'
+                          } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
+                            {opt}
+                          </span>
+                        </div>
+                        {answers[currentQuestion.id] === opt && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5AB2FF]">
+                            <CheckCircle size={24} />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+
+                  {currentQuestion.type === 'pgk' && (currentQuestion.options || []).map((opt, idx) => {
+                    if (!opt && !currentQuestion.optionImages?.[idx]) return null;
+                    const isSelected = (answers[currentQuestion.id] || []).includes(opt);
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          const current = answers[currentQuestion.id] || [];
+                          const next = current.includes(opt)
+                            ? current.filter((c: string) => c !== opt)
+                            : [...current, opt];
+                          handleAnswer(currentQuestion.id, next);
+                        }}
+                        className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center space-x-4 group relative overflow-hidden ${
+                          isSelected
+                            ? 'border-[#5AB2FF] bg-blue-50/50'
+                            : 'border-slate-100 hover:border-[#5AB2FF]/30 bg-white'
+                        }`}
+                      >
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black transition-all z-10 shrink-0 ${
+                          isSelected
+                            ? 'bg-[#5AB2FF] text-white shadow-lg'
+                            : 'bg-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-[#5AB2FF]'
+                        }`}>
+                          <div className={`w-5 h-5 border-2 rounded flex items-center justify-center ${
+                            isSelected ? 'border-white' : 'border-slate-300'
+                          }`}>
+                            {isSelected && <Check size={14} />}
+                          </div>
+                        </div>
+                        <div className="flex-1 flex items-center space-x-4 z-10">
+                          {currentQuestion.optionImages?.[idx] && (
+                            <div className="w-20 h-20 rounded-lg overflow-hidden border border-slate-100 shrink-0 bg-slate-50">
+                              <img 
+                                src={currentQuestion.optionImages[idx]} 
+                                alt={`Option ${idx}`} 
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                          )}
+                          <span className={`font-bold ${
+                            isSelected ? 'text-slate-800' : 'text-slate-600'
+                          } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
+                            {opt}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+
+                  {currentQuestion.type === 'bs' && (
+                    <div className="space-y-6">
+                      {(currentQuestion.subQuestions || []).map((sq, sqIdx) => {
+                        const subAnswers = answers[currentQuestion.id] || {};
+                        const currentAns = subAnswers[sq.id];
+                        return (
+                          <div key={sq.id} className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+                            <div className="flex items-start space-x-4">
+                              <span className="bg-white w-8 h-8 rounded-lg flex items-center justify-center font-black text-slate-400 border border-slate-200 shrink-0">
+                                {sqIdx + 1}
+                              </span>
+                              <div className="flex-1 space-y-3">
+                                {sq.imageUrl && (
+                                  <div className="rounded-xl overflow-hidden border border-slate-200 max-h-[200px] inline-block bg-white">
+                                    <img 
+                                      src={sq.imageUrl} 
+                                      alt="Statement" 
+                                      className="max-w-full h-auto object-contain"
+                                      referrerPolicy="no-referrer"
+                                    />
+                                  </div>
+                                )}
+                                <p className={`font-bold text-slate-700 ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
+                                  {sq.text}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex gap-4 pl-12">
+                              {['Benar', 'Salah'].map(opt => (
+                                <button
+                                  key={opt}
+                                  onClick={() => {
+                                    const next = { ...subAnswers, [sq.id]: opt };
+                                    handleAnswer(currentQuestion.id, next);
+                                  }}
+                                  className={`flex-1 py-3 rounded-xl font-black text-sm uppercase tracking-widest transition-all border-2 ${
+                                    currentAns === opt
+                                      ? 'bg-[#5AB2FF] border-[#5AB2FF] text-white shadow-md'
+                                      : 'bg-white border-slate-200 text-slate-400 hover:border-[#5AB2FF]/30'
+                                  }`}
+                                >
+                                  {opt}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
