@@ -124,37 +124,29 @@ const SumatifView: React.FC<SumatifViewProps> = ({
   };
 
   const handleSyncToGrades = async (sumatif: Sumatif, results: SumatifResult[]) => {
-    setModal({
-      isOpen: true,
-      title: 'Sinkronisasi Nilai',
-      message: 'Input nilai hasil sumatif ke buku nilai?',
-      type: 'confirm',
-      onConfirm: async () => {
-        setModal(prev => ({ ...prev, isOpen: false }));
-        try {
-          for (const result of results) {
-            const student = students.find(s => s.id === result.studentId);
-            if (!student) continue;
+    try {
+      onShowNotification('Sedang menyinkronkan nilai...', 'warning');
+      for (const result of results) {
+        const student = students.find(s => s.id === result.studentId);
+        if (!student) continue;
 
-            const existingGrades = await apiService.getGradesForStudent(student.id);
-            const subjectGrades = existingGrades?.subjects[sumatif.subjectId] || {
-              sum1: 0, sum2: 0, sum3: 0, sum4: 0, sas: 0
-            };
+        const existingGrades = await apiService.getGradesForStudent(student.id);
+        const subjectGrades = existingGrades?.subjects[sumatif.subjectId] || {
+          sum1: 0, sum2: 0, sum3: 0, sum4: 0, sas: 0
+        };
 
-            const updatedGrades = {
-              ...subjectGrades,
-              [sumatif.type]: result.score
-            };
+        const updatedGrades = {
+          ...subjectGrades,
+          [sumatif.type]: result.score
+        };
 
-            await apiService.saveGrade(student.id, sumatif.subjectId, updatedGrades, activeClassId);
-          }
-          onShowNotification('Nilai berhasil disinkronkan ke buku nilai', 'success');
-          if (onRefresh) onRefresh();
-        } catch (error) {
-          onShowNotification('Gagal sinkronisasi nilai', 'error');
-        }
+        await apiService.saveGrade(student.id, sumatif.subjectId, updatedGrades, activeClassId);
       }
-    });
+      onShowNotification('Nilai berhasil disinkronkan ke buku nilai', 'success');
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      onShowNotification('Gagal sinkronisasi nilai', 'error');
+    }
   };
 
   if (loading && !isTaking && !isEditing) {
@@ -289,6 +281,25 @@ const SumatifView: React.FC<SumatifViewProps> = ({
                   <HelpCircle size={16} className="mr-2 text-[#5AB2FF]" />
                   <span>{s.questions.length} Soal</span>
                 </div>
+                {s.token && isTeacher && (
+                  <div className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded-xl border border-slate-100 mt-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-bold text-slate-400 uppercase tracking-wider">Token:</span>
+                      <span className="font-mono font-black text-[#5AB2FF]">{s.token}</span>
+                    </div>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(s.token || '');
+                        onShowNotification('Token berhasil disalin', 'success');
+                      }}
+                      className="p-1.5 bg-white text-[#5AB2FF] rounded-lg shadow-sm hover:bg-blue-50 transition-colors"
+                      title="Salin Token"
+                    >
+                      <Copy size={14} />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-2 pt-4 border-t border-slate-50">
