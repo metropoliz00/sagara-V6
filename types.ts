@@ -427,6 +427,7 @@ export interface Question {
   optionImages?: string[]; // New: image links for options
   correctAnswer: any; // string | string[] | Record<string, string>
   points: number;
+  difficulty?: 'mudah' | 'sedang' | 'sulit';
   subQuestions?: { // For BS with 3 statements
     id: string;
     text: string;
