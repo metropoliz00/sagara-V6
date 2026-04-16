@@ -14,6 +14,51 @@ import { id } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as XLSX from 'xlsx';
 
+const checkCorrect = (q: Question, studentAnswer: any) => {
+  if (studentAnswer === undefined || studentAnswer === null) return false;
+  
+  if (q.type === 'pg') {
+    const sAns = studentAnswer;
+    const cAns = q.correctAnswer;
+    
+    // If both are numbers, they are indices
+    if (typeof sAns === 'number' && typeof cAns === 'number') return sAns === cAns;
+    // If student answer is index but correct is text (old data)
+    if (typeof sAns === 'number') return q.options?.[sAns] === cAns;
+    // If correct answer is index but student is text
+    if (typeof cAns === 'number') return sAns === q.options?.[cAns];
+    
+    return String(sAns).trim() === String(cAns).trim();
+  } else if (q.type === 'pgk') {
+    const sOnes = Array.isArray(studentAnswer) ? studentAnswer : [];
+    const cOnes = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
+    
+    if (cOnes.length === 0) return false;
+    if (sOnes.length !== cOnes.length) return false;
+    
+    // If both use indices, compare indices (handles empty text options)
+    const allSIndices = sOnes.every(s => typeof s === 'number');
+    const allCIndices = cOnes.every(c => typeof c === 'number');
+    
+    if (allSIndices && allCIndices) {
+      return sOnes.every(s => cOnes.includes(s));
+    }
+    
+    // Fallback: normalize to text for comparison
+    const normalizedS = sOnes.map(s => typeof s === 'number' ? q.options?.[s] : s);
+    const normalizedC = cOnes.map(c => typeof c === 'number' ? q.options?.[c] : c);
+    
+    return normalizedC.length > 0 && 
+           normalizedC.length === normalizedS.length && 
+           normalizedC.every(c => normalizedS.includes(c));
+  } else if (q.type === 'bs') {
+    const subAnswers = studentAnswer as Record<string, string> || {};
+    const subQs = q.subQuestions || [];
+    return subQs.length > 0 && subQs.every(sq => subAnswers[sq.id] === sq.correctAnswer);
+  }
+  return false;
+};
+
 interface SumatifViewProps {
   currentUser: User | null;
   activeClassId: string;
@@ -467,11 +512,22 @@ const SumatifEditor: React.FC<{
           };
 
           if (type === 'pg' || type === 'pgk') {
-            q.options = [row.Opsi_A, row.Opsi_B, row.Opsi_C, row.Opsi_D].filter(Boolean);
+            q.options = [row.Opsi_A, row.Opsi_B, row.Opsi_C, row.Opsi_D].map(o => o || '');
+            
+            const mapAnsToIdx = (ans: any) => {
+              if (!ans) return '';
+              const a = String(ans).trim().toUpperCase();
+              if (a === 'A') return 0;
+              if (a === 'B') return 1;
+              if (a === 'C') return 2;
+              if (a === 'D') return 3;
+              return ans;
+            };
+
             if (type === 'pg') {
-              q.correctAnswer = row.Jawaban_Benar || '';
+              q.correctAnswer = mapAnsToIdx(row.Jawaban_Benar);
             } else {
-              q.correctAnswer = (row.Jawaban_Benar || '').split(',').map((s: string) => s.trim());
+              q.correctAnswer = String(row.Jawaban_Benar || '').split(',').map(s => mapAnsToIdx(s.trim()));
             }
           } else if (type === 'bs') {
             q.subQuestions = [
@@ -761,64 +817,82 @@ const SumatifEditor: React.FC<{
 
                   {q.type !== 'bs' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {(q.options || []).map((opt, optIdx) => (
-                        <div key={optIdx} className="space-y-2 p-4 bg-white rounded-2xl border border-slate-100">
-                          <div className="flex items-center space-x-2">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold border ${
-                              q.type === 'pg' 
-                                ? (q.correctAnswer === opt && opt !== '' ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-200 text-slate-400')
-                                : (Array.isArray(q.correctAnswer) && q.correctAnswer.includes(opt) && opt !== '' ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-200 text-slate-400')
-                            }`}>
-                              {String.fromCharCode(65 + optIdx)}
+                      {(q.options || []).map((opt, optIdx) => {
+                        const isCorrect = q.type === 'pg' 
+                          ? q.correctAnswer === optIdx 
+                          : (Array.isArray(q.correctAnswer) && q.correctAnswer.includes(optIdx));
+                        
+                        return (
+                          <div key={optIdx} className={`space-y-3 p-4 rounded-2xl border transition-all ${
+                            isCorrect ? 'bg-green-50 border-green-200 shadow-sm' : 'bg-white border-slate-100'
+                          }`}>
+                            <div className="flex items-center space-x-2">
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold border ${
+                                isCorrect ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-200 text-slate-400'
+                              }`}>
+                                {String.fromCharCode(65 + optIdx)}
+                              </div>
+                              <input
+                                type="text"
+                                value={opt}
+                                onChange={e => {
+                                  const newOpts = [...(q.options || [])];
+                                  newOpts[optIdx] = e.target.value;
+                                  updateQuestion(idx, { options: newOpts });
+                                }}
+                                placeholder={`Teks Opsi ${String.fromCharCode(65 + optIdx)}`}
+                                className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-sm"
+                              />
+                              <button
+                                onClick={() => {
+                                  if (q.type === 'pg') {
+                                    updateQuestion(idx, { correctAnswer: optIdx });
+                                  } else {
+                                    const current = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
+                                    const next = current.includes(optIdx) 
+                                      ? current.filter(c => c !== optIdx)
+                                      : [...current, optIdx];
+                                    updateQuestion(idx, { correctAnswer: next });
+                                  }
+                                }}
+                                className={`p-2 rounded-lg transition-colors ${
+                                  isCorrect ? 'text-green-600 bg-green-100' : 'text-slate-300 hover:text-green-500'
+                                }`}
+                                title="Set sebagai Jawaban Benar"
+                              >
+                                <CheckCircle size={20} />
+                              </button>
                             </div>
-                            <input
-                              type="text"
-                              value={opt}
-                              onChange={e => {
-                                const newOpts = [...(q.options || [])];
-                                newOpts[optIdx] = e.target.value;
-                                updateQuestion(idx, { options: newOpts });
-                              }}
-                              placeholder={`Opsi ${String.fromCharCode(65 + optIdx)}`}
-                              className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-sm"
-                            />
-                            <button
-                              onClick={() => {
-                                if (q.type === 'pg') {
-                                  updateQuestion(idx, { correctAnswer: opt });
-                                } else {
-                                  const current = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
-                                  const next = current.includes(opt) 
-                                    ? current.filter(c => c !== opt)
-                                    : [...current, opt];
-                                  updateQuestion(idx, { correctAnswer: next });
-                                }
-                              }}
-                              className={`p-2 rounded-lg transition-colors ${
-                                (q.type === 'pg' ? q.correctAnswer === opt : Array.isArray(q.correctAnswer) && q.correctAnswer.includes(opt)) && opt !== ''
-                                  ? 'text-green-600 bg-green-50'
-                                  : 'text-slate-300 hover:text-green-500'
-                              }`}
-                            >
-                              <CheckCircle size={20} />
-                            </button>
+                            
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <ImageIcon size={14} className="text-slate-300" />
+                                <input
+                                  type="text"
+                                  value={q.optionImages?.[optIdx] || ''}
+                                  onChange={e => {
+                                    const newOptImgs = [...(q.optionImages || ['', '', '', ''])];
+                                    newOptImgs[optIdx] = e.target.value;
+                                    updateQuestion(idx, { optionImages: newOptImgs });
+                                  }}
+                                  placeholder="Link Gambar Opsi (Opsional)"
+                                  className="flex-1 px-3 py-1.5 rounded-lg border border-slate-100 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-[10px]"
+                                />
+                              </div>
+                              {q.optionImages?.[optIdx] && (
+                                <div className="w-full h-24 rounded-lg overflow-hidden border border-slate-100 bg-slate-50">
+                                  <img 
+                                    src={q.optionImages[optIdx]} 
+                                    alt={`Preview ${optIdx}`} 
+                                    className="w-full h-full object-contain"
+                                    referrerPolicy="no-referrer"
+                                  />
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <ImageIcon size={14} className="text-slate-300" />
-                            <input
-                              type="text"
-                              value={q.optionImages?.[optIdx] || ''}
-                              onChange={e => {
-                                const newOptImgs = [...(q.optionImages || ['', '', '', ''])];
-                                newOptImgs[optIdx] = e.target.value;
-                                updateQuestion(idx, { optionImages: newOptImgs });
-                              }}
-                              placeholder="Link Gambar Opsi"
-                              className="flex-1 px-3 py-1.5 rounded-lg border border-slate-100 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-[10px]"
-                            />
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
 
@@ -1099,13 +1173,11 @@ const SumatifTaking: React.FC<{
       const studentAnswer = answers[q.id];
       
       if (q.type === 'pg') {
-        if (studentAnswer && String(studentAnswer).trim() === String(q.correctAnswer).trim()) {
+        if (checkCorrect(q, studentAnswer)) {
           earnedPoints += qPoints;
         }
       } else if (q.type === 'pgk') {
-        const correctOnes = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
-        const studentOnes = Array.isArray(studentAnswer) ? studentAnswer : [];
-        if (correctOnes.length > 0 && correctOnes.length === studentOnes.length && correctOnes.every(c => studentOnes.includes(c))) {
+        if (checkCorrect(q, studentAnswer)) {
           earnedPoints += qPoints;
         }
       } else if (q.type === 'bs') {
@@ -1266,15 +1338,15 @@ const SumatifTaking: React.FC<{
                     return (
                       <button
                         key={idx}
-                        onClick={() => handleAnswer(currentQuestion.id, opt)}
+                        onClick={() => handleAnswer(currentQuestion.id, idx)}
                         className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center space-x-4 group relative overflow-hidden ${
-                          answers[currentQuestion.id] === opt
+                          answers[currentQuestion.id] === idx
                             ? 'border-[#5AB2FF] bg-blue-50/50'
                             : 'border-slate-100 hover:border-[#5AB2FF]/30 bg-white'
                         }`}
                       >
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black transition-all z-10 shrink-0 ${
-                          answers[currentQuestion.id] === opt
+                          answers[currentQuestion.id] === idx
                             ? 'bg-[#5AB2FF] text-white shadow-lg'
                             : 'bg-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-[#5AB2FF]'
                         }`}>
@@ -1292,12 +1364,12 @@ const SumatifTaking: React.FC<{
                             </div>
                           )}
                           <span className={`font-bold ${
-                            answers[currentQuestion.id] === opt ? 'text-slate-800' : 'text-slate-600'
+                            answers[currentQuestion.id] === idx ? 'text-slate-800' : 'text-slate-600'
                           } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
                             {opt}
                           </span>
                         </div>
-                        {answers[currentQuestion.id] === opt && (
+                        {answers[currentQuestion.id] === idx && (
                           <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5AB2FF]">
                             <CheckCircle size={24} />
                           </div>
@@ -1308,15 +1380,15 @@ const SumatifTaking: React.FC<{
 
                   {currentQuestion.type === 'pgk' && (currentQuestion.options || []).map((opt, idx) => {
                     if (!opt && !currentQuestion.optionImages?.[idx]) return null;
-                    const isSelected = (answers[currentQuestion.id] || []).includes(opt);
+                    const isSelected = (answers[currentQuestion.id] || []).includes(idx);
                     return (
                       <button
                         key={idx}
                         onClick={() => {
                           const current = answers[currentQuestion.id] || [];
-                          const next = current.includes(opt)
-                            ? current.filter((c: string) => c !== opt)
-                            : [...current, opt];
+                          const next = current.includes(idx)
+                            ? current.filter((c: number) => c !== idx)
+                            : [...current, idx];
                           handleAnswer(currentQuestion.id, next);
                         }}
                         className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center space-x-4 group relative overflow-hidden ${
@@ -1580,22 +1652,6 @@ const SumatifResultsView: React.FC<{
   onSync: () => void
 }> = ({ sumatif, results, students, onBack, onSync }) => {
   const [viewMode, setViewMode] = useState<'list' | 'analysis'>('list');
-
-  const checkCorrect = (q: Question, studentAnswer: any) => {
-    if (!studentAnswer) return false;
-    if (q.type === 'pg') {
-      return String(studentAnswer).trim() === String(q.correctAnswer).trim();
-    } else if (q.type === 'pgk') {
-      const correctOnes = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
-      const studentOnes = Array.isArray(studentAnswer) ? studentAnswer : [];
-      return correctOnes.length > 0 && correctOnes.length === studentOnes.length && correctOnes.every(c => studentOnes.includes(c));
-    } else if (q.type === 'bs') {
-      const subAnswers = studentAnswer as Record<string, string> || {};
-      const subQs = q.subQuestions || [];
-      return subQs.length > 0 && subQs.every(sq => subAnswers[sq.id] === sq.correctAnswer);
-    }
-    return false;
-  };
 
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
