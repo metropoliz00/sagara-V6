@@ -449,6 +449,7 @@ export interface Sumatif {
   startTime?: string;
   endTime?: string;
   isActive: boolean;
+  isVisible?: boolean;
   token?: string;
   createdAt?: string;
 }

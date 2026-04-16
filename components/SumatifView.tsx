@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Plus, Edit2, Trash2, Play, Pause, Eye, CheckCircle, XCircle, 
+  Plus, Edit2, Trash2, Play, Pause, Eye, EyeOff, CheckCircle, XCircle, 
   Clock, BookOpen, AlertCircle, Save, ChevronLeft, ChevronRight,
   HelpCircle, Check, X, ListFilter, User as UserIcon, LogIn, Monitor,
   Maximize2, Minimize2, Type, ArrowLeft, ArrowRight, Flag, RefreshCw,
@@ -151,6 +151,16 @@ const SumatifView: React.FC<SumatifViewProps> = ({
       fetchSumatifs();
     } catch (error) {
       onShowNotification('Gagal mengubah status sumatif', 'error');
+    }
+  };
+
+  const handleToggleVisibility = async (sumatif: Sumatif) => {
+    try {
+      await apiService.saveSumatif({ ...sumatif, isVisible: !sumatif.isVisible });
+      onShowNotification(`Sumatif ${!sumatif.isVisible ? 'ditampilkan' : 'disembunyikan'} di portal siswa`, 'success');
+      fetchSumatifs();
+    } catch (error) {
+      onShowNotification('Gagal mengubah visibilitas sumatif', 'error');
     }
   };
 
@@ -323,7 +333,8 @@ const SumatifView: React.FC<SumatifViewProps> = ({
                 type: 'sum1',
                 questions: [],
                 duration: 60,
-                isActive: false
+                isActive: false,
+                isVisible: false
               });
               setIsEditing(true);
             }}
@@ -336,24 +347,41 @@ const SumatifView: React.FC<SumatifViewProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sumatifs.length === 0 ? (
-          <div className="col-span-full bg-white rounded-3xl p-12 text-center border-2 border-dashed border-slate-200">
-            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BookOpen size={40} className="text-slate-300" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-700">Belum ada Sumatif</h3>
-            <p className="text-slate-500 max-w-xs mx-auto mt-2">
-              {isTeacher ? 'Mulai buat sumatif baru untuk kelas ini.' : 'Belum ada tugas sumatif yang tersedia.'}
-            </p>
-          </div>
-        ) : (
-          sumatifs.map((s) => (
+        {(() => {
+          const filteredSumatifs = isTeacher 
+            ? sumatifs 
+            : sumatifs.filter(s => s.isVisible);
+
+          if (filteredSumatifs.length === 0) {
+            return (
+              <div className="col-span-full bg-white rounded-3xl p-12 text-center border-2 border-dashed border-slate-200">
+                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <BookOpen size={40} className="text-slate-300" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-700">Belum ada Sumatif</h3>
+                <p className="text-slate-500 max-w-xs mx-auto mt-2">
+                  {isTeacher ? 'Mulai buat sumatif baru untuk kelas ini.' : 'Belum ada tugas sumatif yang tersedia.'}
+                </p>
+              </div>
+            );
+          }
+
+          return filteredSumatifs.map((s) => (
             <div key={s.id} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all group">
               <div className="flex justify-between items-start mb-4">
-                <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  s.isActive ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'
-                }`}>
-                  {s.isActive ? 'Aktif' : 'Draft'}
+                <div className="flex items-center space-x-2">
+                  <div className={`px-3 py-1 rounded-full text-xs font-bold ${
+                    s.isActive ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'
+                  }`}>
+                    {s.isActive ? 'Aktif' : 'Draft'}
+                  </div>
+                  {isTeacher && (
+                    <div className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      s.isVisible ? 'bg-blue-100 text-blue-600' : 'bg-amber-100 text-amber-600'
+                    }`}>
+                      {s.isVisible ? 'Terlihat' : 'Tersembunyi'}
+                    </div>
+                  )}
                 </div>
                 <div className="text-xs font-medium text-slate-400">
                   {s.type.toUpperCase()}
@@ -398,6 +426,15 @@ const SumatifView: React.FC<SumatifViewProps> = ({
               <div className="flex items-center gap-2 pt-4 border-t border-slate-50">
                 {isTeacher ? (
                   <>
+                    <button
+                      onClick={() => handleToggleVisibility(s)}
+                      title={s.isVisible ? 'Sembunyikan dari Siswa' : 'Tampilkan ke Siswa'}
+                      className={`p-2 rounded-xl transition-colors ${
+                        s.isVisible ? 'bg-blue-50 text-blue-600 hover:bg-blue-100' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                      }`}
+                    >
+                      {s.isVisible ? <Eye size={18} /> : <EyeOff size={18} className="opacity-50" />}
+                    </button>
                     <button
                       onClick={() => handleToggleActive(s)}
                       title={s.isActive ? 'Nonaktifkan' : 'Aktifkan'}
@@ -459,7 +496,7 @@ const SumatifView: React.FC<SumatifViewProps> = ({
               </div>
             </div>
           ))
-        )}
+        })()}
       </div>
 
       <Modal 
@@ -770,6 +807,7 @@ const SumatifEditor: React.FC<{
                           onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
                         });
                       }}
+                      type="button"
                       className="px-4 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-all"
                       title="Copy Token"
                     >
@@ -785,11 +823,31 @@ const SumatifEditor: React.FC<{
                       }
                       setFormData({ ...formData, token: result });
                     }}
+                    type="button"
                     className="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all"
                     title="Generate Token"
                   >
                     <RefreshCw size={20} />
                   </button>
+                </div>
+              </div>
+              <div className="space-y-4 pt-4 col-span-full border-t border-slate-50">
+                <div 
+                  onClick={() => setFormData({ ...formData, isVisible: !formData.isVisible })}
+                  className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer hover:bg-slate-100 transition-all group"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className={`p-3 rounded-xl ${formData.isVisible ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400'}`}>
+                      {formData.isVisible ? <Eye size={24} /> : <EyeOff size={24} />}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800">Tampilkan di Portal Siswa</h4>
+                      <p className="text-sm text-slate-500">Jika aktif, kartu ujian ini akan terlihat oleh siswa di kelas mereka.</p>
+                    </div>
+                  </div>
+                  <div className={`w-14 h-8 rounded-full relative transition-all ${formData.isVisible ? 'bg-[#5AB2FF]' : 'bg-slate-300'}`}>
+                    <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-all ${formData.isVisible ? 'left-7' : 'left-1'}`}></div>
+                  </div>
                 </div>
               </div>
             </div>
