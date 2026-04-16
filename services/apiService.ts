@@ -1326,6 +1326,7 @@ export const apiService = {
       startTime: s.start_time,
       endTime: s.end_time,
       isActive: s.is_active,
+      isVisible: s.is_visible,
       token: s.token,
       createdAt: s.created_at
     }));
