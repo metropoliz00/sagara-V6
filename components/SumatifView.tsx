@@ -21,14 +21,11 @@ const checkCorrect = (q: Question, studentAnswer: any) => {
     const sAns = studentAnswer;
     const cAns = q.correctAnswer;
     
-    // If both are numbers, they are indices
     if (typeof sAns === 'number' && typeof cAns === 'number') return sAns === cAns;
-    // If student answer is index but correct is text (old data)
-    if (typeof sAns === 'number') return q.options?.[sAns] === cAns;
-    // If correct answer is index but student is text
-    if (typeof cAns === 'number') return sAns === q.options?.[cAns];
+    if (typeof sAns === 'number') return String(q.options?.[sAns]).trim().toLowerCase() === String(cAns).trim().toLowerCase();
+    if (typeof cAns === 'number') return String(sAns).trim().toLowerCase() === String(q.options?.[cAns]).trim().toLowerCase();
     
-    return String(sAns).trim() === String(cAns).trim();
+    return String(sAns).trim().toLowerCase() === String(cAns).trim().toLowerCase();
   } else if (q.type === 'pgk') {
     const sOnes = Array.isArray(studentAnswer) ? studentAnswer : [];
     const cOnes = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
@@ -36,16 +33,27 @@ const checkCorrect = (q: Question, studentAnswer: any) => {
     if (cOnes.length === 0) return false;
     if (sOnes.length !== cOnes.length) return false;
     
-    // Convert everything to string for stable comparison
-    const normalizedS = sOnes.map(s => String(s).trim()).sort();
-    const normalizedC = cOnes.map(c => String(c).trim()).sort();
+    // Normalize both to text for reliable comparison
+    const sTexts = sOnes.map(s => {
+      const val = typeof s === 'number' ? q.options?.[s] : s;
+      return String(val || '').trim().toLowerCase();
+    }).sort();
+
+    const cTexts = cOnes.map(c => {
+      const val = typeof c === 'number' ? q.options?.[c] : c;
+      return String(val || '').trim().toLowerCase();
+    }).sort();
     
-    return normalizedS.length === normalizedC.length && 
-           normalizedS.every((val, index) => val === normalizedC[index]);
+    return sTexts.length === cTexts.length && 
+           sTexts.every((val, index) => val === cTexts[index]);
   } else if (q.type === 'bs') {
     const subAnswers = studentAnswer as Record<string, string> || {};
     const subQs = q.subQuestions || [];
-    return subQs.length > 0 && subQs.every(sq => subAnswers[sq.id] === sq.correctAnswer);
+    return subQs.length > 0 && subQs.every(sq => {
+      const s = String(subAnswers[sq.id] || '').trim().toLowerCase();
+      const c = String(sq.correctAnswer || '').trim().toLowerCase();
+      return s && c && s === c;
+    });
   }
   return false;
 };
@@ -1191,19 +1199,8 @@ const SumatifTaking: React.FC<{
       totalPoints += qPoints;
       const studentAnswer = answers[q.id];
       
-      if (q.type === 'pg') {
+      if (q.type === 'pg' || q.type === 'pgk' || q.type === 'bs') {
         if (checkCorrect(q, studentAnswer)) {
-          earnedPoints += qPoints;
-        }
-      } else if (q.type === 'pgk') {
-        if (checkCorrect(q, studentAnswer)) {
-          earnedPoints += qPoints;
-        }
-      } else if (q.type === 'bs') {
-        const subAnswers = studentAnswer as Record<string, string> || {};
-        const subQs = q.subQuestions || [];
-        const allCorrect = subQs.length > 0 && subQs.every(sq => subAnswers[sq.id] === sq.correctAnswer);
-        if (allCorrect) {
           earnedPoints += qPoints;
         }
       }
