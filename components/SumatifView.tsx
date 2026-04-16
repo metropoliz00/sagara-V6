@@ -4,7 +4,7 @@ import {
   Clock, BookOpen, AlertCircle, Save, ChevronLeft, ChevronRight,
   HelpCircle, Check, X, ListFilter, User as UserIcon, LogIn, Monitor,
   Maximize2, Minimize2, Type, ArrowLeft, ArrowRight, Flag, RefreshCw,
-  Image as ImageIcon
+  Image as ImageIcon, Copy
 } from 'lucide-react';
 import { Sumatif, Question, QuestionType, User, Student, Subject, SumatifResult } from '../types';
 import { apiService } from '../services/apiService';
@@ -458,7 +458,7 @@ const SumatifEditor: React.FC<{
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Token Ujian (Opsional)</label>
+                <label className="text-sm font-bold text-slate-700">Token Ujian</label>
                 <div className="flex space-x-2">
                   <input
                     type="text"
@@ -467,6 +467,18 @@ const SumatifEditor: React.FC<{
                     placeholder="Contoh: ABCDEF"
                     className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] focus:border-transparent outline-none transition-all"
                   />
+                  {formData.token && (
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(formData.token || '');
+                        alert('Token berhasil disalin ke clipboard!');
+                      }}
+                      className="px-4 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-all"
+                      title="Copy Token"
+                    >
+                      <Copy size={20} />
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
