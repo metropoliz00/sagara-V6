@@ -1094,32 +1094,34 @@ const SumatifTaking: React.FC<{
     let earnedPoints = 0;
 
     sumatif.questions.forEach(q => {
-      totalPoints += q.points;
+      const qPoints = Number(q.points) || 0;
+      totalPoints += qPoints;
       const studentAnswer = answers[q.id];
       
       if (q.type === 'pg') {
-        if (studentAnswer === q.correctAnswer) earnedPoints += q.points;
+        if (studentAnswer && String(studentAnswer).trim() === String(q.correctAnswer).trim()) {
+          earnedPoints += qPoints;
+        }
       } else if (q.type === 'pgk') {
-        const correctOnes = q.correctAnswer as string[];
-        const studentOnes = studentAnswer as string[] || [];
-        if (correctOnes.length === studentOnes.length && correctOnes.every(c => studentOnes.includes(c))) {
-          earnedPoints += q.points;
+        const correctOnes = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
+        const studentOnes = Array.isArray(studentAnswer) ? studentAnswer : [];
+        if (correctOnes.length > 0 && correctOnes.length === studentOnes.length && correctOnes.every(c => studentOnes.includes(c))) {
+          earnedPoints += qPoints;
         }
       } else if (q.type === 'bs') {
-        // BS now has 3 sub-questions
         const subAnswers = studentAnswer as Record<string, string> || {};
         let correctSubs = 0;
-        q.subQuestions?.forEach(sq => {
+        const subQs = q.subQuestions || [];
+        subQs.forEach(sq => {
           if (subAnswers[sq.id] === sq.correctAnswer) correctSubs++;
         });
-        // Points are proportional to correct sub-questions
-        if (q.subQuestions && q.subQuestions.length > 0) {
-          earnedPoints += (correctSubs / q.subQuestions.length) * q.points;
+        if (subQs.length > 0) {
+          earnedPoints += (correctSubs / subQs.length) * qPoints;
         }
       }
     });
 
-    const finalScore = Math.round((earnedPoints / totalPoints) * 100);
+    const finalScore = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
 
     try {
       await apiService.submitSumatifResult({
@@ -1582,14 +1584,15 @@ const SumatifResultsView: React.FC<{
   const checkCorrect = (q: Question, studentAnswer: any) => {
     if (!studentAnswer) return false;
     if (q.type === 'pg') {
-      return studentAnswer === q.correctAnswer;
+      return String(studentAnswer).trim() === String(q.correctAnswer).trim();
     } else if (q.type === 'pgk') {
-      const correctOnes = q.correctAnswer as string[];
-      const studentOnes = studentAnswer as string[] || [];
-      return correctOnes.length === studentOnes.length && correctOnes.every(c => studentOnes.includes(c));
+      const correctOnes = Array.isArray(q.correctAnswer) ? q.correctAnswer : [];
+      const studentOnes = Array.isArray(studentAnswer) ? studentAnswer : [];
+      return correctOnes.length > 0 && correctOnes.length === studentOnes.length && correctOnes.every(c => studentOnes.includes(c));
     } else if (q.type === 'bs') {
       const subAnswers = studentAnswer as Record<string, string> || {};
-      return q.subQuestions?.every(sq => subAnswers[sq.id] === sq.correctAnswer);
+      const subQs = q.subQuestions || [];
+      return subQs.length > 0 && subQs.every(sq => subAnswers[sq.id] === sq.correctAnswer);
     }
     return false;
   };
