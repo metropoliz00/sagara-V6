@@ -529,7 +529,34 @@ const SumatifEditor: React.FC<{
   activeClassId: string,
   onShowNotification: (message: string, type: 'success' | 'error' | 'warning') => void
 }> = ({ sumatif, onSave, onCancel, activeClassId, onShowNotification }) => {
-  const [formData, setFormData] = useState<Sumatif>({ ...sumatif });
+  const [formData, setFormData] = useState<Sumatif>(() => {
+    const normalizedQuestions = [...(sumatif.questions || [])].map((q: any) => {
+      const rawOptions = Array.isArray(q.options) ? q.options : [];
+      const rawImages = Array.isArray(q.optionImages) ? q.optionImages : [];
+      
+      const normalizedOptions = rawOptions.map((o: any, idx: number) => {
+        if (typeof o === 'string' || !o.id) {
+          const text = typeof o === 'string' ? o : o.text;
+          return { 
+            id: o.id || Math.random().toString(36).substr(2, 9), 
+            text: text || '',
+            imageUrl: rawImages[idx] || o.imageUrl || ''
+          };
+        }
+        if (rawImages[idx]) {
+          return { ...o, imageUrl: rawImages[idx] };
+        }
+        return o;
+      });
+
+      return {
+        ...q,
+        options: normalizedOptions
+      };
+    });
+    
+    return { ...sumatif, questions: normalizedQuestions };
+  });
   const [activeTab, setActiveTab] = useState<'info' | 'questions'>('info');
 
   const handleDownloadTemplate = () => {
@@ -691,10 +718,10 @@ const SumatifEditor: React.FC<{
       text: '',
       type: 'pg',
       options: [
-        { id: 'o1', text: '' },
-        { id: 'o2', text: '' },
-        { id: 'o3', text: '' },
-        { id: 'o4', text: '' }
+        { id: Math.random().toString(36).substr(2, 9), text: '' },
+        { id: Math.random().toString(36).substr(2, 9), text: '' },
+        { id: Math.random().toString(36).substr(2, 9), text: '' },
+        { id: Math.random().toString(36).substr(2, 9), text: '' }
       ],
       correctAnswer: '',
       points: 1,
@@ -1597,7 +1624,7 @@ const SumatifTaking: React.FC<{
                   )}
 
                   <div className="space-y-4">
-                  {currentQuestion.type === 'pg' && (currentQuestion.options || []).filter(opt => opt.text && opt.text.trim() !== "").map((opt, idx) => {
+                  {currentQuestion.type === 'pg' && (currentQuestion.options || []).filter(opt => (opt.text && opt.text.trim() !== "") || (opt.imageUrl && opt.imageUrl.trim() !== "")).map((opt, idx) => {
                     return (
                       <button
                         key={opt.id}
@@ -1626,11 +1653,13 @@ const SumatifTaking: React.FC<{
                               />
                             </div>
                           )}
-                          <span className={`font-bold ${
-                            answers[currentQuestion.id] === opt.id ? 'text-slate-800' : 'text-slate-600'
-                          } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
-                            {opt.text}
-                          </span>
+                          {opt.text && !opt.text.startsWith('http') && (
+                            <span className={`font-bold ${
+                              answers[currentQuestion.id] === opt.id ? 'text-slate-800' : 'text-slate-600'
+                            } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
+                              {opt.text}
+                            </span>
+                          )}
                         </div>
                         {answers[currentQuestion.id] === opt.id && (
                           <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5AB2FF]">
@@ -1641,7 +1670,7 @@ const SumatifTaking: React.FC<{
                     );
                   })}
 
-                  {currentQuestion.type === 'pgk' && (currentQuestion.options || []).filter(opt => opt.text && opt.text.trim() !== "").map((opt, idx) => {
+                  {currentQuestion.type === 'pgk' && (currentQuestion.options || []).filter(opt => (opt.text && opt.text.trim() !== "") || (opt.imageUrl && opt.imageUrl.trim() !== "")).map((opt, idx) => {
                     const isSelected = (answers[currentQuestion.id] || []).includes(opt.id);
                     return (
                       <button
@@ -1681,11 +1710,13 @@ const SumatifTaking: React.FC<{
                               />
                             </div>
                           )}
-                          <span className={`font-bold ${
-                            isSelected ? 'text-slate-800' : 'text-slate-600'
-                          } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
-                            {opt.text}
-                          </span>
+                          {opt.text && !opt.text.startsWith('http') && (
+                            <span className={`font-bold ${
+                              isSelected ? 'text-slate-800' : 'text-slate-600'
+                            } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
+                              {opt.text}
+                            </span>
+                          )}
                         </div>
                       </button>
                     );
