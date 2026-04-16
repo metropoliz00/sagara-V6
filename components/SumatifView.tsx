@@ -36,21 +36,12 @@ const checkCorrect = (q: Question, studentAnswer: any) => {
     if (cOnes.length === 0) return false;
     if (sOnes.length !== cOnes.length) return false;
     
-    // If both use indices, compare indices (handles empty text options)
-    const allSIndices = sOnes.every(s => typeof s === 'number');
-    const allCIndices = cOnes.every(c => typeof c === 'number');
+    // Convert everything to string for stable comparison
+    const normalizedS = sOnes.map(s => String(s).trim()).sort();
+    const normalizedC = cOnes.map(c => String(c).trim()).sort();
     
-    if (allSIndices && allCIndices) {
-      return sOnes.every(s => cOnes.includes(s));
-    }
-    
-    // Fallback: normalize to text for comparison
-    const normalizedS = sOnes.map(s => typeof s === 'number' ? q.options?.[s] : s);
-    const normalizedC = cOnes.map(c => typeof c === 'number' ? q.options?.[c] : c);
-    
-    return normalizedC.length > 0 && 
-           normalizedC.length === normalizedS.length && 
-           normalizedC.every(c => normalizedS.includes(c));
+    return normalizedS.length === normalizedC.length && 
+           normalizedS.every((val, index) => val === normalizedC[index]);
   } else if (q.type === 'bs') {
     const subAnswers = studentAnswer as Record<string, string> || {};
     const subQs = q.subQuestions || [];
