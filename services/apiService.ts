@@ -1315,7 +1315,10 @@ export const apiService = {
       .from('sumatifs')
       .select('*')
       .eq('class_id', classId);
-    if (error) return [];
+    if (error) {
+      console.error("Error fetching sumatifs:", error);
+      return [];
+    }
     return data.map((s: any) => ({
       ...s,
       classId: s.class_id,
@@ -1334,30 +1337,52 @@ export const apiService = {
       title: sumatif.title,
       type: sumatif.type,
       duration: sumatif.duration,
-      start_time: sumatif.startTime,
-      end_time: sumatif.endTime,
+      start_time: sumatif.startTime || null,
+      end_time: sumatif.endTime || null,
       is_active: sumatif.isActive,
-      token: sumatif.token,
+      token: sumatif.token || null,
       questions: sumatif.questions
     };
 
-    if (sumatif.id) {
+    if (sumatif.id && sumatif.id !== '') {
       const { data, error } = await supabase
         .from('sumatifs')
         .update(dbSumatif)
         .eq('id', sumatif.id)
         .select()
         .single();
-      if (error) throw error;
-      return { ...data, classId: data.class_id, subjectId: data.subject_id };
+      if (error) {
+        console.error("Error updating sumatif:", error);
+        throw error;
+      }
+      return { 
+        ...data, 
+        classId: data.class_id, 
+        subjectId: data.subject_id,
+        startTime: data.start_time,
+        endTime: data.end_time,
+        isActive: data.is_active,
+        createdAt: data.created_at
+      };
     } else {
       const { data, error } = await supabase
         .from('sumatifs')
         .insert([dbSumatif])
         .select()
         .single();
-      if (error) throw error;
-      return { ...data, classId: data.class_id, subjectId: data.subject_id };
+      if (error) {
+        console.error("Error inserting sumatif:", error);
+        throw error;
+      }
+      return { 
+        ...data, 
+        classId: data.class_id, 
+        subjectId: data.subject_id,
+        startTime: data.start_time,
+        endTime: data.end_time,
+        isActive: data.is_active,
+        createdAt: data.created_at
+      };
     }
   },
   deleteSumatif: async (id: string): Promise<void> => {
