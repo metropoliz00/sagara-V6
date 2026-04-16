@@ -1918,6 +1918,7 @@ const SumatifResultsView: React.FC<{
                 <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Siswa</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Skor</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Waktu Selesai</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Status Tes</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Aksi</th>
               </tr>
             </thead>
@@ -1946,6 +1947,13 @@ const SumatifResultsView: React.FC<{
                     </td>
                     <td className="px-6 py-4 text-center text-sm text-slate-500">
                       {format(new Date(r.submittedAt), 'dd MMM yyyy HH:mm', { locale: id })}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
+                        r.status_tes === 'selesai' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {r.status_tes || 'Mulai'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button
