@@ -1034,7 +1034,7 @@ const SumatifTokenEntry: React.FC<{
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-100 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-[1440px] rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
         {/* Left Side: Info */}
         <div className="bg-[#5AB2FF] p-8 md:w-1/3 text-white flex flex-col justify-between">
           <div>
