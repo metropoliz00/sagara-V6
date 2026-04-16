@@ -1010,20 +1010,20 @@ const SumatifEditor: React.FC<{
                                 <ImageIcon size={14} className="text-slate-300" />
                                 <input
                                   type="text"
-                                  value={q.optionImages?.[optIdx] || ''}
+                                  value={opt.imageUrl || ''}
                                   onChange={e => {
-                                    const newOptImgs = [...(q.optionImages || ['', '', '', ''])];
-                                    newOptImgs[optIdx] = e.target.value;
-                                    updateQuestion(idx, { optionImages: newOptImgs });
+                                    const newOpts = [...(q.options || [])];
+                                    newOpts[optIdx] = { ...newOpts[optIdx], imageUrl: e.target.value };
+                                    updateQuestion(idx, { options: newOpts });
                                   }}
                                   placeholder="Link Gambar Opsi (Opsional)"
                                   className="flex-1 px-3 py-1.5 rounded-lg border border-slate-100 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-[10px]"
                                 />
                               </div>
-                              {q.optionImages?.[optIdx] && (
+                              {opt.imageUrl && (
                                 <div className="w-full h-24 rounded-lg overflow-hidden border border-slate-100 bg-slate-50">
                                   <img 
-                                    src={q.optionImages[optIdx]} 
+                                    src={opt.imageUrl} 
                                     alt={`Preview ${optIdx}`} 
                                     className="w-full h-full object-contain"
                                     referrerPolicy="no-referrer"
