@@ -1263,6 +1263,7 @@ const SumatifTaking: React.FC<{
       options: q.options ? [...q.options].sort(() => Math.random() - 0.5) : undefined
     }));
   });
+  
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [timeLeft, setTimeLeft] = useState((sumatif.duration || 0) * 60);
