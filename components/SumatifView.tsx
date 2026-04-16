@@ -4,7 +4,7 @@ import {
   Clock, BookOpen, AlertCircle, Save, ChevronLeft, ChevronRight,
   HelpCircle, Check, X, ListFilter, User as UserIcon, LogIn, Monitor,
   Maximize2, Minimize2, Type, ArrowLeft, ArrowRight, Flag, RefreshCw,
-  Image as ImageIcon, Copy, Download, Upload, LayoutGrid
+  Image as ImageIcon, Copy, Download, Upload, LayoutGrid, ZoomIn, ZoomOut
 } from 'lucide-react';
 import { Sumatif, Question, QuestionType, User, Student, Subject, SumatifResult } from '../types';
 import { apiService } from '../services/apiService';
@@ -1133,6 +1133,7 @@ const SumatifTaking: React.FC<{
   const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
   const [showNavigation, setShowNavigation] = useState(true);
+  const [zoomScale, setZoomScale] = useState(1);
   const [modal, setModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -1152,7 +1153,6 @@ const SumatifTaking: React.FC<{
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          handleSubmit();
           return 0;
         }
         return prev - 1;
@@ -1160,6 +1160,13 @@ const SumatifTaking: React.FC<{
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Handle auto-submit when time is up
+  useEffect(() => {
+    if (timeLeft === 0 && !isSubmitting) {
+      handleSubmit();
+    }
+  }, [timeLeft]);
 
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
@@ -1248,6 +1255,20 @@ const SumatifTaking: React.FC<{
   const currentQuestion = sumatif.questions[currentQuestionIdx];
   const isLastQuestion = currentQuestionIdx === sumatif.questions.length - 1;
 
+  // Adaptive Font Size Calculation
+  const adaptiveFontSize = useMemo(() => {
+    const textLen = currentQuestion.text.length;
+    if (textLen > 600) return 'text-base';
+    if (textLen > 300) return 'text-lg';
+    if (textLen > 100) return 'text-xl';
+    return 'text-2xl';
+  }, [currentQuestion.text]);
+
+  // Reset zoom scale when question changes
+  useEffect(() => {
+    setZoomScale(1);
+  }, [currentQuestionIdx]);
+
   return (
     <div className="fixed inset-0 z-50 bg-[#F0F4F8] flex flex-col font-sans">
       {/* CBT Header */}
@@ -1314,27 +1335,7 @@ const SumatifTaking: React.FC<{
                   <span className="bg-[#5AB2FF] text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg shadow-md">
                     {currentQuestionIdx + 1}
                   </span>
-                  <span className="text-slate-400 font-bold text-sm uppercase tracking-widest">Pertanyaan</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button 
-                    onClick={() => setFontSize('sm')}
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold transition-all ${fontSize === 'sm' ? 'bg-[#5AB2FF] text-white' : 'bg-white text-slate-400 border border-slate-200 hover:border-[#5AB2FF]'}`}
-                  >
-                    A
-                  </button>
-                  <button 
-                    onClick={() => setFontSize('md')}
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold transition-all ${fontSize === 'md' ? 'bg-[#5AB2FF] text-white' : 'bg-white text-slate-400 border border-slate-200 hover:border-[#5AB2FF]'}`}
-                  >
-                    A
-                  </button>
-                  <button 
-                    onClick={() => setFontSize('lg')}
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold transition-all ${fontSize === 'lg' ? 'bg-[#5AB2FF] text-white' : 'bg-white text-slate-400 border border-slate-200 hover:border-[#5AB2FF]'}`}
-                  >
-                    A
-                  </button>
+                  <span className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-none">CBT - EXAM</span>
                 </div>
               </div>
 
@@ -1342,13 +1343,43 @@ const SumatifTaking: React.FC<{
               <div className={`p-8 flex-1 ${currentQuestion.imageUrl ? 'grid grid-cols-1 lg:grid-cols-2 gap-12' : ''}`}>
                 {currentQuestion.imageUrl && (
                   <div className="space-y-4">
-                    <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-sm max-h-[500px] flex justify-center bg-slate-50">
-                      <img 
-                        src={currentQuestion.imageUrl} 
-                        alt="Question" 
-                        className="max-w-full h-auto object-contain"
-                        referrerPolicy="no-referrer"
-                      />
+                    <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-sm max-h-[500px] flex justify-center bg-slate-50 relative group">
+                      <div className="p-3 absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-all flex space-x-2">
+                        <button
+                          onClick={() => setZoomScale(prev => Math.min(prev + 0.2, 3))}
+                          className="w-10 h-10 bg-white shadow-xl rounded-xl flex items-center justify-center text-slate-600 hover:text-[#5AB2FF] hover:scale-110"
+                          title="Zoom In"
+                        >
+                          <ZoomIn size={20} />
+                        </button>
+                        <button
+                          onClick={() => setZoomScale(prev => Math.max(prev - 0.2, 0.5))}
+                          className="w-10 h-10 bg-white shadow-xl rounded-xl flex items-center justify-center text-slate-600 hover:text-[#5AB2FF] hover:scale-110"
+                          title="Zoom Out"
+                        >
+                          <ZoomOut size={20} />
+                        </button>
+                        <button
+                          onClick={() => setZoomScale(1)}
+                          className="w-10 h-10 bg-white shadow-xl rounded-xl flex items-center justify-center text-slate-600 hover:text-[#5AB2FF] hover:scale-110 font-bold text-xs"
+                          title="Reset"
+                        >
+                          R
+                        </button>
+                      </div>
+                      <div className="flex-1 w-full flex items-center justify-center p-4 overflow-auto scrollbar-hide">
+                        <img 
+                          src={currentQuestion.imageUrl} 
+                          alt="Question" 
+                          style={{ 
+                            transform: `scale(${zoomScale})`, 
+                            transformOrigin: 'center center',
+                            transition: 'transform 0.2s ease-out'
+                          }}
+                          className="max-w-full h-auto object-contain cursor-grab active:cursor-grabbing"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
                     </div>
                     {currentQuestion.imageCaption && (
                       <p className="text-center text-xs italic text-slate-400">{currentQuestion.imageCaption}</p>
@@ -1357,9 +1388,7 @@ const SumatifTaking: React.FC<{
                 )}
                 
                 <div className="flex flex-col">
-                  <div className={`text-slate-800 font-medium leading-relaxed mb-10 ${
-                    fontSize === 'sm' ? 'text-base' : fontSize === 'md' ? 'text-xl' : 'text-2xl'
-                  }`}>
+                  <div className={`text-slate-800 font-medium leading-relaxed mb-10 ${adaptiveFontSize}`}>
                     {currentQuestion.text}
                   </div>
 
@@ -1479,13 +1508,34 @@ const SumatifTaking: React.FC<{
                                 <td className="px-6 py-6">
                                   <div className="space-y-3">
                                     {sq.imageUrl && (
-                                      <div className="rounded-xl overflow-hidden border border-slate-200 max-h-[200px] inline-block bg-white">
-                                        <img 
-                                          src={sq.imageUrl} 
-                                          alt="Statement" 
-                                          className="max-w-full h-auto object-contain"
-                                          referrerPolicy="no-referrer"
-                                        />
+                                      <div className="rounded-xl overflow-hidden border border-slate-200 max-h-[200px] inline-block bg-white relative group">
+                                        <div className="p-2 absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-all flex space-x-1">
+                                          <button
+                                            onClick={() => setZoomScale(prev => Math.min(prev + 0.2, 3))}
+                                            className="w-8 h-8 bg-white shadow-xl rounded-lg flex items-center justify-center text-slate-600 hover:text-[#5AB2FF]"
+                                          >
+                                            <ZoomIn size={14} />
+                                          </button>
+                                          <button
+                                            onClick={() => setZoomScale(prev => Math.max(prev - 0.2, 0.5))}
+                                            className="w-8 h-8 bg-white shadow-xl rounded-lg flex items-center justify-center text-slate-600 hover:text-[#5AB2FF]"
+                                          >
+                                            <ZoomOut size={14} />
+                                          </button>
+                                        </div>
+                                        <div className="p-2 overflow-auto">
+                                          <img 
+                                            src={sq.imageUrl} 
+                                            alt="Statement" 
+                                            style={{ 
+                                              transform: `scale(${zoomScale})`,
+                                              transformOrigin: 'center center',
+                                              transition: 'transform 0.2s ease-out'
+                                            }}
+                                            className="max-w-full h-auto object-contain"
+                                            referrerPolicy="no-referrer"
+                                          />
+                                        </div>
                                       </div>
                                     )}
                                     {sq.imageCaption && (
