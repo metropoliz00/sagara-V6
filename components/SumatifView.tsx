@@ -1339,7 +1339,14 @@ const SumatifTaking: React.FC<{
                   <span className="bg-[#5AB2FF] text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg shadow-md">
                     {currentQuestionIdx + 1}
                   </span>
-                  <span className="text-slate-400 font-bold text-sm uppercase tracking-widest leading-none">CBT - EXAM</span>
+                  <div className="flex flex-col">
+                    <span className="text-[#5AB2FF] font-black text-[10px] uppercase tracking-[0.2em] leading-none mb-1">
+                      {MOCK_SUBJECTS.find(s => s.id === sumatif.subjectId)?.name || 'Mata Pelajaran'}
+                    </span>
+                    <span className="text-slate-600 font-bold text-sm uppercase tracking-wider leading-none">
+                      {sumatif.title}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex flex-col items-end">
