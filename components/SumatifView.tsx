@@ -1210,13 +1210,10 @@ const SumatifTaking: React.FC<{
         }
       } else if (q.type === 'bs') {
         const subAnswers = studentAnswer as Record<string, string> || {};
-        let correctSubs = 0;
         const subQs = q.subQuestions || [];
-        subQs.forEach(sq => {
-          if (subAnswers[sq.id] === sq.correctAnswer) correctSubs++;
-        });
-        if (subQs.length > 0) {
-          earnedPoints += (correctSubs / subQs.length) * qPoints;
+        const allCorrect = subQs.length > 0 && subQs.every(sq => subAnswers[sq.id] === sq.correctAnswer);
+        if (allCorrect) {
+          earnedPoints += qPoints;
         }
       }
     });
