@@ -621,30 +621,30 @@ const SumatifEditor: React.FC<{
         const data = XLSX.utils.sheet_to_json(ws) as any[];
 
         const newQuestions: Question[] = data.map((row) => {
-          const rawType = String(row.Tipe || 'PG').trim().toUpperCase();
-          const type = (rawType === 'PGK' ? 'pgk' : rawType === 'BS' ? 'bs' : 'pg') as QuestionType;
-          const q: Question = {
-            id: Math.random().toString(36).substr(2, 9),
-            text: row.Pertanyaan || '',
-            type,
-            points: parseInt(row.Bobot) || 1,
-            imageUrl: row.Gambar_URL || '',
-            imageCaption: row.Keterangan_Gambar || '',
-            correctAnswer: '',
-            options: [],
-            subQuestions: []
-          };
-
-          if (type === 'pg' || type === 'pgk') {
-            const rawOptions = [row.Opsi_A, row.Opsi_B, row.Opsi_C, row.Opsi_D].map(o => String(o || '').trim());
-            q.options = rawOptions.map(opt => {
-               const isUrl = opt.startsWith('http://') || opt.startsWith('https://');
-               return {
-                 id: Math.random().toString(36).substr(2, 9),
-                 text: isUrl ? '' : opt,
-                 imageUrl: isUrl ? opt : ''
-               };
-            });
+            const rawType = String(row.Tipe || 'PG').trim().toUpperCase();
+            const type = (rawType === 'PGK' ? 'pgk' : rawType === 'BS' ? 'bs' : 'pg') as QuestionType;
+            const q: Question = {
+              id: Math.random().toString(36).substr(2, 9),
+              text: row.Pertanyaan || '',
+              type,
+              points: parseInt(row.Bobot) || 1,
+              imageUrl: row.Gambar_URL || '',
+              imageCaption: row.Keterangan_Gambar || '',
+              correctAnswer: '',
+              options: [],
+              subQuestions: []
+            };
+  
+            if (type === 'pg' || type === 'pgk') {
+              const rawOptions = [row.Opsi_A, row.Opsi_B, row.Opsi_C, row.Opsi_D].map(o => String(o || '').trim());
+              q.options = rawOptions.map(opt => {
+                 const isUrl = opt.startsWith('http://') || opt.startsWith('https://') || opt.startsWith('data:image/');
+                 return {
+                   id: Math.random().toString(36).substr(2, 9),
+                   text: isUrl ? '' : opt,
+                   imageUrl: isUrl ? opt : ''
+                 };
+              });
             
             const mapAnsToId = (ans: any) => {
               if (!ans) return '';
@@ -1024,7 +1024,7 @@ const SumatifEditor: React.FC<{
                                   value={opt.imageUrl || opt.text || ''}
                                   onChange={e => {
                                     const val = e.target.value;
-                                    const isUrl = val.startsWith('http://') || val.startsWith('https://');
+                                    const isUrl = val.startsWith('http://') || val.startsWith('https://') || val.startsWith('data:image/');
                                     const newOpts = [...(q.options || [])];
                                     newOpts[optIdx] = { 
                                       ...newOpts[optIdx], 
@@ -1653,7 +1653,7 @@ const SumatifTaking: React.FC<{
                               />
                             </div>
                           )}
-                          {opt.text && !opt.text.startsWith('http') && (
+                          {opt.text && !opt.text.startsWith('http') && !opt.text.startsWith('data:image/') && (
                             <span className={`font-bold ${
                               answers[currentQuestion.id] === opt.id ? 'text-slate-800' : 'text-slate-600'
                             } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
@@ -1710,7 +1710,7 @@ const SumatifTaking: React.FC<{
                               />
                             </div>
                           )}
-                          {opt.text && !opt.text.startsWith('http') && (
+                          {opt.text && !opt.text.startsWith('http') && !opt.text.startsWith('data:image/') && (
                             <span className={`font-bold ${
                               isSelected ? 'text-slate-800' : 'text-slate-600'
                             } ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
