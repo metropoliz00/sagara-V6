@@ -1877,7 +1877,7 @@ const SumatifTaking: React.FC<{
             <div className="p-6 border-b border-slate-100 bg-slate-50">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Navigasi Soal</h3>
             <div className="grid grid-cols-5 gap-2">
-              {sumatif.questions.map((q, idx) => (
+              {shuffledQuestions.map((q, idx) => (
                 <button
                   key={q.id}
                   onClick={() => setCurrentQuestionIdx(idx)}
