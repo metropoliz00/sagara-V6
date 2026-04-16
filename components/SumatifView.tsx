@@ -87,12 +87,18 @@ const SumatifView: React.FC<SumatifViewProps> = ({
     message: string;
     type: 'alert' | 'confirm';
     onConfirm: () => void;
+    onCancel?: () => void;
+    confirmText?: string;
+    cancelText?: string;
   }>({
     isOpen: false,
     title: '',
     message: '',
     type: 'alert',
-    onConfirm: () => {}
+    onConfirm: () => {},
+    onCancel: () => {},
+    confirmText: 'OK',
+    cancelText: 'Batal'
   });
 
   const isTeacher = currentUser?.role === 'guru' || currentUser?.role === 'admin';
@@ -207,14 +213,21 @@ const SumatifView: React.FC<SumatifViewProps> = ({
     setModal({
       isOpen: true,
       title: 'Reset Hasil Ujian',
-      message: 'Apakah Anda yakin ingin mereset hasil ujian siswa ini? Siswa akan dapat mengerjakan ulang sumatif ini.',
+      message: 'Apakah Anda yakin ingin mereset hasil ujian siswa ini? Data pengerjaan akan dihapus secara permanen dan siswa dapat mengerjakan ulang.',
       type: 'confirm',
+      confirmText: 'Reset Sekarang',
+      cancelText: 'Batal',
+      onCancel: () => setModal(prev => ({ ...prev, isOpen: false })),
       onConfirm: async () => {
         setModal(prev => ({ ...prev, isOpen: false }));
         try {
           await apiService.deleteSumatifResult(sumatif.id, studentId);
           onShowNotification('Hasil ujian berhasil direset', 'success');
-          // Refresh results
+          
+          // Force update local results state to immediately remove the row
+          setResults(prev => prev.filter(r => r.studentId !== studentId));
+          
+          // Optionally refresh from server to be absolutely sure
           const updatedResults = await apiService.getSumatifResults(sumatif.id);
           setResults(updatedResults);
         } catch (error) {
@@ -643,12 +656,18 @@ const SumatifEditor: React.FC<{
     message: string;
     type: 'alert' | 'confirm';
     onConfirm: () => void;
+    onCancel?: () => void;
+    confirmText?: string;
+    cancelText?: string;
   }>({
     isOpen: false,
     title: '',
     message: '',
     type: 'alert',
-    onConfirm: () => {}
+    onConfirm: () => {},
+    onCancel: () => {},
+    confirmText: 'OK',
+    cancelText: 'Batal'
   });
 
   const addQuestion = () => {
@@ -1249,12 +1268,18 @@ const SumatifTaking: React.FC<{
     message: string;
     type: 'alert' | 'confirm';
     onConfirm: () => void;
+    onCancel?: () => void;
+    confirmText?: string;
+    cancelText?: string;
   }>({
     isOpen: false,
     title: '',
     message: '',
     type: 'alert',
-    onConfirm: () => {}
+    onConfirm: () => {},
+    onCancel: () => {},
+    confirmText: 'OK',
+    cancelText: 'Batal'
   });
 
   useEffect(() => {
@@ -2092,6 +2117,7 @@ const Modal: React.FC<{
           <div className="bg-slate-50 p-4 flex justify-end space-x-3">
             {type === 'confirm' && (
               <button
+                type="button"
                 onClick={onCancel}
                 className="px-6 py-2 rounded-xl font-bold text-slate-500 hover:bg-slate-200 transition-all"
               >
@@ -2099,6 +2125,7 @@ const Modal: React.FC<{
               </button>
             )}
             <button
+              type="button"
               onClick={onConfirm}
               className="px-6 py-2 rounded-xl font-bold bg-[#5AB2FF] text-white hover:bg-[#4A9FE6] shadow-md transition-all"
             >

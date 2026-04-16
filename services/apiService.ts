@@ -1340,6 +1340,7 @@ export const apiService = {
       start_time: sumatif.startTime || null,
       end_time: sumatif.endTime || null,
       is_active: sumatif.isActive,
+      is_visible: sumatif.isVisible ?? true,
       token: sumatif.token || null,
       questions: sumatif.questions
     };
