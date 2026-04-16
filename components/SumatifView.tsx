@@ -36,6 +36,19 @@ const SumatifView: React.FC<SumatifViewProps> = ({
   const [currentSumatif, setCurrentSumatif] = useState<Sumatif | null>(null);
   const [viewingResults, setViewingResults] = useState<Sumatif | null>(null);
   const [results, setResults] = useState<SumatifResult[]>([]);
+  const [modal, setModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'alert' | 'confirm';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'alert',
+    onConfirm: () => {}
+  });
 
   const isTeacher = currentUser?.role === 'guru' || currentUser?.role === 'admin';
   const isStudent = currentUser?.role === 'siswa';
@@ -68,14 +81,22 @@ const SumatifView: React.FC<SumatifViewProps> = ({
   };
 
   const handleDeleteSumatif = async (id: string) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus sumatif ini?')) return;
-    try {
-      await apiService.deleteSumatif(id);
-      onShowNotification('Sumatif berhasil dihapus', 'success');
-      fetchSumatifs();
-    } catch (error) {
-      onShowNotification('Gagal menghapus sumatif', 'error');
-    }
+    setModal({
+      isOpen: true,
+      title: 'Hapus Sumatif',
+      message: 'Apakah Anda yakin ingin menghapus sumatif ini?',
+      type: 'confirm',
+      onConfirm: async () => {
+        setModal(prev => ({ ...prev, isOpen: false }));
+        try {
+          await apiService.deleteSumatif(id);
+          onShowNotification('Sumatif berhasil dihapus', 'success');
+          fetchSumatifs();
+        } catch (error) {
+          onShowNotification('Gagal menghapus sumatif', 'error');
+        }
+      }
+    });
   };
 
   const handleToggleActive = async (sumatif: Sumatif) => {
@@ -102,31 +123,37 @@ const SumatifView: React.FC<SumatifViewProps> = ({
   };
 
   const handleSyncToGrades = async (sumatif: Sumatif, results: SumatifResult[]) => {
-    if (!window.confirm('Input nilai hasil sumatif ke buku nilai?')) return;
-    try {
-      for (const result of results) {
-        const student = students.find(s => s.id === result.studentId);
-        if (!student) continue;
+    setModal({
+      isOpen: true,
+      title: 'Sinkronisasi Nilai',
+      message: 'Input nilai hasil sumatif ke buku nilai?',
+      type: 'confirm',
+      onConfirm: async () => {
+        setModal(prev => ({ ...prev, isOpen: false }));
+        try {
+          for (const result of results) {
+            const student = students.find(s => s.id === result.studentId);
+            if (!student) continue;
 
-        // Get existing grades for this student and subject
-        const existingGrades = await apiService.getGradesForStudent(student.id);
-        const subjectGrades = existingGrades?.subjects[sumatif.subjectId] || {
-          sum1: 0, sum2: 0, sum3: 0, sum4: 0, sas: 0
-        };
+            const existingGrades = await apiService.getGradesForStudent(student.id);
+            const subjectGrades = existingGrades?.subjects[sumatif.subjectId] || {
+              sum1: 0, sum2: 0, sum3: 0, sum4: 0, sas: 0
+            };
 
-        // Update the specific sumatif type
-        const updatedGrades = {
-          ...subjectGrades,
-          [sumatif.type]: result.score
-        };
+            const updatedGrades = {
+              ...subjectGrades,
+              [sumatif.type]: result.score
+            };
 
-        await apiService.saveGrade(student.id, sumatif.subjectId, updatedGrades, activeClassId);
+            await apiService.saveGrade(student.id, sumatif.subjectId, updatedGrades, activeClassId);
+          }
+          onShowNotification('Nilai berhasil disinkronkan ke buku nilai', 'success');
+          if (onRefresh) onRefresh();
+        } catch (error) {
+          onShowNotification('Gagal sinkronisasi nilai', 'error');
+        }
       }
-      onShowNotification('Nilai berhasil disinkronkan ke buku nilai', 'success');
-      if (onRefresh) onRefresh();
-    } catch (error) {
-      onShowNotification('Gagal sinkronisasi nilai', 'error');
-    }
+    });
   };
 
   if (loading && !isTaking && !isEditing) {
@@ -195,7 +222,7 @@ const SumatifView: React.FC<SumatifViewProps> = ({
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Sumatif & Asesmen</h2>
+          <h2 className="text-2xl font-bold text-slate-800">PENILAIAN SUMATIF</h2>
           <p className="text-slate-500 text-sm">Kelola dan kerjakan penilaian sumatif secara digital</p>
         </div>
         {isTeacher && (
@@ -325,6 +352,15 @@ const SumatifView: React.FC<SumatifViewProps> = ({
           ))
         )}
       </div>
+
+      <Modal 
+        isOpen={modal.isOpen}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onConfirm={modal.onConfirm}
+        onCancel={() => setModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };
@@ -338,6 +374,19 @@ const SumatifEditor: React.FC<{
 }> = ({ sumatif, onSave, onCancel, activeClassId }) => {
   const [formData, setFormData] = useState<Sumatif>({ ...sumatif });
   const [activeTab, setActiveTab] = useState<'info' | 'questions'>('info');
+  const [modal, setModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'alert' | 'confirm';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'alert',
+    onConfirm: () => {}
+  });
 
   const addQuestion = () => {
     const newQuestion: Question = {
@@ -471,7 +520,13 @@ const SumatifEditor: React.FC<{
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(formData.token || '');
-                        alert('Token berhasil disalin ke clipboard!');
+                        setModal({
+                          isOpen: true,
+                          title: 'Berhasil',
+                          message: 'Token berhasil disalin ke clipboard!',
+                          type: 'alert',
+                          onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
+                        });
                       }}
                       className="px-4 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-all"
                       title="Copy Token"
@@ -525,6 +580,16 @@ const SumatifEditor: React.FC<{
                     <option value="pgk">Pilihan Ganda Kompleks</option>
                     <option value="bs">Benar / Salah</option>
                   </select>
+                  <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
+                    <span className="text-xs font-bold text-slate-400 uppercase">Bobot:</span>
+                    <input
+                      type="number"
+                      value={q.points}
+                      onChange={e => updateQuestion(idx, { points: parseInt(e.target.value) || 0 })}
+                      className="w-12 text-sm font-bold text-[#5AB2FF] outline-none"
+                      min="0"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -681,6 +746,15 @@ const SumatifEditor: React.FC<{
           </div>
         )}
       </div>
+
+      <Modal 
+        isOpen={modal.isOpen}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onConfirm={modal.onConfirm}
+        onCancel={() => setModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };
@@ -803,6 +877,19 @@ const SumatifTaking: React.FC<{
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
+  const [modal, setModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'alert' | 'confirm';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'alert',
+    onConfirm: () => {}
+  });
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -880,10 +967,24 @@ const SumatifTaking: React.FC<{
         score: finalScore,
         answers
       });
-      alert(`Selesai! Skor Anda: ${finalScore}`);
-      onComplete();
+      setModal({
+        isOpen: true,
+        title: 'Ujian Selesai',
+        message: `Selesai! Skor Anda: ${finalScore}`,
+        type: 'alert',
+        onConfirm: () => {
+          setModal(prev => ({ ...prev, isOpen: false }));
+          onComplete();
+        }
+      });
     } catch (error) {
-      alert('Gagal mengirim jawaban. Silakan coba lagi.');
+      setModal({
+        isOpen: true,
+        title: 'Gagal',
+        message: 'Gagal mengirim jawaban. Silakan coba lagi.',
+        type: 'alert',
+        onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
+      });
       setIsSubmitting(false);
     }
   };
@@ -918,9 +1019,16 @@ const SumatifTaking: React.FC<{
 
           <button
             onClick={() => {
-              if (window.confirm('Apakah Anda yakin ingin mengakhiri ujian?')) {
-                handleSubmit();
-              }
+              setModal({
+                isOpen: true,
+                title: 'Akhiri Ujian',
+                message: 'Apakah Anda yakin ingin mengakhiri ujian?',
+                type: 'confirm',
+                onConfirm: () => {
+                  setModal(prev => ({ ...prev, isOpen: false }));
+                  handleSubmit();
+                }
+              });
             }}
             className="bg-white text-[#5AB2FF] px-6 py-2 rounded-xl font-black text-sm uppercase tracking-wider hover:bg-blue-50 transition-all shadow-md active:scale-95"
           >
@@ -1135,8 +1243,8 @@ const SumatifTaking: React.FC<{
               </div>
             </div>
 
-            {/* CBT Footer Controls */}
-            <div className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-lg border border-slate-200">
+      {/* CBT Footer Controls */}
+      <div className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-lg border border-slate-200">
               <button
                 disabled={currentQuestionIdx === 0}
                 onClick={() => setCurrentQuestionIdx(prev => prev - 1)}
@@ -1161,9 +1269,16 @@ const SumatifTaking: React.FC<{
               <button
                 onClick={() => {
                   if (isLastQuestion) {
-                    if (window.confirm('Apakah Anda yakin ingin mengakhiri ujian?')) {
-                      handleSubmit();
-                    }
+                    setModal({
+                      isOpen: true,
+                      title: 'Akhiri Ujian',
+                      message: 'Apakah Anda yakin ingin mengakhiri ujian?',
+                      type: 'confirm',
+                      onConfirm: () => {
+                        setModal(prev => ({ ...prev, isOpen: false }));
+                        handleSubmit();
+                      }
+                    });
                   } else {
                     setCurrentQuestionIdx(prev => prev + 1);
                   }
@@ -1252,6 +1367,15 @@ const SumatifTaking: React.FC<{
           </div>
         </div>
       </div>
+
+      <Modal 
+        isOpen={modal.isOpen}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onConfirm={modal.onConfirm}
+        onCancel={() => setModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };
@@ -1467,6 +1591,59 @@ const SumatifResultsView: React.FC<{
         </div>
       )}
     </div>
+  );
+};
+
+// --- REUSABLE MODAL COMPONENT ---
+const Modal: React.FC<{
+  isOpen: boolean;
+  title: string;
+  message: string;
+  type: 'alert' | 'confirm';
+  onConfirm: () => void;
+  onCancel?: () => void;
+  confirmText?: string;
+  cancelText?: string;
+}> = ({ isOpen, title, message, type, onConfirm, onCancel, confirmText = 'OK', cancelText = 'Batal' }) => {
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+        >
+          <div className="p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className={`p-2 rounded-lg ${type === 'confirm' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
+                <AlertCircle size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-800">{title}</h3>
+            </div>
+            <p className="text-slate-600 leading-relaxed">{message}</p>
+          </div>
+          <div className="bg-slate-50 p-4 flex justify-end space-x-3">
+            {type === 'confirm' && (
+              <button
+                onClick={onCancel}
+                className="px-6 py-2 rounded-xl font-bold text-slate-500 hover:bg-slate-200 transition-all"
+              >
+                {cancelText}
+              </button>
+            )}
+            <button
+              onClick={onConfirm}
+              className="px-6 py-2 rounded-xl font-bold bg-[#5AB2FF] text-white hover:bg-[#4A9FE6] shadow-md transition-all"
+            >
+              {confirmText}
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
   );
 };
 

@@ -95,7 +95,7 @@ const AppContent: React.FC = () => {
       'administrasi/sarana-prasarana': 'Sarana Prasarana',
       'administrasi/dana-bos': 'Manajemen BOS',
       'administrasi/peminjaman-buku': 'Peminjaman Buku',
-      'sumatif': 'Sumatif & Asesmen',
+      'sumatif': 'PENILAIAN SUMATIF',
       'sumatif/manage': 'Kelola Sumatif'
     };
 
