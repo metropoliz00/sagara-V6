@@ -240,7 +240,7 @@ const SumatifView: React.FC<SumatifViewProps> = ({
   const checkStudentAttempt = async (sumatif: Sumatif) => {
     if (!isStudent && !currentUser?.studentId) return true;
     
-    const studentId = isStudent ? students[0]?.id : currentUser?.studentId;
+    const studentId = currentUser?.studentId;
     if (!studentId) return true;
 
     try {
