@@ -1400,7 +1400,8 @@ export const apiService = {
       ...r,
       sumatifId: r.sumatif_id,
       studentId: r.student_id,
-      submittedAt: r.submitted_at
+      submittedAt: r.submitted_at,
+      status_tes: r.status_tes
     }));
   },
   submitSumatifResult: async (result: Omit<SumatifResult, 'id' | 'submittedAt'>): Promise<void> => {
@@ -1408,16 +1409,23 @@ export const apiService = {
       sumatif_id: result.sumatifId,
       student_id: result.studentId,
       score: result.score,
-      answers: result.answers
+      answers: result.answers,
+      status_tes: 'selesai'
     }, { onConflict: 'sumatif_id,student_id' });
     if (error) throw error;
   },
-  deleteSumatifResult: async (sumatifId: string, studentId: string): Promise<void> => {
+  resetSumatifResult: async (sumatifId: string, studentId: string): Promise<void> => {
     const { error } = await supabase
       .from('sumatif_results')
-      .delete()
+      .update({ status_tes: 'mulai', score: 0, answers: {} })
       .eq('sumatif_id', sumatifId)
       .eq('student_id', studentId);
+    if (error) throw error;
+  },
+  startSumatifResult: async (sumatifId: string, studentId: string): Promise<void> => {
+    const { error } = await supabase
+      .from('sumatif_results')
+      .upsert({ sumatif_id: sumatifId, student_id: studentId, status_tes: 'mulai', score: 0, answers: {} }, { onConflict: 'sumatif_id,student_id' });
     if (error) throw error;
   },
 };

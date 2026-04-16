@@ -461,6 +461,7 @@ export interface SumatifResult {
   score: number;
   answers: Record<string, any>; // questionId -> answer
   submittedAt: string;
+  status_tes?: 'mulai' | 'selesai';
 }
 
 export interface BookLoan {

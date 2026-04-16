@@ -221,13 +221,10 @@ const SumatifView: React.FC<SumatifViewProps> = ({
       onConfirm: async () => {
         setModal(prev => ({ ...prev, isOpen: false }));
         try {
-          await apiService.deleteSumatifResult(sumatif.id, studentId);
+          await apiService.resetSumatifResult(sumatif.id, studentId);
           onShowNotification('Hasil ujian berhasil direset', 'success');
           
-          // Force update local results state to immediately remove the row
-          setResults(prev => prev.filter(r => r.studentId !== studentId));
-          
-          // Optionally refresh from server to be absolutely sure
+          // Refresh results immediately
           const updatedResults = await apiService.getSumatifResults(sumatif.id);
           setResults(updatedResults);
         } catch (error) {
@@ -247,7 +244,7 @@ const SumatifView: React.FC<SumatifViewProps> = ({
       const allResults = await apiService.getSumatifResults(sumatif.id);
       const studentResult = allResults.find(r => r.studentId === studentId);
       
-      if (studentResult) {
+      if (studentResult && studentResult.status_tes === 'selesai') {
         setModal({
           isOpen: true,
           title: 'Akses Dibatasi',
@@ -1281,6 +1278,10 @@ const SumatifTaking: React.FC<{
     confirmText: 'OK',
     cancelText: 'Batal'
   });
+
+  useEffect(() => {
+    apiService.startSumatifResult(sumatif.id, studentId);
+  }, [sumatif.id, studentId]);
 
   useEffect(() => {
     const timer = setInterval(() => {
