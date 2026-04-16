@@ -1350,57 +1350,73 @@ const SumatifTaking: React.FC<{
               </div>
 
               {/* Question Content */}
-              <div className={`p-8 flex-1 ${currentQuestion.imageUrl ? 'grid grid-cols-1 lg:grid-cols-2 gap-12' : ''}`}>
-                {currentQuestion.imageUrl && (
-                  <div className="space-y-4">
-                    <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-sm max-h-[500px] flex justify-center bg-slate-50 relative group">
-                      <div className="p-3 absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-all flex space-x-2">
-                        <button
-                          onClick={() => setZoomScale(prev => Math.min(prev + 0.2, 3))}
-                          className="w-10 h-10 bg-white shadow-xl rounded-xl flex items-center justify-center text-slate-600 hover:text-[#5AB2FF] hover:scale-110"
-                          title="Zoom In"
-                        >
-                          <ZoomIn size={20} />
-                        </button>
-                        <button
-                          onClick={() => setZoomScale(prev => Math.max(prev - 0.2, 0.5))}
-                          className="w-10 h-10 bg-white shadow-xl rounded-xl flex items-center justify-center text-slate-600 hover:text-[#5AB2FF] hover:scale-110"
-                          title="Zoom Out"
-                        >
-                          <ZoomOut size={20} />
-                        </button>
-                        <button
-                          onClick={() => setZoomScale(1)}
-                          className="w-10 h-10 bg-white shadow-xl rounded-xl flex items-center justify-center text-slate-600 hover:text-[#5AB2FF] hover:scale-110 font-bold text-xs"
-                          title="Reset"
-                        >
-                          R
-                        </button>
+              <div className={`p-8 flex-1 overflow-y-auto scrollbar-hide ${
+                (currentQuestion.imageUrl || currentQuestion.type === 'bs') 
+                  ? 'grid grid-cols-1 lg:grid-cols-2 gap-10 items-start' 
+                  : 'flex flex-col'
+              }`}>
+                {/* Left Side: Stimulus / Question Text */}
+                <div className="space-y-6">
+                  {currentQuestion.imageUrl && (
+                    <div className="space-y-4">
+                      <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-sm max-h-[500px] flex justify-center bg-slate-50 relative group">
+                        <div className="p-3 absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-all flex space-x-2">
+                          <button
+                            onClick={() => setZoomScale(prev => Math.min(prev + 0.2, 3))}
+                            className="w-10 h-10 bg-white shadow-xl rounded-xl flex items-center justify-center text-slate-600 hover:text-[#5AB2FF] hover:scale-110"
+                            title="Zoom In"
+                          >
+                            <ZoomIn size={20} />
+                          </button>
+                          <button
+                            onClick={() => setZoomScale(prev => Math.max(prev - 0.2, 0.5))}
+                            className="w-10 h-10 bg-white shadow-xl rounded-xl flex items-center justify-center text-slate-600 hover:text-[#5AB2FF] hover:scale-110"
+                            title="Zoom Out"
+                          >
+                            <ZoomOut size={20} />
+                          </button>
+                          <button
+                            onClick={() => setZoomScale(1)}
+                            className="w-10 h-10 bg-white shadow-xl rounded-xl flex items-center justify-center text-slate-600 hover:text-[#5AB2FF] hover:scale-110 font-bold text-xs"
+                            title="Reset"
+                          >
+                            R
+                          </button>
+                        </div>
+                        <div className="flex-1 w-full flex items-center justify-center p-4 overflow-auto scrollbar-hide">
+                          <img 
+                            src={currentQuestion.imageUrl} 
+                            alt="Question" 
+                            style={{ 
+                              transform: `scale(${zoomScale})`, 
+                              transformOrigin: 'center center',
+                              transition: 'transform 0.2s ease-out'
+                            }}
+                            className="max-w-full h-auto object-contain cursor-grab active:cursor-grabbing"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
                       </div>
-                      <div className="flex-1 w-full flex items-center justify-center p-4 overflow-auto scrollbar-hide">
-                        <img 
-                          src={currentQuestion.imageUrl} 
-                          alt="Question" 
-                          style={{ 
-                            transform: `scale(${zoomScale})`, 
-                            transformOrigin: 'center center',
-                            transition: 'transform 0.2s ease-out'
-                          }}
-                          className="max-w-full h-auto object-contain cursor-grab active:cursor-grabbing"
-                          referrerPolicy="no-referrer"
-                        />
-                      </div>
+                      {currentQuestion.imageCaption && (
+                        <p className="text-center text-xs italic text-slate-400">{currentQuestion.imageCaption}</p>
+                      )}
                     </div>
-                    {currentQuestion.imageCaption && (
-                      <p className="text-center text-xs italic text-slate-400">{currentQuestion.imageCaption}</p>
-                    )}
-                  </div>
-                )}
+                  )}
+
+                  {currentQuestion.type === 'bs' && (
+                    <div className={`text-slate-800 font-medium leading-relaxed ${adaptiveFontSize}`}>
+                      {currentQuestion.text}
+                    </div>
+                  )}
+                </div>
                 
+                {/* Right Side / Content Flow: Text (for non-BS) + Interactions */}
                 <div className="flex flex-col">
-                  <div className={`text-slate-800 font-medium leading-relaxed mb-10 ${adaptiveFontSize}`}>
-                    {currentQuestion.text}
-                  </div>
+                  {currentQuestion.type !== 'bs' && (
+                    <div className={`text-slate-800 font-medium leading-relaxed mb-10 ${adaptiveFontSize}`}>
+                      {currentQuestion.text}
+                    </div>
+                  )}
 
                   <div className="space-y-4">
                   {currentQuestion.type === 'pg' && (currentQuestion.options || []).map((opt, idx) => {
@@ -1500,13 +1516,13 @@ const SumatifTaking: React.FC<{
                   })}
 
                   {currentQuestion.type === 'bs' && (
-                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                       <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="bg-slate-50 border-b border-slate-200">
-                            <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-wider">Pernyataan</th>
-                            <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-wider text-center w-24">Benar</th>
-                            <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-wider text-center w-24">Salah</th>
+                            <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Pernyataan Jawaban</th>
+                            <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest transition-all text-center w-20">Benar</th>
+                            <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest transition-all text-center w-20">Salah</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -1515,75 +1531,51 @@ const SumatifTaking: React.FC<{
                             const currentAns = subAnswers[sq.id];
                             return (
                               <tr key={sq.id} className="hover:bg-slate-50/50 transition-colors">
-                                <td className="px-6 py-6">
-                                  <div className="space-y-3">
+                                <td className="px-6 py-4">
+                                  <div className="space-y-2">
                                     {sq.imageUrl && (
-                                      <div className="rounded-xl overflow-hidden border border-slate-200 max-h-[200px] inline-block bg-white relative group">
-                                        <div className="p-2 absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-all flex space-x-1">
-                                          <button
-                                            onClick={() => setZoomScale(prev => Math.min(prev + 0.2, 3))}
-                                            className="w-8 h-8 bg-white shadow-xl rounded-lg flex items-center justify-center text-slate-600 hover:text-[#5AB2FF]"
-                                          >
-                                            <ZoomIn size={14} />
-                                          </button>
-                                          <button
-                                            onClick={() => setZoomScale(prev => Math.max(prev - 0.2, 0.5))}
-                                            className="w-8 h-8 bg-white shadow-xl rounded-lg flex items-center justify-center text-slate-600 hover:text-[#5AB2FF]"
-                                          >
-                                            <ZoomOut size={14} />
-                                          </button>
-                                        </div>
-                                        <div className="p-2 overflow-auto">
-                                          <img 
-                                            src={sq.imageUrl} 
-                                            alt="Statement" 
-                                            style={{ 
-                                              transform: `scale(${zoomScale})`,
-                                              transformOrigin: 'center center',
-                                              transition: 'transform 0.2s ease-out'
-                                            }}
-                                            className="max-w-full h-auto object-contain"
-                                            referrerPolicy="no-referrer"
-                                          />
-                                        </div>
+                                      <div className="rounded-lg overflow-hidden border border-slate-100 max-h-[100px] inline-block">
+                                        <img 
+                                          src={sq.imageUrl} 
+                                          alt="Statement" 
+                                          className="max-w-full h-auto object-contain"
+                                          referrerPolicy="no-referrer"
+                                        />
                                       </div>
                                     )}
-                                    {sq.imageCaption && (
-                                      <p className="text-[10px] italic text-slate-400 mt-1">{sq.imageCaption}</p>
-                                    )}
-                                    <p className={`font-bold text-slate-700 ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
+                                    <p className={`font-bold text-slate-700 leading-tight ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
                                       {sq.text}
                                     </p>
                                   </div>
                                 </td>
-                                <td className="px-6 py-6 text-center">
+                                <td className="px-4 py-4 text-center">
                                   <button
                                     onClick={() => {
                                       const next = { ...subAnswers, [sq.id]: 'Benar' };
                                       handleAnswer(currentQuestion.id, next);
                                     }}
-                                    className={`w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center mx-auto ${
+                                    className={`w-10 h-10 rounded-full border-2 transition-all flex items-center justify-center mx-auto ${
                                       currentAns === 'Benar'
-                                        ? 'border-[#5AB2FF] bg-[#5AB2FF] text-white shadow-md shadow-blue-100'
-                                        : 'border-slate-200 hover:border-[#5AB2FF]/50'
+                                        ? 'border-[#5AB2FF] bg-[#5AB2FF] text-white shadow-lg shadow-blue-100'
+                                        : 'border-slate-200 text-slate-300 hover:border-[#5AB2FF]/50'
                                     }`}
                                   >
-                                    {currentAns === 'Benar' && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                                    <Check size={18} />
                                   </button>
                                 </td>
-                                <td className="px-6 py-6 text-center">
+                                <td className="px-4 py-4 text-center">
                                   <button
                                     onClick={() => {
                                       const next = { ...subAnswers, [sq.id]: 'Salah' };
                                       handleAnswer(currentQuestion.id, next);
                                     }}
-                                    className={`w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center mx-auto ${
+                                    className={`w-10 h-10 rounded-full border-2 transition-all flex items-center justify-center mx-auto ${
                                       currentAns === 'Salah'
-                                        ? 'border-red-500 bg-red-500 text-white shadow-md shadow-red-100'
-                                        : 'border-slate-200 hover:border-red-500/50'
+                                        ? 'border-red-500 bg-red-500 text-white shadow-lg shadow-red-100'
+                                        : 'border-slate-200 text-slate-300 hover:border-red-500/50'
                                     }`}
                                   >
-                                    {currentAns === 'Salah' && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                                    <X size={18} />
                                   </button>
                                 </td>
                               </tr>
