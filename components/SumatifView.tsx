@@ -1605,7 +1605,7 @@ const SumatifTaking: React.FC<{
               <button
                 disabled={currentQuestionIdx === 0}
                 onClick={() => setCurrentQuestionIdx(prev => prev - 1)}
-                className="flex items-center space-x-2 px-6 py-3 rounded-xl font-black text-slate-500 hover:bg-slate-50 transition-all disabled:opacity-30 uppercase text-sm tracking-widest"
+                className="flex items-center space-x-2 px-6 py-3 rounded-xl font-black bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all disabled:opacity-30 uppercase text-sm tracking-widest"
               >
                 <ArrowLeft size={20} />
                 <span>Sebelumnya</span>
