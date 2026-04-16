@@ -1898,6 +1898,7 @@ const SumatifResultsView: React.FC<{
                   </th>
                 ))}
                 <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Skor</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Rekomendasi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -1921,6 +1922,20 @@ const SumatifResultsView: React.FC<{
                     <td className="px-6 py-4 text-center font-black text-[#5AB2FF]">
                       {r.score}
                     </td>
+                    <td className="px-6 py-4 text-center">
+                      {(() => {
+                        const subject = MOCK_SUBJECTS.find(sub => sub.id === sumatif.subjectId);
+                        const kktp = subject?.kkm || 75;
+                        const isPass = r.score >= kktp;
+                        return (
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
+                            isPass ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                          }`}>
+                            {isPass ? 'Pengayaan' : 'Remidi'}
+                          </span>
+                        );
+                      })()}
+                    </td>
                   </tr>
                 );
               })}
@@ -1937,6 +1952,7 @@ const SumatifResultsView: React.FC<{
                     </td>
                   );
                 })}
+                <td className="px-6 py-4"></td>
                 <td className="px-6 py-4"></td>
               </tr>
               <tr>
@@ -1961,6 +1977,7 @@ const SumatifResultsView: React.FC<{
                     </td>
                   );
                 })}
+                <td className="px-6 py-4"></td>
                 <td className="px-6 py-4"></td>
               </tr>
             </tfoot>
