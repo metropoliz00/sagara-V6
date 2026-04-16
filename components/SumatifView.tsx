@@ -1258,10 +1258,18 @@ const SumatifTaking: React.FC<{
   onCancel: () => void
 }> = ({ sumatif, studentId, studentName, onComplete, onCancel }) => {
   const [shuffledQuestions] = useState(() => {
-    return [...sumatif.questions].sort(() => Math.random() - 0.5).map(q => ({
-      ...q,
-      options: q.options ? [...q.options].sort(() => Math.random() - 0.5) : undefined
-    }));
+    return [...sumatif.questions].sort(() => Math.random() - 0.5).map(q => {
+      const normalizedOptions = (q.options || []).map((o: any) => {
+        if (typeof o === 'string') {
+          return { id: Math.random().toString(), text: o };
+        }
+        return o;
+      });
+      return {
+        ...q,
+        options: [...normalizedOptions].sort(() => Math.random() - 0.5)
+      };
+    });
   });
   
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
