@@ -1259,12 +1259,26 @@ const SumatifTaking: React.FC<{
 }> = ({ sumatif, studentId, studentName, onComplete, onCancel }) => {
   const [shuffledQuestions] = useState(() => {
     return [...sumatif.questions].sort(() => Math.random() - 0.5).map(q => {
-      const normalizedOptions = (q.options || []).map((o: any) => {
-        if (typeof o === 'string') {
-          return { id: Math.random().toString(), text: o };
+      const rawOptions = Array.isArray(q.options) ? q.options : [];
+      // Cast to any to access potentially old property in data
+      const rawImages = Array.isArray((q as any).optionImages) ? (q as any).optionImages : [];
+
+      const normalizedOptions = rawOptions.map((o: any, idx: number) => {
+        if (typeof o === 'string' || !o.id) {
+          const text = typeof o === 'string' ? o : o.text;
+          return { 
+            id: o.id || Math.random().toString(), 
+            text: text,
+            imageUrl: rawImages[idx] || o.imageUrl
+          };
+        }
+        // If already in new format, ensure imageUrl is taken from optionImages if missing
+        if (!o.imageUrl && rawImages[idx]) {
+          return { ...o, imageUrl: rawImages[idx] };
         }
         return o;
       });
+
       return {
         ...q,
         options: [...normalizedOptions].sort(() => Math.random() - 0.5)
@@ -1573,7 +1587,7 @@ const SumatifTaking: React.FC<{
                   )}
 
                   <div className="space-y-4">
-                  {currentQuestion.type === 'pg' && (currentQuestion.options || []).map((opt, idx) => {
+                  {currentQuestion.type === 'pg' && (currentQuestion.options || []).filter(opt => opt.text && opt.text.trim() !== "").map((opt, idx) => {
                     return (
                       <button
                         key={opt.id}
@@ -1617,7 +1631,7 @@ const SumatifTaking: React.FC<{
                     );
                   })}
 
-                  {currentQuestion.type === 'pgk' && (currentQuestion.options || []).map((opt, idx) => {
+                  {currentQuestion.type === 'pgk' && (currentQuestion.options || []).filter(opt => opt.text && opt.text.trim() !== "").map((opt, idx) => {
                     const isSelected = (answers[currentQuestion.id] || []).includes(opt.id);
                     return (
                       <button
