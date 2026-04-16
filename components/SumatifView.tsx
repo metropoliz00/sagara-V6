@@ -1652,8 +1652,9 @@ const SumatifTaking: React.FC<{
         </div>
 
         {/* Right: Navigation Grid */}
-        <div className={`bg-white border-l border-slate-200 flex flex-col shadow-2xl z-10 transition-all duration-500 overflow-hidden ${showNavigation ? 'w-80 opacity-100' : 'w-0 opacity-0 border-none'}`}>
-          <div className="p-6 border-b border-slate-100 bg-slate-50 min-w-[320px]">
+        <div className={`bg-white border-l border-slate-200 flex flex-col shadow-2xl z-10 transition-all duration-500 overflow-hidden shrink-0 ${showNavigation ? 'w-80 opacity-100' : 'w-0 opacity-0 border-none pointer-events-none'}`}>
+          <div className="w-80 flex flex-col h-full">
+            <div className="p-6 border-b border-slate-100 bg-slate-50">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Navigasi Soal</h3>
             <div className="grid grid-cols-5 gap-2">
               {sumatif.questions.map((q, idx) => (
@@ -1724,6 +1725,7 @@ const SumatifTaking: React.FC<{
           </div>
         </div>
       </div>
+    </div>
 
       <Modal 
         isOpen={modal.isOpen}
