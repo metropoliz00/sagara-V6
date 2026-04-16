@@ -4,7 +4,7 @@ import {
   Clock, BookOpen, AlertCircle, Save, ChevronLeft, ChevronRight,
   HelpCircle, Check, X, ListFilter, User as UserIcon, LogIn, Monitor,
   Maximize2, Minimize2, Type, ArrowLeft, ArrowRight, Flag, RefreshCw,
-  Image as ImageIcon, Copy
+  Image as ImageIcon, Copy, Download, Upload
 } from 'lucide-react';
 import { Sumatif, Question, QuestionType, User, Student, Subject, SumatifResult } from '../types';
 import { apiService } from '../services/apiService';
@@ -12,6 +12,7 @@ import { MOCK_SUBJECTS } from '../constants';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
+import * as XLSX from 'xlsx';
 
 interface SumatifViewProps {
   currentUser: User | null;
@@ -171,6 +172,7 @@ const SumatifView: React.FC<SumatifViewProps> = ({
         onSave={handleSaveSumatif} 
         onCancel={() => setIsEditing(false)} 
         activeClassId={activeClassId}
+        onShowNotification={onShowNotification}
       />
     );
   }
@@ -370,10 +372,116 @@ const SumatifEditor: React.FC<{
   sumatif: Sumatif, 
   onSave: (s: Sumatif) => void, 
   onCancel: () => void,
-  activeClassId: string
-}> = ({ sumatif, onSave, onCancel, activeClassId }) => {
+  activeClassId: string,
+  onShowNotification: (message: string, type: 'success' | 'error' | 'warning') => void
+}> = ({ sumatif, onSave, onCancel, activeClassId, onShowNotification }) => {
   const [formData, setFormData] = useState<Sumatif>({ ...sumatif });
   const [activeTab, setActiveTab] = useState<'info' | 'questions'>('info');
+
+  const handleDownloadTemplate = () => {
+    const template = [
+      {
+        No: 1,
+        Pertanyaan: 'Contoh Pertanyaan Pilihan Ganda',
+        Tipe: 'pg',
+        Bobot: 1,
+        Opsi_A: 'Pilihan A',
+        Opsi_B: 'Pilihan B',
+        Opsi_C: 'Pilihan C',
+        Opsi_D: 'Pilihan D',
+        Jawaban_Benar: 'Pilihan A',
+        Gambar_URL: '',
+        Keterangan_Gambar: ''
+      },
+      {
+        No: 2,
+        Pertanyaan: 'Contoh Pertanyaan Pilihan Ganda Kompleks',
+        Tipe: 'pgk',
+        Bobot: 1,
+        Opsi_A: 'Pilihan A',
+        Opsi_B: 'Pilihan B',
+        Opsi_C: 'Pilihan C',
+        Opsi_D: 'Pilihan D',
+        Jawaban_Benar: 'Pilihan A, Pilihan B',
+        Gambar_URL: '',
+        Keterangan_Gambar: ''
+      },
+      {
+        No: 3,
+        Pertanyaan: 'Contoh Pertanyaan Benar Salah',
+        Tipe: 'bs',
+        Bobot: 1,
+        Pernyataan_1: 'Pernyataan 1',
+        Jawaban_1: 'Benar',
+        Pernyataan_2: 'Pernyataan 2',
+        Jawaban_2: 'Salah',
+        Pernyataan_3: 'Pernyataan 3',
+        Jawaban_3: 'Benar',
+        Gambar_URL: '',
+        Keterangan_Gambar: ''
+      }
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(template);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Template Soal');
+    XLSX.writeFile(wb, 'Template_Soal_Sumatif.xlsx');
+  };
+
+  const handleUploadExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const bstr = event.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws) as any[];
+
+        const newQuestions: Question[] = data.map((row) => {
+          const type = (row.Tipe || 'pg').toLowerCase() as QuestionType;
+          const q: Question = {
+            id: Math.random().toString(36).substr(2, 9),
+            text: row.Pertanyaan || '',
+            type,
+            points: parseInt(row.Bobot) || 1,
+            imageUrl: row.Gambar_URL || '',
+            imageCaption: row.Keterangan_Gambar || '',
+            correctAnswer: '',
+            options: [],
+            subQuestions: []
+          };
+
+          if (type === 'pg' || type === 'pgk') {
+            q.options = [row.Opsi_A, row.Opsi_B, row.Opsi_C, row.Opsi_D].filter(Boolean);
+            if (type === 'pg') {
+              q.correctAnswer = row.Jawaban_Benar || '';
+            } else {
+              q.correctAnswer = (row.Jawaban_Benar || '').split(',').map((s: string) => s.trim());
+            }
+          } else if (type === 'bs') {
+            q.subQuestions = [
+              { id: 'sq1', text: row.Pernyataan_1 || '', correctAnswer: (row.Jawaban_1 || 'Benar') as any },
+              { id: 'sq2', text: row.Pernyataan_2 || '', correctAnswer: (row.Jawaban_2 || 'Benar') as any },
+              { id: 'sq3', text: row.Pernyataan_3 || '', correctAnswer: (row.Jawaban_3 || 'Benar') as any }
+            ];
+          }
+
+          return q;
+        });
+
+        setFormData({ ...formData, questions: [...formData.questions, ...newQuestions] });
+        onShowNotification(`${newQuestions.length} soal berhasil diimpor`, 'success');
+      } catch (error) {
+        onShowNotification('Gagal mengimpor file Excel. Pastikan format benar.', 'error');
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
   const [modal, setModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -396,7 +504,7 @@ const SumatifEditor: React.FC<{
       options: ['', '', '', ''],
       optionImages: ['', '', '', ''],
       correctAnswer: '',
-      points: 10,
+      points: 1,
       subQuestions: [
         { id: 'sq1', text: '', correctAnswer: 'Benar' },
         { id: 'sq2', text: '', correctAnswer: 'Benar' },
@@ -455,6 +563,22 @@ const SumatifEditor: React.FC<{
         >
           Butir Soal ({formData.questions.length})
         </button>
+        {activeTab === 'questions' && (
+          <div className="ml-auto flex items-center space-x-2 px-6">
+            <button
+              onClick={handleDownloadTemplate}
+              className="flex items-center space-x-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all text-sm font-bold"
+            >
+              <Download size={18} />
+              <span className="hidden md:inline">Template Excel</span>
+            </button>
+            <label className="flex items-center space-x-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all text-sm font-bold cursor-pointer">
+              <Upload size={18} />
+              <span className="hidden md:inline">Upload Excel</span>
+              <input type="file" accept=".xlsx, .xls" className="hidden" onChange={handleUploadExcel} />
+            </label>
+          </div>
+        )}
       </div>
 
       <div className="p-8">
@@ -600,17 +724,28 @@ const SumatifEditor: React.FC<{
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] focus:border-transparent outline-none transition-all min-h-[100px]"
                   />
 
-                  <div className="flex items-center space-x-2">
-                    <div className="bg-white p-2 rounded-lg border border-slate-200">
-                      <ImageIcon size={18} className="text-slate-400" />
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <div className="bg-white p-2 rounded-lg border border-slate-200">
+                        <ImageIcon size={18} className="text-slate-400" />
+                      </div>
+                      <input
+                        type="text"
+                        value={q.imageUrl || ''}
+                        onChange={e => updateQuestion(idx, { imageUrl: e.target.value })}
+                        placeholder="Link Gambar Soal (Opsional)"
+                        className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-sm"
+                      />
                     </div>
-                    <input
-                      type="text"
-                      value={q.imageUrl || ''}
-                      onChange={e => updateQuestion(idx, { imageUrl: e.target.value })}
-                      placeholder="Link Gambar Soal (Opsional)"
-                      className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-sm"
-                    />
+                    {q.imageUrl && (
+                      <input
+                        type="text"
+                        value={q.imageCaption || ''}
+                        onChange={e => updateQuestion(idx, { imageCaption: e.target.value })}
+                        placeholder="Keterangan Gambar"
+                        className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-xs"
+                      />
+                    )}
                   </div>
 
                   {q.type !== 'bs' && (
@@ -716,17 +851,32 @@ const SumatifEditor: React.FC<{
                           </div>
                           <div className="flex items-center space-x-2 pl-6">
                             <ImageIcon size={14} className="text-slate-300" />
-                            <input
-                              type="text"
-                              value={sq.imageUrl || ''}
-                              onChange={e => {
-                                const newSQs = [...(q.subQuestions || [])];
-                                newSQs[sqIdx] = { ...newSQs[sqIdx], imageUrl: e.target.value };
-                                updateQuestion(idx, { subQuestions: newSQs });
-                              }}
-                              placeholder="Link Gambar Pernyataan"
-                              className="flex-1 px-3 py-1.5 rounded-lg border border-slate-100 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-[10px]"
-                            />
+                            <div className="flex-1 space-y-2">
+                              <input
+                                type="text"
+                                value={sq.imageUrl || ''}
+                                onChange={e => {
+                                  const newSQs = [...(q.subQuestions || [])];
+                                  newSQs[sqIdx] = { ...newSQs[sqIdx], imageUrl: e.target.value };
+                                  updateQuestion(idx, { subQuestions: newSQs });
+                                }}
+                                placeholder="Link Gambar Pernyataan"
+                                className="w-full px-3 py-1.5 rounded-lg border border-slate-100 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-[10px]"
+                              />
+                              {sq.imageUrl && (
+                                <input
+                                  type="text"
+                                  value={sq.imageCaption || ''}
+                                  onChange={e => {
+                                    const newSQs = [...(q.subQuestions || [])];
+                                    newSQs[sqIdx] = { ...newSQs[sqIdx], imageCaption: e.target.value };
+                                    updateQuestion(idx, { subQuestions: newSQs });
+                                  }}
+                                  placeholder="Keterangan Gambar Pernyataan"
+                                  className="w-full px-3 py-1.5 rounded-lg border border-slate-100 focus:ring-2 focus:ring-[#5AB2FF] outline-none transition-all text-[10px]"
+                                />
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -1077,13 +1227,18 @@ const SumatifTaking: React.FC<{
               {/* Question Content */}
               <div className="p-8 flex-1">
                 {currentQuestion.imageUrl && (
-                  <div className="mb-6 rounded-2xl overflow-hidden border border-slate-100 shadow-sm max-h-[300px] flex justify-center bg-slate-50">
-                    <img 
-                      src={currentQuestion.imageUrl} 
-                      alt="Question" 
-                      className="max-w-full h-auto object-contain"
-                      referrerPolicy="no-referrer"
-                    />
+                  <div className="mb-6 space-y-2">
+                    <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-sm max-h-[300px] flex justify-center bg-slate-50">
+                      <img 
+                        src={currentQuestion.imageUrl} 
+                        alt="Question" 
+                        className="max-w-full h-auto object-contain"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                    {currentQuestion.imageCaption && (
+                      <p className="text-center text-xs italic text-slate-400">{currentQuestion.imageCaption}</p>
+                    )}
                   </div>
                 )}
                 <div className={`text-slate-800 font-medium leading-relaxed mb-10 ${
@@ -1190,53 +1345,76 @@ const SumatifTaking: React.FC<{
                   })}
 
                   {currentQuestion.type === 'bs' && (
-                    <div className="space-y-6">
-                      {(currentQuestion.subQuestions || []).map((sq, sqIdx) => {
-                        const subAnswers = answers[currentQuestion.id] || {};
-                        const currentAns = subAnswers[sq.id];
-                        return (
-                          <div key={sq.id} className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
-                            <div className="flex items-start space-x-4">
-                              <span className="bg-white w-8 h-8 rounded-lg flex items-center justify-center font-black text-slate-400 border border-slate-200 shrink-0">
-                                {sqIdx + 1}
-                              </span>
-                              <div className="flex-1 space-y-3">
-                                {sq.imageUrl && (
-                                  <div className="rounded-xl overflow-hidden border border-slate-200 max-h-[200px] inline-block bg-white">
-                                    <img 
-                                      src={sq.imageUrl} 
-                                      alt="Statement" 
-                                      className="max-w-full h-auto object-contain"
-                                      referrerPolicy="no-referrer"
-                                    />
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-200">
+                            <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-wider">Pernyataan</th>
+                            <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-wider text-center w-24">Benar</th>
+                            <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-wider text-center w-24">Salah</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {(currentQuestion.subQuestions || []).map((sq, sqIdx) => {
+                            const subAnswers = answers[currentQuestion.id] || {};
+                            const currentAns = subAnswers[sq.id];
+                            return (
+                              <tr key={sq.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-6 py-6">
+                                  <div className="space-y-3">
+                                    {sq.imageUrl && (
+                                      <div className="rounded-xl overflow-hidden border border-slate-200 max-h-[200px] inline-block bg-white">
+                                        <img 
+                                          src={sq.imageUrl} 
+                                          alt="Statement" 
+                                          className="max-w-full h-auto object-contain"
+                                          referrerPolicy="no-referrer"
+                                        />
+                                      </div>
+                                    )}
+                                    {sq.imageCaption && (
+                                      <p className="text-[10px] italic text-slate-400 mt-1">{sq.imageCaption}</p>
+                                    )}
+                                    <p className={`font-bold text-slate-700 ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
+                                      {sq.text}
+                                    </p>
                                   </div>
-                                )}
-                                <p className={`font-bold text-slate-700 ${fontSize === 'sm' ? 'text-sm' : fontSize === 'md' ? 'text-base' : 'text-lg'}`}>
-                                  {sq.text}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex gap-4 pl-12">
-                              {['Benar', 'Salah'].map(opt => (
-                                <button
-                                  key={opt}
-                                  onClick={() => {
-                                    const next = { ...subAnswers, [sq.id]: opt };
-                                    handleAnswer(currentQuestion.id, next);
-                                  }}
-                                  className={`flex-1 py-3 rounded-xl font-black text-sm uppercase tracking-widest transition-all border-2 ${
-                                    currentAns === opt
-                                      ? 'bg-[#5AB2FF] border-[#5AB2FF] text-white shadow-md'
-                                      : 'bg-white border-slate-200 text-slate-400 hover:border-[#5AB2FF]/30'
-                                  }`}
-                                >
-                                  {opt}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
+                                </td>
+                                <td className="px-6 py-6 text-center">
+                                  <button
+                                    onClick={() => {
+                                      const next = { ...subAnswers, [sq.id]: 'Benar' };
+                                      handleAnswer(currentQuestion.id, next);
+                                    }}
+                                    className={`w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center mx-auto ${
+                                      currentAns === 'Benar'
+                                        ? 'border-[#5AB2FF] bg-[#5AB2FF] text-white shadow-md shadow-blue-100'
+                                        : 'border-slate-200 hover:border-[#5AB2FF]/50'
+                                    }`}
+                                  >
+                                    {currentAns === 'Benar' && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                                  </button>
+                                </td>
+                                <td className="px-6 py-6 text-center">
+                                  <button
+                                    onClick={() => {
+                                      const next = { ...subAnswers, [sq.id]: 'Salah' };
+                                      handleAnswer(currentQuestion.id, next);
+                                    }}
+                                    className={`w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center mx-auto ${
+                                      currentAns === 'Salah'
+                                        ? 'border-red-500 bg-red-500 text-white shadow-md shadow-red-100'
+                                        : 'border-slate-200 hover:border-red-500/50'
+                                    }`}
+                                  >
+                                    {currentAns === 'Salah' && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                   )}
                 </div>

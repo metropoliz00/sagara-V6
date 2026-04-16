@@ -422,6 +422,7 @@ export interface Question {
   id: string;
   text: string;
   imageUrl?: string;
+  imageCaption?: string;
   type: QuestionType;
   options?: string[]; // For PG and PGK
   optionImages?: string[]; // New: image links for options
@@ -432,6 +433,7 @@ export interface Question {
     id: string;
     text: string;
     imageUrl?: string;
+    imageCaption?: string;
     correctAnswer: 'Benar' | 'Salah';
   }[];
 }
