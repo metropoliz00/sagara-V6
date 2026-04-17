@@ -9,7 +9,7 @@ import {
   Edit, Save, Loader2, PlusCircle, History, MessageSquare,
   ClipboardList, Bell, Activity, Sparkles, GraduationCap, ChevronDown,
   Camera, ChevronLeft, ChevronRight,
-  Sun, Moon, CloudSun, Sunset
+  Sun, Moon, CloudSun, Sunset, Coffee
 } from 'lucide-react';
 import { apiService } from '../services/apiService';
 import { useModal } from '../context/ModalContext';
@@ -33,7 +33,31 @@ interface StudentPortalProps {
   materials?: Material[];
 }
 
-type PortalTab = 'dashboard' | 'attendance' | 'liaison' | 'profile' | 'character' | 'materi' | 'sumatif';
+type PortalTab = 'dashboard' | 'attendance' | 'liaison' | 'profile' | 'character' | 'materi' | 'sumatif' | 'schedule';
+
+const SUBJECT_COLORS: { [key: string]: string } = {
+  'default': 'bg-gray-100 text-gray-700 border-gray-200',
+  'PAI': 'bg-green-100 text-green-800 border-green-200',
+  'Pend. Pancasila': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  'Bahasa Indonesia': 'bg-blue-100 text-blue-800 border-blue-200',
+  'Matematika': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  'IPAS': 'bg-slate-100 text-slate-800 border-slate-200',
+  'Seni dan Budaya': 'bg-purple-100 text-purple-800 border-purple-200',
+  'PJOK': 'bg-cyan-100 text-cyan-800 border-cyan-200',
+  'Bahasa Jawa': 'bg-orange-100 text-orange-800 border-orange-200',
+  'Bahasa Inggris': 'bg-rose-100 text-rose-800 border-rose-200',
+  'KKA': 'bg-lime-100 text-lime-800 border-lime-200',
+  'Upacara': 'bg-red-100 text-red-800 border-red-200',
+  'Pembiasaan': 'bg-sky-100 text-sky-800 border-sky-200',
+  'Ko-Kurikuler': 'bg-teal-100 text-teal-800 border-teal-200',
+  'Literasi/Numerasi': 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
+  'Istirahat': 'bg-slate-600 text-white border-slate-700',
+};
+
+const getSubjectColor = (subjectName: string) => {
+    if (subjectName.toLowerCase().includes('istirahat')) return SUBJECT_COLORS['Istirahat'];
+    return SUBJECT_COLORS[subjectName] || SUBJECT_COLORS['default'];
+};
 
 const StudentPortal: React.FC<StudentPortalProps> = ({
   student, allAttendance, grades, liaisonLogs, agendas, behaviorLogs, permissionRequests, karakterAssessments,
@@ -548,6 +572,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
 
   const TABS = [
     { id: 'dashboard', label: 'Ringkasan', icon: LayoutDashboard },
+    { id: 'schedule', label: 'Jadwal Pelajaran', icon: Calendar },
     { id: 'attendance', label: 'Izin & Absensi', icon: Calendar },
     { id: 'materi', label: 'Materi', icon: BookOpen },
     { id: 'sumatif', label: 'Sumatif', icon: FileText },
@@ -684,72 +709,6 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           {/* --- DASHBOARD TAB --- */}
           {activeTab === 'dashboard' && (
               <div className="space-y-6">
-                  {/* -- NEW: TODAY'S SCHEDULE -- */}
-                  <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col animate-fade-in">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
-                          <div className="flex items-center gap-3">
-                              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl shadow-inner">
-                                  <Calendar size={24} />
-                              </div>
-                              <div>
-                                  <h3 className="font-bold text-gray-800 text-lg">Jadwal Pelajaran Hari Ini</h3>
-                                  <p className="text-xs text-gray-500 font-medium">Jangan sampai terlambat masuk kelas ya!</p>
-                              </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-3 py-1.5 rounded-full uppercase tracking-wider">
-                                  {currentDayName}
-                              </span>
-                              <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-full uppercase tracking-wider">
-                                  {todaySchedule.length} Sesi
-                              </span>
-                          </div>
-                      </div>
-
-                      {isLoadingSchedule ? (
-                          <div className="flex-1 flex flex-col items-center justify-center p-12 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
-                              <Loader2 className="animate-spin text-indigo-300 mb-4" size={32} />
-                              <p className="text-sm text-gray-400 font-medium italic">Sedang menyinkronkan jadwal...</p>
-                          </div>
-                      ) : todaySchedule.length === 0 ? (
-                          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
-                              <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-indigo-200 mb-4 rotate-3">
-                                  <Moon size={32} />
-                              </div>
-                              <p className="text-gray-500 font-bold">Tidak ada jadwal hari ini.</p>
-                              <p className="text-xs text-gray-400 mt-1">Gunakan waktu luangmu untuk belajar atau beristirahat!</p>
-                          </div>
-                      ) : (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                              {todaySchedule.map((item, idx) => {
-                                  const isBreak = item.subject.toLowerCase().includes('istirahat');
-                                  return (
-                                      <div 
-                                        key={item.id || idx} 
-                                        className={`p-4 rounded-2xl flex items-center gap-4 border transition-all hover:scale-[1.02] ${
-                                            isBreak 
-                                            ? 'bg-slate-50 border-slate-100 shadow-sm' 
-                                            : 'bg-white border-indigo-50 hover:border-indigo-100 hover:shadow-md'
-                                        }`}
-                                      >
-                                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${
-                                              isBreak ? 'bg-slate-200 text-slate-600' : 'bg-indigo-50 text-indigo-600'
-                                          }`}>
-                                              {isBreak ? <CloudSun size={24} /> : <BookOpen size={24} />}
-                                          </div>
-                                          <div className="min-w-0 flex-1">
-                                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mb-0.5">{item.time}</p>
-                                              <h4 className={`font-bold truncate text-base ${isBreak ? 'text-slate-600 italic' : 'text-gray-800'}`}>
-                                                  {item.subject}
-                                              </h4>
-                                          </div>
-                                      </div>
-                                  );
-                              })}
-                          </div>
-                      )}
-                  </div>
-
                   {/* 1. Catatan Guru - HIGHLIGHTED */}
                   {student.teacherNotes && (
                       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 rounded-2xl shadow-lg text-white animate-fade-in relative overflow-hidden">
@@ -1657,6 +1616,92 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                               </div>
                           </div>
                       )}
+                  </div>
+              </div>
+          )}
+
+          {/* --- SCHEDULE TAB --- */}
+          {activeTab === 'schedule' && (
+              <div className="space-y-6 animate-fade-in max-w-2xl mx-auto">
+                  <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col">
+                      <div className="flex items-center justify-between mb-8">
+                          <div className="flex items-center gap-4">
+                              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl shadow-inner">
+                                  <Calendar size={28} />
+                              </div>
+                              <div>
+                                  <h3 className="font-bold text-gray-800 text-xl tracking-tight">Jadwal Pelajaran</h3>
+                                  <p className="text-sm text-gray-500 font-medium tracking-tight">Hari ini: {currentDayName}, {currentDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                              </div>
+                          </div>
+                          <div className="text-right">
+                               <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-3 py-1 rounded-full">{todaySchedule.length} Sesi</p>
+                          </div>
+                      </div>
+
+                      {isLoadingSchedule ? (
+                          <div className="flex flex-col items-center justify-center p-24 bg-gray-50/30 rounded-3xl border border-dashed border-gray-200">
+                              <Loader2 className="animate-spin text-indigo-300 mb-4" size={40} />
+                              <p className="text-sm text-gray-400 font-bold italic tracking-wide">Menyiapkan buku-buku...</p>
+                          </div>
+                      ) : todaySchedule.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center p-24 text-center bg-gray-50/30 rounded-3xl border border-dashed border-gray-200">
+                              <div className="w-20 h-20 bg-white rounded-3xl shadow-md flex items-center justify-center text-indigo-200 mb-6 rotate-6 transform hover:rotate-12 transition-transform">
+                                  <Coffee size={40} />
+                              </div>
+                              <p className="text-xl text-gray-700 font-black">Waktunya Santai!</p>
+                              <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto leading-relaxed">Tidak ada jadwal pelajaran untuk hari ini. Gunakan waktumu untuk belajar mandiri atau beristirahat!</p>
+                          </div>
+                      ) : (
+                          <div className="relative pl-6 sm:pl-8 border-l-2 border-dashed border-gray-100 space-y-6 ml-4">
+                              {todaySchedule.map((item, idx) => {
+                                  const isBreak = item.subject.toLowerCase().includes('istirahat');
+                                  const colorClass = getSubjectColor(item.subject);
+                                  
+                                  return (
+                                      <div key={item.id || idx} className="relative group">
+                                          {/* Timeline Point */}
+                                          <div className={`absolute -left-[33px] sm:-left-[41px] top-6 w-4 h-4 rounded-full border-2 border-white shadow-sm z-10 transition-transform group-hover:scale-125 ${
+                                              isBreak ? 'bg-slate-400' : 'bg-indigo-500'
+                                          }`}></div>
+                                          
+                                          {/* Card Item */}
+                                          <div className={`flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-2xl shadow-sm border transition-all hover:shadow-md hover:translate-x-1 ${colorClass}`}>
+                                              <div className="flex items-center gap-4 mb-3 sm:mb-0">
+                                                  <div className={`p-3 rounded-xl shadow-sm bg-white/40 shrink-0`}>
+                                                      {isBreak ? <Coffee size={24} className="text-slate-600" /> : <BookOpen size={24} className="text-indigo-600" />}
+                                                  </div>
+                                                  <div className="min-w-0">
+                                                      <h4 className={`text-lg font-black leading-tight ${isBreak ? 'italic' : ''}`}>
+                                                          {item.subject}
+                                                      </h4>
+                                                      <div className="flex items-center mt-1">
+                                                           <Clock size={12} className="mr-1.5 opacity-60" />
+                                                           <span className="text-xs font-bold opacity-80">{item.time}</span>
+                                                      </div>
+                                                  </div>
+                                              </div>
+                                              
+                                              <div className="flex items-center gap-2">
+                                                  {isBreak ? (
+                                                       <span className="px-3 py-1 bg-black/5 rounded-lg text-[10px] font-black uppercase tracking-tighter">Waktu Istirahat</span>
+                                                  ) : (
+                                                       <span className="px-3 py-1 bg-black/5 rounded-lg text-[10px] font-black uppercase tracking-tighter">Sesi Latihan</span>
+                                                  )}
+                                              </div>
+                                          </div>
+                                      </div>
+                                  );
+                              })}
+                          </div>
+                      )}
+                      
+                      <div className="mt-8 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-start gap-3">
+                          <Bell size={18} className="text-blue-500 shrink-0 mt-0.5" />
+                          <p className="text-[11px] text-blue-800 font-medium">
+                              <strong>Informasi:</strong> Jadwal yang tampil adalah jadwal resmi yang telah disusun oleh wali kelas. Tetap disiplin dan semangat belajarnya!
+                          </p>
+                      </div>
                   </div>
               </div>
           )}
