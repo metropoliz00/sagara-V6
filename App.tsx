@@ -19,11 +19,6 @@ const GlobalFooter: React.FC = () => {
             <p className="text-xs text-slate-400 font-medium">
               &copy; 2025-2026 SAGARA | Dev. Meyga
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-[10px] text-slate-400 font-semibold uppercase tracking-widest">
-              <span className="bg-[#CAF4FF]/50 px-3 py-1 rounded-full border border-[#A0DEFF]/30">UPT SD NEGERI REMEN 2</span>
-              <span className="bg-slate-50 px-3 py-1 rounded-full border border-slate-200">Versi 1.0.0</span>
-              <span className="bg-[#FFF9D0]/50 px-3 py-1 rounded-full border border-[#FFE7A0]/30 text-[#BFA000]">Building Future</span>
-            </div>
         </div>
       </div>
     </footer>

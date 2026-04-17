@@ -327,11 +327,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                 <div className="mt-8 text-center">
                    <div className="flex flex-col items-center space-y-2">
                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">&copy; 2025-2026 SAGARA | Dev. Meyga</p>
-                       <div className="flex items-center space-x-2 text-[9px] text-slate-400 font-medium">
-                           <span className="bg-[#CAF4FF]/50 px-2 py-0.5 rounded-full border border-[#A0DEFF]/20">UPT SD NEGERI REMEN 2</span>
-                           <span>•</span>
-                           <span>v1.0.0</span>
-                       </div>
                    </div>
                 </div>
             </div>
