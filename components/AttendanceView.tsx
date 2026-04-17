@@ -209,7 +209,11 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
       notes: data.notes
     }));
     try {
-      if(!isDemoMode) await apiService.saveAttendance(selectedDate, records);
+      if(!isDemoMode) {
+        // Find unique classes in current selection to ensure even empty ones are cleared
+        const relevantClasses = Array.from(new Set(students.map(s => s.classId || classId)));
+        await apiService.saveAttendance(selectedDate, records, relevantClasses);
+      }
       onRefreshData();
       onShowNotification('Absensi Harian berhasil disimpan!', 'success');
     } catch(e) {
@@ -467,7 +471,11 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
               status: val.status, 
               notes: val.notes
           }));
-          if (!isDemoMode) await apiService.saveAttendance(targetDate, payloadRecords);
+          
+          // Ensure the class of the edited student is forced to update even if empty
+          const targetClassId = getRealClassId(rekapEditData.studentId);
+          if (!isDemoMode) await apiService.saveAttendance(targetDate, payloadRecords, [targetClassId]);
+          
           onRefreshData();
           onShowNotification('Data absensi diperbarui.', 'success');
           setRekapEditData(null);
@@ -1388,8 +1396,8 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
                    </div>
                    <div className="p-5 border-t bg-gray-50 flex justify-between items-center">
                        <button 
-                         onClick={() => setRekapEditData({...rekapEditData, status: '', notes: ''})} 
-                         className="text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                         onClick={() => handleSaveRecapEdit('')} 
+                         disabled={isSavingRekapCell}                         className="text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
                          title="Kosongkan Data Absen"
                        >
                            <Trash2 size={18} />

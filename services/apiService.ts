@@ -702,26 +702,47 @@ export const apiService = {
     });
     return allRecords;
   },
-  saveAttendance: async (date: string, records: any[]): Promise<void> => {
+  saveAttendance: async (date: string, records: any[], forceClasses?: string[]): Promise<void> => {
     const classGroups: Record<string, any[]> = {};
+    
+    // Initialize forced classes with empty arrays to allow clearing them
+    if (forceClasses) {
+      forceClasses.forEach(classId => {
+        if (classId) classGroups[classId] = [];
+      });
+    }
+
     records.forEach(r => {
-      if (!classGroups[r.classId]) classGroups[r.classId] = [];
-      classGroups[r.classId].push({ studentId: r.studentId, status: r.status, notes: r.notes });
+      if (r.classId) {
+        if (!classGroups[r.classId]) classGroups[r.classId] = [];
+        classGroups[r.classId].push({ studentId: r.studentId, status: r.status, notes: r.notes || '' });
+      }
     });
+
     for (const classId in classGroups) {
       const id = `${classId}_${date}`;
       await supabase.from('attendance').upsert({ id, records: classGroups[classId] });
     }
   },
-  saveAttendanceBatch: async (batchData: { date: string, records: any[] }[]): Promise<void> => {
+  saveAttendanceBatch: async (batchData: { date: string, records: any[] }[], forceClasses?: string[]): Promise<void> => {
     const upserts: any[] = [];
     const classGroupsByDate: Record<string, Record<string, any[]>> = {};
 
     batchData.forEach(d => {
+      if (!classGroupsByDate[d.date]) classGroupsByDate[d.date] = {};
+      
+      // Initialize forced classes for each date
+      if (forceClasses) {
+        forceClasses.forEach(classId => {
+          if (classId) classGroupsByDate[d.date][classId] = [];
+        });
+      }
+
       d.records.forEach(r => {
-        if (!classGroupsByDate[d.date]) classGroupsByDate[d.date] = {};
-        if (!classGroupsByDate[d.date][r.classId]) classGroupsByDate[d.date][r.classId] = [];
-        classGroupsByDate[d.date][r.classId].push({ studentId: r.studentId, status: r.status, notes: r.notes });
+        if (r.classId) {
+          if (!classGroupsByDate[d.date][r.classId]) classGroupsByDate[d.date][r.classId] = [];
+          classGroupsByDate[d.date][r.classId].push({ studentId: r.studentId, status: r.status, notes: r.notes || '' });
+        }
       });
     });
 
