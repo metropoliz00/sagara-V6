@@ -2,6 +2,33 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
+
+const GlobalFooter: React.FC = () => {
+  return (
+    <footer className="mt-12 py-8 border-t border-[#CAF4FF] text-center no-print w-full">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="flex items-center space-x-2">
+          <img 
+            src="https://image2url.com/r2/default/images/1770790148258-99f209ea-fd45-44cf-9576-9c5205ef8b20.png" 
+            alt="Logo SAGARA" 
+            className="h-6 w-6 object-contain"
+          />
+          <span className="text-sm font-bold text-slate-400 tracking-wider">SAGARA</span>
+        </div>
+        <div className="flex flex-col space-y-2">
+            <p className="text-xs text-slate-400 font-medium">
+              &copy; 2025-2026 SAGARA | Dev. Meyga
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-[10px] text-slate-400 font-semibold uppercase tracking-widest">
+              <span className="bg-[#CAF4FF]/50 px-3 py-1 rounded-full border border-[#A0DEFF]/30">UPT SD NEGERI REMEN 2</span>
+              <span className="bg-slate-50 px-3 py-1 rounded-full border border-slate-200">Versi 1.0.0</span>
+              <span className="bg-[#FFF9D0]/50 px-3 py-1 rounded-full border border-[#FFE7A0]/30 text-[#BFA000]">Building Future</span>
+            </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
 import DashboardContainer from './components/DashboardContainer';
 import StudentList from './components/StudentList';
 import ClassroomAdmin from './components/ClassroomAdmin';
@@ -2219,6 +2246,7 @@ const AppContent: React.FC = () => {
                 } />
                 <Route path="*" element={<Navigate to="/" replace />} />
              </Routes>
+             <GlobalFooter />
            </div>
         </main>
       </div>
