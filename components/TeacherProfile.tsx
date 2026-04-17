@@ -25,13 +25,59 @@ const TeacherProfile: React.FC<TeacherProfileProps> = ({ initialTeacher, initial
   const [profile, setProfile] = useState<TeacherProfileData>(initialTeacher);
   const [school, setSchool] = useState<SchoolProfileData>(initialSchool);
 
-  // Sync state if props change (e.g., initial fetch completes)
+  // Load drafts on mount
   useEffect(() => {
-    setProfile(initialTeacher);
+    try {
+      const savedProfile = localStorage.getItem('teacher_profile_draft');
+      if (savedProfile) {
+        setProfile(JSON.parse(savedProfile));
+      }
+      
+      const savedSchool = localStorage.getItem('school_profile_draft');
+      if (savedSchool) {
+        setSchool(JSON.parse(savedSchool));
+      }
+
+      const savedTab = localStorage.getItem('teacher_profile_active_tab');
+      if (savedTab) {
+        setActiveTab(savedTab as ProfileTab);
+      }
+    } catch (e) {
+      console.error("Failed to load profile drafts", e);
+    }
+  }, []);
+
+  // Autosave drafts
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      localStorage.setItem('teacher_profile_draft', JSON.stringify(profile));
+    }, 1000);
+    return () => clearTimeout(timeout);
+  }, [profile]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      localStorage.setItem('school_profile_draft', JSON.stringify(school));
+    }, 1000);
+    return () => clearTimeout(timeout);
+  }, [school]);
+
+  useEffect(() => {
+    localStorage.setItem('teacher_profile_active_tab', activeTab);
+  }, [activeTab]);
+
+  // Sync state if props change (e.g., initial fetch completes)
+  // BUT only if no draft exists to avoid overwriting user's unsaved progress
+  useEffect(() => {
+    if (!localStorage.getItem('teacher_profile_draft')) {
+      setProfile(initialTeacher);
+    }
   }, [initialTeacher]);
 
   useEffect(() => {
-    setSchool(initialSchool);
+    if (!localStorage.getItem('school_profile_draft')) {
+      setSchool(initialSchool);
+    }
   }, [initialSchool]);
 
   const canEditSchool = userRole === 'admin';
@@ -133,12 +179,14 @@ const TeacherProfile: React.FC<TeacherProfileProps> = ({ initialTeacher, initial
     try {
       if (activeTab === 'profile') {
         await onSave('teacher', profile);
+        localStorage.removeItem('teacher_profile_draft');
       } else if (activeTab === 'school' || activeTab === 'developer') {
         if (!canEditSchool) {
             onShowNotification('Anda tidak memiliki akses untuk mengubah data ini.', 'error');
             return;
         }
         await onSave('school', school);
+        localStorage.removeItem('school_profile_draft');
       }
       onShowNotification('Data berhasil disimpan!', 'success');
     } catch (e) {

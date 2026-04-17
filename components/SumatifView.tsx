@@ -98,10 +98,22 @@ const SumatifView: React.FC<SumatifViewProps> = ({
 }) => {
   const [sumatifs, setSumatifs] = useState<Sumatif[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(() => localStorage.getItem('sumatif_isEditing') === 'true');
   const [isTaking, setIsTaking] = useState(false);
   const [isEnteringToken, setIsEnteringToken] = useState(false);
-  const [currentSumatif, setCurrentSumatif] = useState<Sumatif | null>(null);
+  const [currentSumatif, setCurrentSumatif] = useState<Sumatif | null>(() => {
+    const saved = localStorage.getItem('sumatif_current');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sumatif_isEditing', isEditing.toString());
+    if (currentSumatif) {
+      localStorage.setItem('sumatif_current', JSON.stringify(currentSumatif));
+    } else {
+      localStorage.removeItem('sumatif_current');
+    }
+  }, [isEditing, currentSumatif]);
   const [viewingResults, setViewingResults] = useState<Sumatif | null>(null);
   const [results, setResults] = useState<SumatifResult[]>([]);
   const [modal, setModal] = useState<{
@@ -562,7 +574,23 @@ const SumatifEditor: React.FC<{
   activeClassId: string,
   onShowNotification: (message: string, type: 'success' | 'error' | 'warning') => void
 }> = ({ sumatif, onSave, onCancel, activeClassId, onShowNotification }) => {
+  const DRAFT_KEY = `sumatif_draft_${sumatif.id || 'new'}`;
+
   const [formData, setFormData] = useState<Sumatif>(() => {
+    // Check for draft first
+    try {
+      const savedDraft = localStorage.getItem(DRAFT_KEY);
+      if (savedDraft) {
+        const parsed = JSON.parse(savedDraft);
+        // Ensure it's for the same sumatif (if editing existing)
+        if (!sumatif.id || parsed.id === sumatif.id) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load draft", e);
+    }
+
     const normalizedQuestions = [...(sumatif.questions || [])].map((q: any) => {
       const rawOptions = Array.isArray(q.options) ? q.options : [];
       const rawImages = Array.isArray(q.optionImages) ? q.optionImages : [];
@@ -590,7 +618,48 @@ const SumatifEditor: React.FC<{
     
     return { ...sumatif, questions: normalizedQuestions };
   });
+
+  useEffect(() => {
+    const savedDraft = localStorage.getItem(DRAFT_KEY);
+    if (savedDraft) {
+      onShowNotification('Draf otomatis dipulihkan', 'success');
+    }
+  }, []); // Only on mount
+
   const [activeTab, setActiveTab] = useState<'info' | 'questions'>('info');
+
+  // Autosave to localStorage
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
+    }, 1000); // 1 second debounce
+    return () => clearTimeout(timeout);
+  }, [formData]);
+
+  const clearDraft = () => localStorage.removeItem(DRAFT_KEY);
+
+  const handleSave = () => {
+    clearDraft();
+    onSave(formData);
+  };
+
+  const handleCancel = () => {
+    if (JSON.stringify(formData) !== JSON.stringify(sumatif)) {
+      setModal({
+        isOpen: true,
+        title: 'Batalkan Perubahan',
+        message: 'Ada perubahan yang belum disimpan. Apakah Anda yakin ingin membatalkannya? Data di draf akan dihapus.',
+        type: 'confirm',
+        onConfirm: () => {
+          clearDraft();
+          onCancel();
+        }
+      });
+    } else {
+      clearDraft();
+      onCancel();
+    }
+  };
 
   const handleDownloadTemplate = () => {
     const template = [
@@ -782,7 +851,7 @@ const SumatifEditor: React.FC<{
     <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
       <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
         <div className="flex items-center space-x-4">
-          <button onClick={onCancel} className="p-2 hover:bg-white rounded-xl transition-colors text-slate-400">
+          <button onClick={handleCancel} className="p-2 hover:bg-white rounded-xl transition-colors text-slate-400">
             <ChevronLeft size={24} />
           </button>
           <div>
@@ -791,7 +860,7 @@ const SumatifEditor: React.FC<{
           </div>
         </div>
         <button
-          onClick={() => onSave(formData)}
+          onClick={handleSave}
           className="flex items-center space-x-2 px-6 py-2.5 bg-[#5AB2FF] text-white rounded-xl hover:bg-[#4A9FE6] transition-all shadow-md font-bold"
         >
           <Save size={20} />
@@ -1327,10 +1396,16 @@ const SumatifTaking: React.FC<{
   onComplete: () => void,
   onCancel: () => void
 }> = ({ sumatif, studentId, studentName, onComplete, onCancel }) => {
-  const [shuffledQuestions] = useState(() => {
-    return [...sumatif.questions].sort(() => Math.random() - 0.5).map(q => {
+  const ATTEMPT_KEY = `sumatif_attempt_${sumatif.id}_${studentId}`;
+
+  const [shuffledQuestions] = useState<Question[]>(() => {
+    try {
+      const saved = localStorage.getItem(`${ATTEMPT_KEY}_questions`);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+
+    const questions = [...sumatif.questions].sort(() => Math.random() - 0.5).map(q => {
       const rawOptions = Array.isArray(q.options) ? q.options : [];
-      // Cast to any to access potentially old property in data
       const rawImages = Array.isArray((q as any).optionImages) ? (q as any).optionImages : [];
 
       const normalizedOptions = rawOptions.map((o: any, idx: number) => {
@@ -1342,7 +1417,6 @@ const SumatifTaking: React.FC<{
             imageUrl: rawImages[idx] || o.imageUrl
           };
         }
-        // If already in new format, ensure imageUrl is updated if rawImages has data at this index
         if (rawImages[idx]) {
           return { ...o, imageUrl: rawImages[idx] };
         }
@@ -1354,16 +1428,66 @@ const SumatifTaking: React.FC<{
         options: [...normalizedOptions].sort(() => Math.random() - 0.5)
       };
     });
+
+    localStorage.setItem(`${ATTEMPT_KEY}_questions`, JSON.stringify(questions));
+    return questions;
   });
   
-  const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, any>>({});
-  const [timeLeft, setTimeLeft] = useState((sumatif.duration || 0) * 60);
+  const [currentQuestionIdx, setCurrentQuestionIdx] = useState(() => {
+    return Number(localStorage.getItem(`${ATTEMPT_KEY}_idx`) || 0);
+  });
+  
+  const [answers, setAnswers] = useState<Record<string, any>>(() => {
+    try {
+      const saved = localStorage.getItem(`${ATTEMPT_KEY}_answers`);
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const saved = localStorage.getItem(`${ATTEMPT_KEY}_time`);
+    return saved ? Number(saved) : (sumatif.duration || 0) * 60;
+  });
+
+  const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem(`${ATTEMPT_KEY}_flags`);
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch (e) {
+      return new Set();
+    }
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
-  const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
   const [showNavigation, setShowNavigation] = useState(true);
   const [zoomScale, setZoomScale] = useState(1);
+
+  useEffect(() => {
+    localStorage.setItem(`${ATTEMPT_KEY}_idx`, currentQuestionIdx.toString());
+  }, [currentQuestionIdx]);
+
+  useEffect(() => {
+    localStorage.setItem(`${ATTEMPT_KEY}_answers`, JSON.stringify(answers));
+  }, [answers]);
+
+  useEffect(() => {
+    localStorage.setItem(`${ATTEMPT_KEY}_time`, timeLeft.toString());
+  }, [timeLeft]);
+
+  useEffect(() => {
+    localStorage.setItem(`${ATTEMPT_KEY}_flags`, JSON.stringify(Array.from(flaggedQuestions)));
+  }, [flaggedQuestions]);
+
+  const clearAttempt = () => {
+    localStorage.removeItem(`${ATTEMPT_KEY}_questions`);
+    localStorage.removeItem(`${ATTEMPT_KEY}_answers`);
+    localStorage.removeItem(`${ATTEMPT_KEY}_time`);
+    localStorage.removeItem(`${ATTEMPT_KEY}_idx`);
+    localStorage.removeItem(`${ATTEMPT_KEY}_flags`);
+  };
   const [modal, setModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -1435,7 +1559,7 @@ const SumatifTaking: React.FC<{
     let totalPoints = 0;
     let earnedPoints = 0;
 
-    shuffledQuestions.forEach(q => {
+    shuffledQuestions.forEach((q: Question) => {
       const qPoints = Number(q.points) || 0;
       totalPoints += qPoints;
       const studentAnswer = answers[q.id];
@@ -1463,6 +1587,7 @@ const SumatifTaking: React.FC<{
         type: 'alert',
         onConfirm: () => {
           setModal(prev => ({ ...prev, isOpen: false }));
+          clearAttempt();
           onComplete();
         }
       });
@@ -1657,7 +1782,7 @@ const SumatifTaking: React.FC<{
                   )}
 
                   <div className="space-y-4">
-                  {currentQuestion.type === 'pg' && (currentQuestion.options || []).filter(opt => (opt.text && opt.text.trim() !== "") || (opt.imageUrl && opt.imageUrl.trim() !== "")).map((opt, idx) => {
+                  {currentQuestion.type === 'pg' && (currentQuestion.options || []).filter((opt: any) => (opt.text && opt.text.trim() !== "") || (opt.imageUrl && opt.imageUrl.trim() !== "")).map((opt: any, idx: number) => {
                     return (
                       <button
                         key={opt.id}
@@ -1703,7 +1828,7 @@ const SumatifTaking: React.FC<{
                     );
                   })}
 
-                  {currentQuestion.type === 'pgk' && (currentQuestion.options || []).filter(opt => (opt.text && opt.text.trim() !== "") || (opt.imageUrl && opt.imageUrl.trim() !== "")).map((opt, idx) => {
+                  {currentQuestion.type === 'pgk' && (currentQuestion.options || []).filter((opt: any) => (opt.text && opt.text.trim() !== "") || (opt.imageUrl && opt.imageUrl.trim() !== "")).map((opt: any, idx: number) => {
                     const isSelected = (answers[currentQuestion.id] || []).includes(opt.id);
                     return (
                       <button
@@ -1766,7 +1891,7 @@ const SumatifTaking: React.FC<{
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                          {(currentQuestion.subQuestions || []).map((sq, sqIdx) => {
+                          {(currentQuestion.subQuestions || []).map((sq: any, sqIdx: number) => {
                             const subAnswers = answers[currentQuestion.id] || {};
                             const currentAns = subAnswers[sq.id];
                             return (
@@ -1887,7 +2012,7 @@ const SumatifTaking: React.FC<{
             <div className="p-6 border-b border-slate-100 bg-slate-50">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Navigasi Soal</h3>
             <div className="grid grid-cols-5 gap-2">
-              {shuffledQuestions.map((q, idx) => (
+              {shuffledQuestions.map((q: Question, idx: number) => (
                 <button
                   key={q.id}
                   onClick={() => setCurrentQuestionIdx(idx)}

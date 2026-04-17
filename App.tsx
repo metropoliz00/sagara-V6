@@ -241,6 +241,14 @@ const AppContent: React.FC = () => {
       localStorage.removeItem('sagara_user');
       localStorage.removeItem('sagara_classId');
       localStorage.removeItem('sagara_student_tab');
+      
+      // Clear all sumatif and profile-related data on logout
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sumatif_') || key.startsWith('teacher_profile_') || key.startsWith('school_profile_')) {
+          localStorage.removeItem(key);
+        }
+      });
+
       navigate('/login');
   };
   
