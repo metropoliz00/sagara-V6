@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Student, GradeRecord, LiaisonLog, AgendaItem, Material, BehaviorLog, PermissionRequest, KarakterAssessment, KARAKTER_INDICATORS, KarakterIndicatorKey, LearningDocumentation, BookLoan } from '../types';
-import { MOCK_SUBJECTS, CALENDAR_CODES, PREFILLED_CALENDAR_2025, HOLIDAY_DESCRIPTIONS_2025_2026 } from '../constants';
+import { Student, GradeRecord, LiaisonLog, AgendaItem, Material, BehaviorLog, PermissionRequest, KarakterAssessment, KARAKTER_INDICATORS, KarakterIndicatorKey, LearningDocumentation, BookLoan, ScheduleItem } from '../types';
+import { MOCK_SUBJECTS, CALENDAR_CODES, PREFILLED_CALENDAR_2025, HOLIDAY_DESCRIPTIONS_2025_2026, WEEKDAYS } from '../constants';
 import { 
   User, Calendar, Send, FileText, CheckCircle, XCircle, 
   BookOpen, LayoutDashboard, Clock,
@@ -49,6 +49,8 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
   const [showSummative, setShowSummative] = useState(false);
   const [kktpMap, setKktpMap] = useState<Record<string, number>>({});
   const [academicCalendar, setAcademicCalendar] = useState<any>({});
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+  const [isLoadingSchedule, setIsLoadingSchedule] = useState(false);
 
   // -- STATES FOR FORMS --
   const [permissionForm, setPermissionForm] = useState({
@@ -173,6 +175,21 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           }
       };
       checkConfig();
+      
+      const fetchSchedule = async () => {
+          if (student.classId) {
+              setIsLoadingSchedule(true);
+              try {
+                  const data = await apiService.getSchedule(student.classId);
+                  setSchedule(data);
+              } catch (err) {
+                  console.error("Failed to load schedule", err);
+              } finally {
+                  setIsLoadingSchedule(false);
+              }
+          }
+      };
+      fetchSchedule();
   }, [student.classId]);
   
   // Carousel Logic
@@ -519,6 +536,16 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
   const prevMonth = () => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1));
   const nextMonth = () => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1));
 
+  const currentDayName = useMemo(() => {
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    return days[currentDate.getDay()];
+  }, [currentDate]);
+
+  const todaySchedule = useMemo(() => {
+    if (!schedule) return [];
+    return schedule.filter(item => item.day === currentDayName).sort((a, b) => a.time.localeCompare(b.time));
+  }, [schedule, currentDayName]);
+
   const TABS = [
     { id: 'dashboard', label: 'Ringkasan', icon: LayoutDashboard },
     { id: 'attendance', label: 'Izin & Absensi', icon: Calendar },
@@ -657,6 +684,72 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           {/* --- DASHBOARD TAB --- */}
           {activeTab === 'dashboard' && (
               <div className="space-y-6">
+                  {/* -- NEW: TODAY'S SCHEDULE -- */}
+                  <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col animate-fade-in">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
+                          <div className="flex items-center gap-3">
+                              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl shadow-inner">
+                                  <Calendar size={24} />
+                              </div>
+                              <div>
+                                  <h3 className="font-bold text-gray-800 text-lg">Jadwal Pelajaran Hari Ini</h3>
+                                  <p className="text-xs text-gray-500 font-medium">Jangan sampai terlambat masuk kelas ya!</p>
+                              </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-3 py-1.5 rounded-full uppercase tracking-wider">
+                                  {currentDayName}
+                              </span>
+                              <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-full uppercase tracking-wider">
+                                  {todaySchedule.length} Sesi
+                              </span>
+                          </div>
+                      </div>
+
+                      {isLoadingSchedule ? (
+                          <div className="flex-1 flex flex-col items-center justify-center p-12 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+                              <Loader2 className="animate-spin text-indigo-300 mb-4" size={32} />
+                              <p className="text-sm text-gray-400 font-medium italic">Sedang menyinkronkan jadwal...</p>
+                          </div>
+                      ) : todaySchedule.length === 0 ? (
+                          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+                              <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-indigo-200 mb-4 rotate-3">
+                                  <Moon size={32} />
+                              </div>
+                              <p className="text-gray-500 font-bold">Tidak ada jadwal hari ini.</p>
+                              <p className="text-xs text-gray-400 mt-1">Gunakan waktu luangmu untuk belajar atau beristirahat!</p>
+                          </div>
+                      ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {todaySchedule.map((item, idx) => {
+                                  const isBreak = item.subject.toLowerCase().includes('istirahat');
+                                  return (
+                                      <div 
+                                        key={item.id || idx} 
+                                        className={`p-4 rounded-2xl flex items-center gap-4 border transition-all hover:scale-[1.02] ${
+                                            isBreak 
+                                            ? 'bg-slate-50 border-slate-100 shadow-sm' 
+                                            : 'bg-white border-indigo-50 hover:border-indigo-100 hover:shadow-md'
+                                        }`}
+                                      >
+                                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${
+                                              isBreak ? 'bg-slate-200 text-slate-600' : 'bg-indigo-50 text-indigo-600'
+                                          }`}>
+                                              {isBreak ? <CloudSun size={24} /> : <BookOpen size={24} />}
+                                          </div>
+                                          <div className="min-w-0 flex-1">
+                                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mb-0.5">{item.time}</p>
+                                              <h4 className={`font-bold truncate text-base ${isBreak ? 'text-slate-600 italic' : 'text-gray-800'}`}>
+                                                  {item.subject}
+                                              </h4>
+                                          </div>
+                                      </div>
+                                  );
+                              })}
+                          </div>
+                      )}
+                  </div>
+
                   {/* 1. Catatan Guru - HIGHLIGHTED */}
                   {student.teacherNotes && (
                       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 rounded-2xl shadow-lg text-white animate-fade-in relative overflow-hidden">
