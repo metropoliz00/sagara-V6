@@ -1686,7 +1686,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                                                   {isBreak ? (
                                                        <span className="px-3 py-1 bg-black/5 rounded-lg text-[10px] font-black uppercase tracking-tighter">Waktu Istirahat</span>
                                                   ) : (
-                                                       <span className="px-3 py-1 bg-black/5 rounded-lg text-[10px] font-black uppercase tracking-tighter">Sesi Latihan</span>
+                                                       <span className="px-3 py-1 bg-black/5 rounded-lg text-[10px] font-black uppercase tracking-tighter">Jam Pembelajaran</span>
                                                   )}
                                               </div>
                                           </div>
