@@ -68,23 +68,23 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
   const navigate = useNavigate();
 
   const tabPathMap: Record<string, PortalTab> = {
-    '/Dashboard-Student': 'dashboard',
+    '/dashboard-student': 'dashboard',
     '/ringkasan': 'dashboard',
     '/jadwal-pelajaran': 'schedule',
     '/izin-absensi': 'attendance',
     '/materi-belajar': 'materi',
-    '/nilai-sumatif': 'sumatif',
+    '/sumatif-siswa': 'sumatif',
     '/buku-penghubung-siswa': 'liaison',
     '/profil-siswa': 'profile',
     '/karakter-siswa': 'character'
   };
 
   const pathToTabMap: Record<PortalTab, string> = {
-    'dashboard': '/Dashboard-Student',
+    'dashboard': '/dashboard-student',
     'schedule': '/jadwal-pelajaran',
     'attendance': '/izin-absensi',
     'materi': '/materi-belajar',
-    'sumatif': '/nilai-sumatif',
+    'sumatif': '/sumatif-siswa',
     'liaison': '/buku-penghubung-siswa',
     'profile': '/profil-siswa',
     'character': '/karakter-siswa'
