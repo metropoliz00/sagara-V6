@@ -63,6 +63,7 @@ const AppContent: React.FC = () => {
   const currentView = useMemo<ViewState>(() => {
     const path = location.pathname.slice(1);
     if (!path || path === '') return 'dashboard';
+    if (path === 'dashboard') return 'dashboard';
     
     // Support student-specific paths in currentView if needed for title
     if (path === 'dashboard-student' || path === 'ringkasan') return 'dashboard';
@@ -1790,7 +1791,9 @@ const AppContent: React.FC = () => {
              )}
              
               <Routes>
-                <Route path="/" element={
+                <Route path="/" element={<Navigate to={isStudentRole ? "/dashboard-student" : "/dashboard"} replace />} />
+                
+                <Route path="/dashboard" element={
                     isStudentRole ? <Navigate to="/dashboard-student" replace /> :
                     <DashboardContainer
                         isStudentRole={isStudentRole}
@@ -1833,7 +1836,6 @@ const AppContent: React.FC = () => {
                         materials={materials}
                     />
                 } />
-                <Route path="/dashboard" element={<Navigate to={isStudentRole ? "/dashboard-student" : "/"} replace />} />
                 
                 {/* Student specific routes */}
                 {isStudentRole && (

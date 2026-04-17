@@ -131,7 +131,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUser, currentView, isOpen, onC
     
     if (!isVisible) return null;
 
-    const path = item.id === 'dashboard' ? '/' : `/${item.id}`;
+    const path = item.id === 'dashboard' ? '/dashboard' : `/${item.id}`;
 
     return (
       <NavLink
