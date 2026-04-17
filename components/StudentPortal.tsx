@@ -1735,7 +1735,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                                                       {isTeacherPresent && teacherName && (
                                                           <div className="flex items-center mt-2 bg-emerald-500/10 text-emerald-700 px-2 py-0.5 rounded-md w-fit">
                                                               <CheckCircle size={12} className="mr-1.5" />
-                                                              <span className="text-[10px] font-black uppercase tracking-tight">Diajar oleh: {teacherName}</span>
+                                                              <span className="text-[10px] font-black tracking-tight">Diajar oleh: {teacherName}</span>
                                                           </div>
                                                       )}
                                                   </div>
