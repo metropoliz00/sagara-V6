@@ -872,17 +872,51 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
                                                 return (
                                                     <td 
                                                         key={d} 
-                                                        className={`p-1 border text-center ${!isReadOnly ? 'cursor-pointer hover:bg-gray-200' : ''} transition-colors ${isRed ? bg : ''}`} 
+                                                        className={`p-1 border text-center relative group transition-colors ${isRed ? bg : !isReadOnly ? 'cursor-pointer hover:bg-blue-50' : ''}`} 
                                                         title={holidayDesc || (status ? `${STATUS_TEXT[status as AttendanceStatus]}${hasNote ? `: ${notes}` : ''}` : '')}
-                                                        onClick={() => !isRed && !isReadOnly && handleRecapCellClick(s, dateStr, status, notes)}
+                                                        onClick={() => {
+                                                            if (isRed || isReadOnly) return;
+                                                            // Logic: If empty cell, click to fill. If filled, must use edit menu (icon)
+                                                            if (!status) {
+                                                                handleRecapCellClick(s, dateStr, status, notes);
+                                                            }
+                                                        }}
                                                     >
                                                         {isRed ? <span className="text-[9px] font-bold text-gray-500/80">{holidayCode}</span> : 
-                                                        (status === 'present' ? <span className="text-emerald-600 font-bold">H{hasNote && <sup className="text-rose-500 font-bold">*</sup>}</span> :
-                                                        status === 'sick' ? <span className="text-amber-600 font-bold">S{hasNote && <sup className="text-rose-500 font-bold">*</sup>}</span> :
-                                                        status === 'permit' ? <span className="text-blue-600 font-bold">I{hasNote && <sup className="text-rose-500 font-bold">*</sup>}</span> :
-                                                        status === 'alpha' ? <span className="text-rose-600 font-bold">A{hasNote && <sup className="text-rose-500 font-bold">*</sup>}</span> : 
-                                                        status === 'dispensation' ? <span className="text-emerald-600 font-bold">D{hasNote && <sup className="text-rose-500 font-bold">*</sup>}</span> :
-                                                        <span className="opacity-0 group-hover:opacity-30 text-gray-400">.</span>)}
+                                                        (status ? (
+                                                            <div className="relative flex items-center justify-center h-full">
+                                                                <span className={`font-bold ${
+                                                                    status === 'present' ? 'text-emerald-600' :
+                                                                    status === 'sick' ? 'text-amber-600' :
+                                                                    status === 'permit' ? 'text-blue-600' :
+                                                                    status === 'alpha' ? 'text-rose-600' : 
+                                                                    'text-teal-600'
+                                                                }`}>
+                                                                    {status === 'present' ? 'H' : 
+                                                                     status === 'sick' ? 'S' : 
+                                                                     status === 'permit' ? 'I' : 
+                                                                     status === 'alpha' ? 'A' : 
+                                                                     status === 'dispensation' ? 'D' : '?'}
+                                                                    {hasNote && <sup className="text-rose-500 font-bold">*</sup>}
+                                                                </span>
+                                                                
+                                                                {/* Menu Edit (Pencil Icon) that appears only when hovered and status exists */}
+                                                                {!isReadOnly && (
+                                                                    <button 
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleRecapCellClick(s, dateStr, status, notes);
+                                                                        }}
+                                                                        className="absolute -right-1.5 -top-1.5 p-0.5 bg-[#5AB2FF] text-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all hover:scale-110 z-10"
+                                                                        title="Edit Data"
+                                                                    >
+                                                                        <Pencil size={8} />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="opacity-0 group-hover:opacity-100 text-[#5AB2FF] font-bold">+</span>
+                                                        ))}
                                                     </td>
                                                 );
                                             })}
