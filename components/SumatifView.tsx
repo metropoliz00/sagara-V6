@@ -337,14 +337,24 @@ const SumatifView: React.FC<SumatifViewProps> = ({
 
   if (viewingResults && results) {
     return (
-      <SumatifResultsView 
-        sumatif={viewingResults}
-        results={results}
-        students={students}
-        onBack={() => setViewingResults(null)}
-        onSync={() => handleSyncToGrades(viewingResults, results)}
-        onReset={(studentId) => handleResetResult(studentId, viewingResults)}
-      />
+      <div className="space-y-6">
+        <SumatifResultsView 
+          sumatif={viewingResults}
+          results={results}
+          students={students}
+          onBack={() => setViewingResults(null)}
+          onSync={() => handleSyncToGrades(viewingResults, results)}
+          onReset={(studentId) => handleResetResult(studentId, viewingResults)}
+        />
+        <Modal 
+          isOpen={modal.isOpen}
+          title={modal.title}
+          message={modal.message}
+          type={modal.type}
+          onConfirm={modal.onConfirm}
+          onCancel={() => setModal(prev => ({ ...prev, isOpen: false }))}
+        />
+      </div>
     );
   }
 
