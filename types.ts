@@ -388,6 +388,15 @@ export interface Material {
 
 export type ViewState = 
   | 'dashboard' 
+  | 'Dashboard-Student'
+  | 'ringkasan'
+  | 'jadwal-pelajaran'
+  | 'izin-absensi'
+  | 'materi-belajar'
+  | 'nilai-sumatif'
+  | 'buku-penghubung-siswa'
+  | 'profil-siswa'
+  | 'karakter-siswa'
   | 'siswa' 
   | 'data-lulusan'
   | 'absensi' 

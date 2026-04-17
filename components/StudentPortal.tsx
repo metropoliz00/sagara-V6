@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Student, GradeRecord, LiaisonLog, AgendaItem, Material, BehaviorLog, PermissionRequest, KarakterAssessment, KARAKTER_INDICATORS, KarakterIndicatorKey, LearningDocumentation, BookLoan, ScheduleItem } from '../types';
 import { MOCK_SUBJECTS, CALENDAR_CODES, PREFILLED_CALENDAR_2025, HOLIDAY_DESCRIPTIONS_2025_2026, WEEKDAYS } from '../constants';
 import { 
@@ -63,7 +64,43 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
   student, allAttendance, grades, liaisonLogs, agendas, behaviorLogs, permissionRequests, karakterAssessments,
   onSaveLiaison, onSavePermission, onSaveKarakter, onUpdateStudent, learningDocumentation = [], bookLoans = [], materials = []
 }) => {
-  const [activeTab, setActiveTab] = useState<PortalTab>('dashboard');
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const tabPathMap: Record<string, PortalTab> = {
+    '/Dashboard-Student': 'dashboard',
+    '/ringkasan': 'dashboard',
+    '/jadwal-pelajaran': 'schedule',
+    '/izin-absensi': 'attendance',
+    '/materi-belajar': 'materi',
+    '/nilai-sumatif': 'sumatif',
+    '/buku-penghubung-siswa': 'liaison',
+    '/profil-siswa': 'profile',
+    '/karakter-siswa': 'character'
+  };
+
+  const pathToTabMap: Record<PortalTab, string> = {
+    'dashboard': '/Dashboard-Student',
+    'schedule': '/jadwal-pelajaran',
+    'attendance': '/izin-absensi',
+    'materi': '/materi-belajar',
+    'sumatif': '/nilai-sumatif',
+    'liaison': '/buku-penghubung-siswa',
+    'profile': '/profil-siswa',
+    'character': '/karakter-siswa'
+  };
+
+  const [activeTab, setActiveTab] = useState<PortalTab>(() => {
+    return tabPathMap[location.pathname] || 'dashboard';
+  });
+
+  useEffect(() => {
+    const tab = tabPathMap[location.pathname];
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [location.pathname]);
+
   const [viewingMaterialLink, setViewingMaterialLink] = useState<string | null>(null);
   const { showAlert } = useModal();
   
@@ -584,6 +621,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
   const handleTabChange = (tabId: PortalTab) => {
     setActiveTab(tabId);
     setViewingMaterialLink(null);
+    navigate(pathToTabMap[tabId]);
   };
 
   const currentKktp = kktpMap[selectedSubjectId] || MOCK_SUBJECTS.find(s => s.id === selectedSubjectId)?.kkm || 75;

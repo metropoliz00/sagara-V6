@@ -63,13 +63,26 @@ const AppContent: React.FC = () => {
   const currentView = useMemo<ViewState>(() => {
     const path = location.pathname.slice(1);
     if (!path || path === '') return 'dashboard';
+    
+    // Support student-specific paths in currentView if needed for title
+    if (path === 'Dashboard-Student' || path === 'ringkasan') return 'dashboard';
+    
     return path as ViewState;
   }, [location.pathname]);
 
   // Effect to update document title based on current view
   useEffect(() => {
-    const viewTitles: Record<ViewState, string> = {
+    const viewTitles: Record<string, string> = {
       'dashboard': 'Dashboard',
+      'ringkasan': 'Ringkasan',
+      'Dashboard-Student': 'Dashboard Siswa',
+      'jadwal-pelajaran': 'Jadwal Pelajaran',
+      'izin-absensi': 'Izin & Absensi',
+      'materi-belajar': 'Materi Pelajar',
+      'sumatif-siswa': 'Nilai Sumatif',
+      'buku-penghubung-siswa': 'Buku Penghubung',
+      'profil-siswa': 'Profil Siswa',
+      'karakter-siswa': 'Karakter Siswa',
       'siswa': 'Data Siswa',
       'data-lulusan': 'Data Lulusan',
       'absensi': 'Absensi',
@@ -1776,8 +1789,9 @@ const AppContent: React.FC = () => {
                 </div>
              )}
              
-             <Routes>
+              <Routes>
                 <Route path="/" element={
+                    isStudentRole ? <Navigate to="/Dashboard-Student" replace /> :
                     <DashboardContainer
                         isStudentRole={isStudentRole}
                         isSupervisor={isSupervisor}
@@ -1819,9 +1833,80 @@ const AppContent: React.FC = () => {
                         materials={materials}
                     />
                 } />
-                <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                <Route path="/dashboard" element={<Navigate to={isStudentRole ? "/Dashboard-Student" : "/"} replace />} />
+                
+                {/* Student specific routes */}
+                {isStudentRole && (
+                    <>
+                        <Route path="/Dashboard-Student" element={
+                            <DashboardContainer
+                                isStudentRole={true}
+                                isSupervisor={false}
+                                myStudentData={myStudentData}
+                                allAttendanceRecords={allAttendanceRecords}
+                                grades={grades}
+                                liaisonLogs={liaisonLogs}
+                                filteredCounseling={filteredCounseling}
+                                permissionRequests={permissionRequests}
+                                karakterAssessments={karakterAssessments}
+                                onSavePermission={handleSavePermissionRequest}
+                                onSaveLiaison={handleSaveLiaison}
+                                onSaveKarakter={handleSaveKarakter}
+                                onUpdateStudent={handleUpdateStudent}
+                                students={students}
+                                users={users}
+                                extracurriculars={extracurriculars}
+                                inventory={inventory}
+                                schoolAssets={schoolAssets}
+                                bosTransactions={bosTransactions}
+                                filteredStudents={filteredStudents}
+                                filteredAgendas={filteredAgendas}
+                                filteredAttendance={filteredAttendance}
+                                holidays={filteredHolidays}
+                                teacherProfile={teacherProfile}
+                                activeClassId={activeClassId}
+                                adminCompleteness={adminPercentage}
+                                employmentLinks={employmentLinks}
+                                pendingPermissions={pendingPermissions}
+                                onOpenPermissionModal={() => setIsPermissionModalOpen(true)}
+                                schoolProfile={schoolProfile}
+                                learningDocumentation={filteredLearningDocumentation}
+                                learningReports={filteredReports}
+                                hasNewMessages={hasNewMessages}
+                                unreadMessageCount={unreadMessageCount}
+                                bookLoans={bookLoans}
+                                subjects={MOCK_SUBJECTS}
+                                kktpMap={kktpMap}
+                                materials={materials}
+                            />
+                        } />
+                        <Route path="/ringkasan" element={<Navigate to="/Dashboard-Student" replace />} />
+                        <Route path="/jadwal-pelajaran" element={
+                            <DashboardContainer isStudentRole={true} isSupervisor={false} myStudentData={myStudentData} allAttendanceRecords={allAttendanceRecords} grades={grades} liaisonLogs={liaisonLogs} filteredCounseling={filteredCounseling} permissionRequests={permissionRequests} karakterAssessments={karakterAssessments} onSavePermission={handleSavePermissionRequest} onSaveLiaison={handleSaveLiaison} onSaveKarakter={handleSaveKarakter} onUpdateStudent={handleUpdateStudent} students={students} users={users} extracurriculars={extracurriculars} inventory={inventory} schoolAssets={schoolAssets} bosTransactions={bosTransactions} filteredStudents={filteredStudents} filteredAgendas={filteredAgendas} filteredAttendance={filteredAttendance} holidays={filteredHolidays} teacherProfile={teacherProfile} activeClassId={activeClassId} adminCompleteness={adminPercentage} employmentLinks={employmentLinks} pendingPermissions={pendingPermissions} onOpenPermissionModal={() => setIsPermissionModalOpen(true)} schoolProfile={schoolProfile} learningDocumentation={filteredLearningDocumentation} learningReports={filteredReports} hasNewMessages={hasNewMessages} unreadMessageCount={unreadMessageCount} bookLoans={bookLoans} subjects={MOCK_SUBJECTS} kktpMap={kktpMap} materials={materials} />
+                        } />
+                        <Route path="/izin-absensi" element={
+                            <DashboardContainer isStudentRole={true} isSupervisor={false} myStudentData={myStudentData} allAttendanceRecords={allAttendanceRecords} grades={grades} liaisonLogs={liaisonLogs} filteredCounseling={filteredCounseling} permissionRequests={permissionRequests} karakterAssessments={karakterAssessments} onSavePermission={handleSavePermissionRequest} onSaveLiaison={handleSaveLiaison} onSaveKarakter={handleSaveKarakter} onUpdateStudent={handleUpdateStudent} students={students} users={users} extracurriculars={extracurriculars} inventory={inventory} schoolAssets={schoolAssets} bosTransactions={bosTransactions} filteredStudents={filteredStudents} filteredAgendas={filteredAgendas} filteredAttendance={filteredAttendance} holidays={filteredHolidays} teacherProfile={teacherProfile} activeClassId={activeClassId} adminCompleteness={adminPercentage} employmentLinks={employmentLinks} pendingPermissions={pendingPermissions} onOpenPermissionModal={() => setIsPermissionModalOpen(true)} schoolProfile={schoolProfile} learningDocumentation={filteredLearningDocumentation} learningReports={filteredReports} hasNewMessages={hasNewMessages} unreadMessageCount={unreadMessageCount} bookLoans={bookLoans} subjects={MOCK_SUBJECTS} kktpMap={kktpMap} materials={materials} />
+                        } />
+                        <Route path="/materi-belajar" element={
+                            <DashboardContainer isStudentRole={true} isSupervisor={false} myStudentData={myStudentData} allAttendanceRecords={allAttendanceRecords} grades={grades} liaisonLogs={liaisonLogs} filteredCounseling={filteredCounseling} permissionRequests={permissionRequests} karakterAssessments={karakterAssessments} onSavePermission={handleSavePermissionRequest} onSaveLiaison={handleSaveLiaison} onSaveKarakter={handleSaveKarakter} onUpdateStudent={handleUpdateStudent} students={students} users={users} extracurriculars={extracurriculars} inventory={inventory} schoolAssets={schoolAssets} bosTransactions={bosTransactions} filteredStudents={filteredStudents} filteredAgendas={filteredAgendas} filteredAttendance={filteredAttendance} holidays={filteredHolidays} teacherProfile={teacherProfile} activeClassId={activeClassId} adminCompleteness={adminPercentage} employmentLinks={employmentLinks} pendingPermissions={pendingPermissions} onOpenPermissionModal={() => setIsPermissionModalOpen(true)} schoolProfile={schoolProfile} learningDocumentation={filteredLearningDocumentation} learningReports={filteredReports} hasNewMessages={hasNewMessages} unreadMessageCount={unreadMessageCount} bookLoans={bookLoans} subjects={MOCK_SUBJECTS} kktpMap={kktpMap} materials={materials} />
+                        } />
+                        <Route path="/nilai-sumatif" element={
+                            <DashboardContainer isStudentRole={true} isSupervisor={false} myStudentData={myStudentData} allAttendanceRecords={allAttendanceRecords} grades={grades} liaisonLogs={liaisonLogs} filteredCounseling={filteredCounseling} permissionRequests={permissionRequests} karakterAssessments={karakterAssessments} onSavePermission={handleSavePermissionRequest} onSaveLiaison={handleSaveLiaison} onSaveKarakter={handleSaveKarakter} onUpdateStudent={handleUpdateStudent} students={students} users={users} extracurriculars={extracurriculars} inventory={inventory} schoolAssets={schoolAssets} bosTransactions={bosTransactions} filteredStudents={filteredStudents} filteredAgendas={filteredAgendas} filteredAttendance={filteredAttendance} holidays={filteredHolidays} teacherProfile={teacherProfile} activeClassId={activeClassId} adminCompleteness={adminPercentage} employmentLinks={employmentLinks} pendingPermissions={pendingPermissions} onOpenPermissionModal={() => setIsPermissionModalOpen(true)} schoolProfile={schoolProfile} learningDocumentation={filteredLearningDocumentation} learningReports={filteredReports} hasNewMessages={hasNewMessages} unreadMessageCount={unreadMessageCount} bookLoans={bookLoans} subjects={MOCK_SUBJECTS} kktpMap={kktpMap} materials={materials} />
+                        } />
+                        <Route path="/buku-penghubung-siswa" element={
+                            <DashboardContainer isStudentRole={true} isSupervisor={false} myStudentData={myStudentData} allAttendanceRecords={allAttendanceRecords} grades={grades} liaisonLogs={liaisonLogs} filteredCounseling={filteredCounseling} permissionRequests={permissionRequests} karakterAssessments={karakterAssessments} onSavePermission={handleSavePermissionRequest} onSaveLiaison={handleSaveLiaison} onSaveKarakter={handleSaveKarakter} onUpdateStudent={handleUpdateStudent} students={students} users={users} extracurriculars={extracurriculars} inventory={inventory} schoolAssets={schoolAssets} bosTransactions={bosTransactions} filteredStudents={filteredStudents} filteredAgendas={filteredAgendas} filteredAttendance={filteredAttendance} holidays={filteredHolidays} teacherProfile={teacherProfile} activeClassId={activeClassId} adminCompleteness={adminPercentage} employmentLinks={employmentLinks} pendingPermissions={pendingPermissions} onOpenPermissionModal={() => setIsPermissionModalOpen(true)} schoolProfile={schoolProfile} learningDocumentation={filteredLearningDocumentation} learningReports={filteredReports} hasNewMessages={hasNewMessages} unreadMessageCount={unreadMessageCount} bookLoans={bookLoans} subjects={MOCK_SUBJECTS} kktpMap={kktpMap} materials={materials} />
+                        } />
+                        <Route path="/profil-siswa" element={
+                            <DashboardContainer isStudentRole={true} isSupervisor={false} myStudentData={myStudentData} allAttendanceRecords={allAttendanceRecords} grades={grades} liaisonLogs={liaisonLogs} filteredCounseling={filteredCounseling} permissionRequests={permissionRequests} karakterAssessments={karakterAssessments} onSavePermission={handleSavePermissionRequest} onSaveLiaison={handleSaveLiaison} onSaveKarakter={handleSaveKarakter} onUpdateStudent={handleUpdateStudent} students={students} users={users} extracurriculars={extracurriculars} inventory={inventory} schoolAssets={schoolAssets} bosTransactions={bosTransactions} filteredStudents={filteredStudents} filteredAgendas={filteredAgendas} filteredAttendance={filteredAttendance} holidays={filteredHolidays} teacherProfile={teacherProfile} activeClassId={activeClassId} adminCompleteness={adminPercentage} employmentLinks={employmentLinks} pendingPermissions={pendingPermissions} onOpenPermissionModal={() => setIsPermissionModalOpen(true)} schoolProfile={schoolProfile} learningDocumentation={filteredLearningDocumentation} learningReports={filteredReports} hasNewMessages={hasNewMessages} unreadMessageCount={unreadMessageCount} bookLoans={bookLoans} subjects={MOCK_SUBJECTS} kktpMap={kktpMap} materials={materials} />
+                        } />
+                        <Route path="/karakter-siswa" element={
+                            <DashboardContainer isStudentRole={true} isSupervisor={false} myStudentData={myStudentData} allAttendanceRecords={allAttendanceRecords} grades={grades} liaisonLogs={liaisonLogs} filteredCounseling={filteredCounseling} permissionRequests={permissionRequests} karakterAssessments={karakterAssessments} onSavePermission={handleSavePermissionRequest} onSaveLiaison={handleSaveLiaison} onSaveKarakter={handleSaveKarakter} onUpdateStudent={handleUpdateStudent} students={students} users={users} extracurriculars={extracurriculars} inventory={inventory} schoolAssets={schoolAssets} bosTransactions={bosTransactions} filteredStudents={filteredStudents} filteredAgendas={filteredAgendas} filteredAttendance={filteredAttendance} holidays={filteredHolidays} teacherProfile={teacherProfile} activeClassId={activeClassId} adminCompleteness={adminPercentage} employmentLinks={employmentLinks} pendingPermissions={pendingPermissions} onOpenPermissionModal={() => setIsPermissionModalOpen(true)} schoolProfile={schoolProfile} learningDocumentation={filteredLearningDocumentation} learningReports={filteredReports} hasNewMessages={hasNewMessages} unreadMessageCount={unreadMessageCount} bookLoans={bookLoans} subjects={MOCK_SUBJECTS} kktpMap={kktpMap} materials={materials} />
+                        } />
+                    </>
+                )}
+
                 <Route path="/siswa" element={
-                    isStudentRole ? <Navigate to="/" replace /> :
+                    isStudentRole ? <Navigate to="/Dashboard-Student" replace /> :
                     <StudentList 
                         students={filteredStudents} 
                         teacherProfile={teacherProfile} 
@@ -1837,7 +1922,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/data-lulusan" element={
-                    !canViewGraduates ? <Navigate to="/" replace /> :
+                    !canViewGraduates ? <Navigate to={isStudentRole ? "/Dashboard-Student" : "/"} replace /> :
                     <GraduatesView 
                         onShowNotification={handleShowNotification}
                         isReadOnly={isGlobalReadOnly}
@@ -1848,7 +1933,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/absensi" element={
-                    isStudentRole ? <Navigate to="/" replace /> :
+                    isStudentRole ? <Navigate to="/izin-absensi" replace /> :
                     <AttendanceView 
                         students={filteredStudents}
                         allStudents={students}
@@ -1868,6 +1953,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/agenda" element={
+                    isStudentRole ? <Navigate to="/jadwal-pelajaran" replace /> :
                     <AgendaView 
                         agendas={filteredAgendas}
                         onAddAgenda={handleAddAgenda}
@@ -1879,6 +1965,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/materi" element={
+                    isStudentRole ? <Navigate to="/materi-belajar" replace /> :
                     <MaterialsView 
                         materials={materials}
                         subjects={MOCK_SUBJECTS}
@@ -1891,7 +1978,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/nilai" element={
-                    isStudentRole ? <Navigate to="/" replace /> :
+                    isStudentRole ? <Navigate to="/nilai-sumatif" replace /> :
                     <GradesView 
                         students={filteredStudents} 
                         initialGrades={filteredGrades} 
@@ -1905,7 +1992,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/sikap" element={
-                    isStudentRole ? <Navigate to="/" replace /> :
+                    isStudentRole ? <Navigate to="/karakter-siswa" replace /> :
                     <AttitudeView 
                         students={filteredStudents}
                         initialSikap={filteredSikap}
@@ -1918,7 +2005,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/jurnal-pembelajaran" element={
-                    isStudentRole ? <Navigate to="/" replace /> :
+                    isStudentRole ? <Navigate to="/Dashboard-Student" replace /> :
                     <LearningJournalView 
                         classId={activeClassId}
                         isReadOnly={isGlobalReadOnly}
@@ -1930,7 +2017,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/laporan-pembelajaran" element={
-                    isStudentRole ? <Navigate to="/" replace /> :
+                    isStudentRole ? <Navigate to="/Dashboard-Student" replace /> :
                     <LearningReportsView 
                         reports={learningReports}
                         subjects={MOCK_SUBJECTS}
@@ -1942,7 +2029,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/dokumentasi-pembelajaran" element={
-                    isStudentRole ? <Navigate to="/" replace /> :
+                    isStudentRole ? <Navigate to="/Dashboard-Student" replace /> :
                     <LearningDocumentationView 
                         documentation={filteredLearningDocumentation}
                         onSave={handleSaveLearningDocumentation}
@@ -1952,7 +2039,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/monitor-siswa" element={
-                    (!isAdminRole && !isSupervisor && currentUser.role !== 'guru') ? <Navigate to="/" replace /> :
+                    (isStudentRole || (!isAdminRole && !isSupervisor && currentUser.role !== 'guru')) ? <Navigate to="/Dashboard-Student" replace /> :
                     <StudentMonitor 
                         students={filteredStudents}
                         allAttendance={allAttendanceRecords}
@@ -1967,7 +2054,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/konseling" element={
-                    isStudentRole ? <Navigate to="/" replace /> :
+                    isStudentRole ? <Navigate to="/karakter-siswa" replace /> :
                     <CounselingView 
                         students={filteredStudents} 
                         logs={filteredCounseling} 
@@ -1977,7 +2064,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/kegiatan" element={
-                    isStudentRole ? <Navigate to="/" replace /> :
+                    isStudentRole ? <Navigate to="/Dashboard-Student" replace /> :
                     <ActivitiesView 
                         students={filteredStudents} 
                         agendas={filteredAgendas}
@@ -1993,7 +2080,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/buku-penghubung" element={
-                    isStudentRole ? <Navigate to="/" replace /> :
+                    isStudentRole ? <Navigate to="/buku-penghubung-siswa" replace /> :
                     <LiaisonBookView
                         logs={filteredLiaison}
                         students={students} 
@@ -2003,7 +2090,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/administrasi/kelas" element={
-                    isStudentRole ? <Navigate to="/" replace /> :
+                    isStudentRole ? <Navigate to="/Dashboard-Student" replace /> :
                     <ClassroomAdmin 
                         students={filteredStudents} 
                         teacherProfile={teacherProfile} 
@@ -2017,7 +2104,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/administrasi/peminjaman-buku" element={
-                    isStudentRole ? <Navigate to="/" replace /> :
+                    isStudentRole ? <Navigate to="/Dashboard-Student" replace /> :
                     <BookLoanView 
                         students={filteredStudents}
                         bookLoans={bookLoans}
@@ -2029,7 +2116,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/administrasi/sarana-prasarana" element={
-                    (!isAdminRole && !isSupervisor) ? <Navigate to="/" replace /> :
+                    (isStudentRole || (!isAdminRole && !isSupervisor)) ? <Navigate to="/Dashboard-Student" replace /> :
                     <SchoolAssetsAdmin 
                         assets={schoolAssets}
                         onSave={handleSaveSchoolAsset}
@@ -2037,7 +2124,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/administrasi/dana-bos" element={
-                    (!isAdminRole && !isSupervisor) ? <Navigate to="/" replace /> :
+                    (isStudentRole || (!isAdminRole && !isSupervisor)) ? <Navigate to="/Dashboard-Student" replace /> :
                     <BOSManagement
                         transactions={bosTransactions}
                         onSave={handleSaveBOS}
@@ -2047,7 +2134,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/administrasi/bukti-dukung" element={
-                    isStudentRole ? <Navigate to="/" replace /> :
+                    isStudentRole ? <Navigate to="/Dashboard-Student" replace /> :
                     <SupportDocumentsView
                         documents={filteredSupportDocuments}
                         onSave={handleSaveSupportDocument}
@@ -2058,7 +2145,7 @@ const AppContent: React.FC = () => {
                     />
                 } />
                 <Route path="/profil" element={
-                    isStudentRole ? <Navigate to="/" replace /> :
+                    isStudentRole ? <Navigate to="/profil-siswa" replace /> :
                     <TeacherProfile 
                         initialTeacher={teacherProfile} 
                         initialSchool={schoolProfile} 
