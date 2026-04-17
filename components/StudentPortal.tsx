@@ -111,6 +111,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
   const [kktpMap, setKktpMap] = useState<Record<string, number>>({});
   const [academicCalendar, setAcademicCalendar] = useState<any>({});
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+  const [journals, setJournals] = useState<any[]>([]);
   const [isLoadingSchedule, setIsLoadingSchedule] = useState(false);
 
   // -- STATES FOR FORMS --
@@ -241,10 +242,16 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           if (student.classId) {
               setIsLoadingSchedule(true);
               try {
-                  const data = await apiService.getSchedule(student.classId);
-                  setSchedule(data);
+                  const today = new Date().toISOString().split('T')[0];
+                  const [scheduleData, journalData] = await Promise.all([
+                      apiService.getSchedule(student.classId),
+                      apiService.getLearningJournal(student.classId)
+                  ]);
+                  setSchedule(scheduleData);
+                  // Filter journals for today to show teacher presence
+                  setJournals(journalData.filter((j: any) => j.date === today));
               } catch (err) {
-                  console.error("Failed to load schedule", err);
+                  console.error("Failed to load schedule or journal", err);
               } finally {
                   setIsLoadingSchedule(false);
               }
@@ -1696,6 +1703,14 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                                   const isBreak = item.subject.toLowerCase().includes('istirahat');
                                   const colorClass = getSubjectColor(item.subject);
                                   
+                                  // Match with journal entry for teacher presence
+                                  const journalEntry = journals.find(j => 
+                                      j.timeSlot === item.time && 
+                                      j.subject.toLowerCase() === item.subject.toLowerCase()
+                                  );
+                                  const isTeacherPresent = journalEntry?.isTeacherPresent;
+                                  const teacherName = journalEntry?.teacherName;
+                                  
                                   return (
                                       <div key={item.id || idx} className="relative group">
                                           {/* Timeline Point */}
@@ -1717,6 +1732,12 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                                                            <Clock size={12} className="mr-1.5 opacity-60" />
                                                            <span className="text-xs font-bold opacity-80">{item.time}</span>
                                                       </div>
+                                                      {isTeacherPresent && teacherName && (
+                                                          <div className="flex items-center mt-2 bg-emerald-500/10 text-emerald-700 px-2 py-0.5 rounded-md w-fit">
+                                                              <CheckCircle size={12} className="mr-1.5" />
+                                                              <span className="text-[10px] font-black uppercase tracking-tight">Diajar oleh: {teacherName}</span>
+                                                          </div>
+                                                      )}
                                                   </div>
                                               </div>
                                               

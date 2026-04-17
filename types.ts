@@ -213,6 +213,8 @@ export interface LearningJournalEntry {
   model?: string;
   pendekatan?: string;
   metode?: string[];
+  isTeacherPresent?: boolean;
+  teacherName?: string;
 }
 
 export interface LearningDocumentation {

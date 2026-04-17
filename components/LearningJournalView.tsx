@@ -5,7 +5,7 @@ import { useModal } from '../context/ModalContext';
 import { 
   Save, Calendar, Printer, Plus, Trash2, Loader2, 
   ChevronLeft, ChevronRight, NotebookPen, RefreshCw,
-  LayoutList, CalendarRange, Coffee
+  LayoutList, CalendarRange, Coffee, CheckCircle
 } from 'lucide-react';
 
 interface LearningJournalViewProps {
@@ -218,7 +218,7 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
     return true; // Default case
   };
 
-  const updateDraft = (index: number, field: keyof LearningJournalEntry, value: string | string[]) => {
+  const updateDraft = (index: number, field: keyof LearningJournalEntry, value: any) => {
     const newData = [...draftData];
     if (!isRowEditable(newData[index])) return;
 
@@ -234,18 +234,33 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
     if (updatedRow.subject) {
         for (let i = 0; i < newData.length; i++) {
             if (newData[i].subject === updatedRow.subject) {
-                newData[i] = { ...newData[i], [field]: value };
-                if (pbmFields.includes(field)) {
-                    const thisRow = newData[i];
-                    newData[i].activities = generateActivitiesString(thisRow.pendekatan, thisRow.model, thisRow.metode);
+                // Don't auto-fill presence, it's specific to the slot
+                if (field !== 'isTeacherPresent' && field !== 'teacherName') {
+                    newData[i] = { ...newData[i], [field]: value };
+                    if (pbmFields.includes(field)) {
+                        const thisRow = newData[i];
+                        newData[i].activities = generateActivitiesString(thisRow.pendekatan, thisRow.model, thisRow.metode);
+                    }
                 }
             }
         }
-    } else {
-        newData[index] = updatedRow;
     }
+    
+    // Always update the specific row
+    newData[index] = updatedRow;
 
     setDraftData(newData);
+  };
+
+  const handleTogglePresence = (index: number) => {
+      const row = draftData[index];
+      if (!isRowEditable(row)) return;
+
+      const isPresent = !row.isTeacherPresent;
+      const teacherName = isPresent ? (currentUser?.fullName || '') : '';
+      
+      updateDraft(index, 'isTeacherPresent', isPresent);
+      updateDraft(index, 'teacherName', teacherName);
   };
 
   const handleMetodeChange = (index: number, metode: string) => {
@@ -716,7 +731,26 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
                                     <td className="p-3 border">{isSpecialActivity ? <span className="text-gray-400">-</span> : 
                                         <textarea value={row.followUp || ''} onChange={e => updateDraft(idx, 'followUp', e.target.value)} className="w-full bg-transparent outline-none resize-none text-gray-700 placeholder-gray-300 h-full min-h-[40px]" placeholder="Tindak Lanjut..." rows={5} disabled={disabled}/>
                                     }</td>
-                                    {!isReadOnly && (<td className="p-3 border text-center no-print align-middle"><button onClick={() => removeRow(idx)} className={`transition-colors ${disabled ? 'text-gray-200 cursor-not-allowed' : 'text-gray-300 hover:text-red-500'}`} disabled={disabled}><Trash2 size={16} /></button></td>)}
+                                    <td className="p-3 border text-center no-print align-middle">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <button 
+                                                onClick={() => handleTogglePresence(idx)}
+                                                disabled={disabled}
+                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all shadow-sm flex items-center gap-1 ${
+                                                    row.isTeacherPresent 
+                                                    ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
+                                                    : 'bg-white text-gray-400 border border-gray-200 hover:bg-gray-50'
+                                                } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                title={row.isTeacherPresent ? 'Batal Hadir' : 'Tandai Hadir'}
+                                            >
+                                                <CheckCircle size={14} />
+                                                {row.isTeacherPresent ? 'Hadir' : 'Hadir?'}
+                                            </button>
+                                            <button onClick={() => removeRow(idx)} className={`transition-colors ${disabled ? 'text-gray-200 cursor-not-allowed' : 'text-gray-300 hover:text-red-500'}`} disabled={disabled}>
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             )})
                         )}

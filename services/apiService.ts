@@ -973,7 +973,9 @@ export const apiService = {
             followUp: e.followUp,
             model: e.model,
             pendekatan: e.pendekatan,
-            metode: e.metode
+            metode: e.metode,
+            isTeacherPresent: e.isTeacherPresent,
+            teacherName: e.teacherName
         }));
 
         return {
