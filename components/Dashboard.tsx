@@ -382,65 +382,69 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       <div className="relative z-10 space-y-6">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-            <h1 className="text-2xl font-bold text-gray-800 flex items-center">
-              {getGreetingIcon(getGreeting())}
-              <span>Selamat {getGreeting()}, <span className="text-[#5AB2FF]">{(teacherName && teacherName !== 'undefined') ? teacherName : 'Bapak/Ibu Guru'}</span> 👋</span>
-            </h1>
-            <p className="text-gray-500 text-sm mt-1">Selamat datang di Aplikasi SAGARA | Sistem Akademik & Administrasi Terintegrasi. Berikut adalah ringkasan aktivitas {teachingClass ? `Kelas ${teachingClass}` : 'Sekolah'} hari ini.</p>
+        <div className="flex flex-col md:flex-row justify-between items-center md:items-center gap-4">
+            <div className="w-full text-center md:text-left overflow-hidden">
+                <h1 className="text-base sm:text-2xl font-bold text-gray-800 flex items-center justify-center md:justify-start truncate w-full">
+                  <div className="shrink-0">{getGreetingIcon(getGreeting())}</div>
+                  <span className="truncate ml-2">Selamat {getGreeting()}, <span className="text-[#5AB2FF]">{(teacherName && teacherName !== 'undefined') ? teacherName : 'Bapak/Ibu Guru'}</span> 👋</span>
+                </h1>
+                <p className="text-gray-500 text-xs sm:text-sm mt-1.5 text-center md:text-left whitespace-normal leading-relaxed">
+                   Selamat datang di Aplikasi SAGARA | Sistem Akademik & Administrasi Terintegrasi. Berikut adalah ringkasan aktivitas {teachingClass ? `Kelas ${teachingClass}` : 'Sekolah'} hari ini.
+                </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-            <button 
-                onClick={() => navigate('/buku-penghubung')}
-                className={`relative bg-white p-2.5 rounded-xl shadow-sm border border-gray-100 transition-all ${
-                    hasNewMessages 
-                    ? 'text-purple-600 border-purple-200 bg-purple-50 animate-vibrate' 
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-purple-600'
-                }`}
-                title="Buku Penghubung"
-            >
-                <PaperPlaneIcon size={24} color={hasNewMessages ? "#9333EA" : "currentColor"} />
-                {hasNewMessages && (
-                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-bounce border-2 border-white">
-                        {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
+            <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 w-full md:w-auto">
+                <button 
+                    onClick={() => navigate('/buku-penghubung')}
+                    className={`relative bg-white p-2 sm:p-2.5 rounded-xl shadow-sm border border-gray-100 transition-all shrink-0 ${
+                        hasNewMessages 
+                        ? 'text-purple-600 border-purple-200 bg-purple-50 animate-vibrate' 
+                        : 'text-gray-500 hover:bg-gray-50 hover:text-purple-600'
+                    }`}
+                    title="Buku Penghubung"
+                >
+                    <PaperPlaneIcon size={20} className="sm:w-6 sm:h-6" color={hasNewMessages ? "#9333EA" : "currentColor"} />
+                    {hasNewMessages && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 text-white text-[10px] sm:text-xs font-bold rounded-full flex items-center justify-center animate-bounce border border-white">
+                            {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
+                        </div>
+                    )}
+                </button>
+                <div className="flex flex-row items-center gap-2">
+                    <div className="flex items-center space-x-1 sm:space-x-2 bg-[#5AB2FF] text-white px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-md h-full min-h-[44px]">
+                        <BookOpen size={16} className="sm:w-[18px] sm:h-[18px]" />
+                        <span className="text-xs sm:text-sm font-bold whitespace-nowrap">{teachingClass ? `Kelas ${teachingClass}` : 'ALL'}</span>
                     </div>
-                )}
-            </button>
-            <div className="flex items-center space-x-2 bg-[#5AB2FF] text-white px-4 py-2 rounded-xl shadow-md">
-                <BookOpen size={18} />
-                <span className="text-sm font-bold">{teachingClass ? `Kelas ${teachingClass}` : 'ALL'}</span>
-            </div>
-            <div className="flex items-center space-x-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
-                <Calendar size={24} className="text-[#5AB2FF] shrink-0" />
-                <div>
-                    <p className="text-lg font-bold text-gray-800 tabular-nums tracking-wider">{formattedTime}</p>
-                    <p className="text-xs font-medium text-gray-500 capitalize">{formattedDate}</p>
+                    <div className="flex items-center space-x-2 sm:space-x-3 bg-white px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-sm border border-gray-100 min-h-[44px]">
+                        <Calendar size={18} className="text-[#5AB2FF] shrink-0 sm:w-6 sm:h-6" />
+                        <div className="flex flex-col justify-center">
+                            <p className="text-sm sm:text-lg font-bold text-gray-800 tabular-nums tracking-wider leading-none">{formattedTime}</p>
+                            <p className="text-[9px] sm:text-xs font-medium text-gray-500 capitalize mt-1 leading-none">{formattedDate}</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
             </div>
         </div>
 
         {/* Links Grid - UPDATED COLORS */}
         {employmentLinks.length > 0 && (
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-[#CAF4FF]">
-             <div className="flex flex-wrap gap-4 justify-center">
+          <div className="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-[#CAF4FF]">
+             <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 sm:gap-4 justify-items-center sm:justify-center">
                 {employmentLinks.map((link, index) => (
                   <a 
                     key={link.id} 
                     href={link.url} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center p-3 w-24 h-24 rounded-xl transition-all border-2 bg-white border-[#CAF4FF] hover:border-[#5AB2FF] shadow-sm hover:-translate-y-1 hover:shadow-lg group text-center"
+                    className="flex flex-col items-center justify-start sm:justify-center p-2 sm:p-3 w-full sm:w-24 aspect-[4/5] sm:aspect-square rounded-xl transition-all border-2 bg-white border-[#CAF4FF] hover:border-[#5AB2FF] shadow-sm hover:-translate-y-1 hover:shadow-lg group text-center"
                   >
-                    <div className="w-10 h-10 mb-2 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center overflow-hidden group-hover:scale-110 transition-transform">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 mb-1.5 sm:mb-2 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-110 transition-transform">
                        {link.icon ? (
                          <img src={link.icon} alt={link.title} className="w-full h-full object-contain" />
                        ) : (
-                         <LinkIcon className="text-gray-400" size={20} />
+                         <LinkIcon className="text-gray-400" size={16} />
                        )}
                     </div>
-                    <span className="text-xs font-semibold text-gray-600 leading-tight line-clamp-2 group-hover:text-[#5AB2FF] transition-colors">{link.title}</span>
+                    <span className="text-[10px] sm:text-xs font-semibold text-gray-600 leading-tight line-clamp-2 sm:line-clamp-2 group-hover:text-[#5AB2FF] transition-colors">{link.title}</span>
                   </a>
                 ))}
              </div>
