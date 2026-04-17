@@ -364,8 +364,8 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                         Pengembang Aplikasi
                     </p>
                     <img src={devInfo.photo} alt={devInfo.name} className="w-24 h-36 rounded-lg object-cover mb-4 border-4 border-[#CAF4FF] shadow-lg"/>
-                    <h3 className="text-lg font-bold text-gray-800">{devInfo.name}</h3>
-                    <p className="text-gray-500 mt-2 text-sm italic">"{devInfo.moto}"</p>
+                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-800 whitespace-nowrap w-full text-ellipsis overflow-hidden px-2">{devInfo.name}</h3>
+                    <p className="text-gray-500 mt-2 text-xs md:text-sm italic">"{devInfo.moto}"</p>
                 </div>
             </div>
         </div>
