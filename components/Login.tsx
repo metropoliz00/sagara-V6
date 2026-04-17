@@ -352,16 +352,20 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden transform transition-all scale-100 border-2 border-[#A0DEFF]" 
               onClick={e => e.stopPropagation()}
             >
-                <div className="p-8 flex flex-col items-center text-center">
+                <div className="p-8 flex flex-col items-center text-center relative">
+                    <button 
+                        onClick={() => setIsDevModalOpen(false)}
+                        className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-full transition-all"
+                        title="Tutup"
+                    >
+                        <X size={20} />
+                    </button>
                     <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
                         Pengembang Aplikasi
                     </p>
                     <img src={devInfo.photo} alt={devInfo.name} className="w-24 h-36 rounded-lg object-cover mb-4 border-4 border-[#CAF4FF] shadow-lg"/>
                     <h3 className="text-lg font-bold text-gray-800">{devInfo.name}</h3>
                     <p className="text-gray-500 mt-2 text-sm italic">"{devInfo.moto}"</p>
-                    <button onClick={() => setIsDevModalOpen(false)} className="mt-6 bg-gray-100 text-gray-700 px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
-                        Tutup
-                    </button>
                 </div>
             </div>
         </div>
