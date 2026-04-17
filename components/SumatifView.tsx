@@ -2178,7 +2178,7 @@ const SumatifResultsView: React.FC<{
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center text-sm text-slate-500">
-                      {format(new Date(r.submittedAt), 'dd MMM yyyy HH:mm', { locale: id })}
+                      {(r.status_tes === 'selesai' && r.submittedAt) ? format(new Date(r.submittedAt), 'dd MMM yyyy HH:mm', { locale: id }) : '-'}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${

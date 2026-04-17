@@ -1410,14 +1410,15 @@ export const apiService = {
       student_id: result.studentId,
       score: result.score,
       answers: result.answers,
-      status_tes: 'selesai'
+      status_tes: 'selesai',
+      submitted_at: new Date().toISOString()
     }, { onConflict: 'sumatif_id,student_id' });
     if (error) throw error;
   },
   resetSumatifResult: async (sumatifId: string, studentId: string): Promise<void> => {
     const { error } = await supabase
       .from('sumatif_results')
-      .update({ status_tes: 'mulai', score: 0, answers: {} })
+      .update({ status_tes: 'mulai', score: 0, answers: {}, submitted_at: null })
       .eq('sumatif_id', sumatifId)
       .eq('student_id', studentId);
     if (error) throw error;
@@ -1425,7 +1426,7 @@ export const apiService = {
   startSumatifResult: async (sumatifId: string, studentId: string): Promise<void> => {
     const { error } = await supabase
       .from('sumatif_results')
-      .upsert({ sumatif_id: sumatifId, student_id: studentId, status_tes: 'mulai', score: 0, answers: {} }, { onConflict: 'sumatif_id,student_id' });
+      .upsert({ sumatif_id: sumatifId, student_id: studentId, status_tes: 'mulai', score: 0, answers: {}, submitted_at: null }, { onConflict: 'sumatif_id,student_id' });
     if (error) throw error;
   },
 };
