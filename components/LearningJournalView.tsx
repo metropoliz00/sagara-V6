@@ -252,15 +252,46 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
     setDraftData(newData);
   };
 
-  const handleTogglePresence = (index: number) => {
+  const handleTogglePresence = async (index: number) => {
       const row = draftData[index];
       if (!isRowEditable(row)) return;
 
       const isPresent = !row.isTeacherPresent;
       const teacherName = isPresent ? (currentUser?.fullName || '') : '';
       
-      updateDraft(index, 'isTeacherPresent', isPresent);
-      updateDraft(index, 'teacherName', teacherName);
+      const newDraftData = [...draftData];
+      const updatedRow = { ...newDraftData[index], isTeacherPresent: isPresent, teacherName };
+      newDraftData[index] = updatedRow;
+      
+      setDraftData(newDraftData);
+      
+      try {
+          if (updatedRow.subject && updatedRow.subject.trim() !== '') {
+              const validRows = newDraftData.filter(d => d.subject && d.subject.trim() !== '');
+              
+              if (onSaveBatch) {
+                  await onSaveBatch(validRows);
+              } else {
+                  await apiService.saveLearningJournalBatch(validRows);
+              }
+              
+              if (isPresent) {
+                  showAlert('Tersimpan! Guru tercatat hadir di jurnal ini.', 'success', 'Hadir');
+              } else {
+                  showAlert('Kehadiran dibatalkan.', 'alert', 'Batal Hadir');
+              }
+              
+              const newJournalData = await apiService.getLearningJournal(classId);
+              setEntries(newJournalData);
+          } else {
+              if (isPresent) {
+                  showAlert('Tersimpan di Draf. Guru tercatat hadir.', 'success', 'Hadir (Draf)');
+              }
+          }
+      } catch (e) {
+          console.error(e);
+          showAlert('Gagal menyimpan perubahan kehadiran.', 'error', 'Error');
+      }
   };
 
   const handleMetodeChange = (index: number, metode: string) => {
