@@ -430,23 +430,23 @@ const Dashboard: React.FC<DashboardProps> = ({
         {/* Links Grid - UPDATED COLORS */}
         {employmentLinks.length > 0 && (
           <div className="bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-[#CAF4FF]">
-             <div className="grid grid-cols-4 md:flex md:flex-wrap gap-2 md:gap-4 justify-center">
+             <div className="grid grid-cols-4 md:flex md:flex-wrap gap-2 md:gap-4 justify-center items-stretch">
                 {employmentLinks.map((link, index) => (
                   <a 
                     key={link.id} 
                     href={link.url} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center p-2 md:p-3 aspect-square md:w-24 md:h-24 rounded-xl transition-all border-2 bg-white border-[#CAF4FF] hover:border-[#5AB2FF] shadow-sm hover:-translate-y-1 hover:shadow-lg group text-center"
+                    className="flex flex-col items-center justify-start p-2 md:p-3 w-full h-full md:w-28 md:h-auto rounded-xl transition-all border-2 bg-white border-[#CAF4FF] hover:border-[#5AB2FF] shadow-sm md:hover:-translate-y-1 hover:shadow-lg group text-center"
                   >
-                    <div className="w-8 h-8 md:w-10 md:h-10 mb-1.5 md:mb-2 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center overflow-hidden md:group-hover:scale-110 transition-transform">
+                    <div className="w-8 h-8 md:w-10 md:h-10 mb-1.5 md:mb-2 shrink-0 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center overflow-hidden md:group-hover:scale-110 transition-transform">
                        {link.icon ? (
                          <img src={link.icon} alt={link.title} className="w-full h-full object-contain" />
                        ) : (
                          <LinkIcon className="text-gray-400 md:w-5 md:h-5" size={16} />
                        )}
                     </div>
-                    <span className="text-[9px] md:text-xs font-bold text-gray-700 leading-tight w-full truncate">{link.title}</span>
+                    <span className="text-[10px] md:text-xs font-bold text-gray-700 leading-tight w-full break-words">{link.title}</span>
                   </a>
                 ))}
              </div>
