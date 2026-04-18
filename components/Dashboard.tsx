@@ -88,7 +88,10 @@ const Dashboard: React.FC<DashboardProps> = ({
   const goToNextSlide = () => setCarouselIndex((prev) => (prev + 1) % imagesForCarousel.length);
 
   const formattedDate = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(currentDate);
-  const formattedTime = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(currentDate).replace(/\./g, ':');
+  const tzOffset = -currentDate.getTimezoneOffset() / 60;
+  const tzName = tzOffset === 7 ? 'WIB' : tzOffset === 8 ? 'WITA' : tzOffset === 9 ? 'WIT' : `GMT${tzOffset > 0 ? '+' : ''}${tzOffset}`;
+  const baseTimeStr = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(currentDate).replace(/\./g, ':');
+  const formattedTime = `${baseTimeStr} ${tzName}`;
   const getLocalISODate = (date: Date) => { const y = date.getFullYear(); const m = String(date.getMonth() + 1).padStart(2, '0'); const d = String(date.getDate()).padStart(2, '0'); return `${y}-${m}-${d}`; };
   const formatLongDate = (dateStr: string) => { if (!dateStr) return "-"; try { const date = new Date(dateStr + 'T00:00:00'); if (isNaN(date.getTime())) return dateStr; return new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(date); } catch (e) { return dateStr; } };
   const getGreeting = () => { 

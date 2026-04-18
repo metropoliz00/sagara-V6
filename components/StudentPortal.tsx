@@ -385,12 +385,16 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
 
   // -- COMPUTED DATA --
 
-  const formattedTime = new Intl.DateTimeFormat('id-ID', {
+  const tzOffset = -currentDate.getTimezoneOffset() / 60;
+  const tzName = tzOffset === 7 ? 'WIB' : tzOffset === 8 ? 'WITA' : tzOffset === 9 ? 'WIT' : `GMT${tzOffset > 0 ? '+' : ''}${tzOffset}`;
+  const baseTimeStr = new Intl.DateTimeFormat('id-ID', {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
     hour12: false
   }).format(currentDate).replace(/\./g, ':');
+  
+  const formattedTime = `${baseTimeStr} ${tzName}`;
 
   const formattedDate = new Intl.DateTimeFormat('id-ID', {
     weekday: 'long',
