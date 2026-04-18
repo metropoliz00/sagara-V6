@@ -384,12 +384,12 @@ const Dashboard: React.FC<DashboardProps> = ({
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-4">
             <div className="text-center md:text-left w-full md:w-auto">
-                <h1 className="text-xl md:text-2xl font-bold text-gray-800 flex flex-col items-center md:items-start justify-center md:justify-start">
+                <h1 className="text-xl md:text-2xl font-bold text-gray-800 flex flex-col md:flex-row items-center justify-center md:justify-start">
                     <div className="flex items-center text-lg md:text-2xl">
                         {getGreetingIcon(getGreeting())}
-                        <span className="ml-2">Selamat {getGreeting()}{window.innerWidth >= 768 ? ',' : ''}</span>
+                        <span className="ml-2">Selamat {getGreeting()},</span>
                     </div>
-                    <span className="text-[#5AB2FF] text-xl md:text-2xl md:mt-1 mt-0">{(teacherName && teacherName !== 'undefined') ? teacherName : 'Bapak/Ibu Guru'} 👋</span>
+                    <span className="text-[#5AB2FF] text-xl md:text-2xl mt-1 md:mt-0 md:ml-2">{(teacherName && teacherName !== 'undefined') ? teacherName : 'Bapak/Ibu Guru'} 👋</span>
                 </h1>
                 <p className="text-gray-500 text-xs md:text-sm mt-3 text-center md:text-left leading-relaxed">
                     Selamat datang di Aplikasi SAGARA | Sistem Akademik & Administrasi Terintegrasi. Berikut adalah ringkasan aktivitas {teachingClass ? `Kelas ${teachingClass}` : 'Sekolah'} hari ini.
