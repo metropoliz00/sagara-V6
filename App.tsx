@@ -9,7 +9,7 @@ const GlobalFooter: React.FC = () => {
       <div className="flex flex-col items-center space-y-4">
         <div className="flex items-center space-x-2">
           <img 
-            src="https://image2url.com/r2/default/images/1770790148258-99f209ea-fd45-44cf-9576-9c5205ef8b20.png" 
+            src="https://www.image2url.com/r2/default/images/1776528081180-f5356afe-2059-4426-8309-4f5af1b9227e.png" 
             alt="Logo SAGARA" 
             className="h-6 w-6 object-contain"
           />
@@ -1623,7 +1623,7 @@ const AppContent: React.FC = () => {
          <div className="relative w-24 h-24 flex items-center justify-center mb-6 animate-bounce">
             <div className="absolute inset-0 bg-[#A0DEFF]/30 rounded-full blur-2xl opacity-60 animate-pulse"></div>
             <img 
-              src="https://image2url.com/r2/default/images/1770790148258-99f209ea-fd45-44cf-9576-9c5205ef8b20.png" 
+              src="https://www.image2url.com/r2/default/images/1776528081180-f5356afe-2059-4426-8309-4f5af1b9227e.png" 
               alt="Logo SAGARA" 
               className="w-full h-full object-contain drop-shadow-xl"
             />
@@ -1654,7 +1654,7 @@ const AppContent: React.FC = () => {
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden">
             <img 
-              src="https://image2url.com/r2/default/images/1771068223735-6f3b5a3d-5a11-4f2e-9639-10adf921bb50.png"
+              src="https://www.image2url.com/r2/default/images/1776528081180-f5356afe-2059-4426-8309-4f5af1b9227e.png"
               alt="Watermark"
               className="w-[500px] h-[500px] object-contain opacity-5"
             />
@@ -1672,7 +1672,7 @@ const AppContent: React.FC = () => {
             )}
             <div className="flex items-center gap-2 lg:hidden">
                 <img 
-                    src="https://image2url.com/r2/default/images/1770790148258-99f209ea-fd45-44cf-9576-9c5205ef8b20.png" 
+                    src="https://www.image2url.com/r2/default/images/1776528081180-f5356afe-2059-4426-8309-4f5af1b9227e.png" 
                     alt="Logo SAGARA"
                     className="h-8 w-8 object-contain"
                 />

@@ -178,7 +178,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       {/* Watermark Logo */}
       <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
           <img 
-            src="https://image2url.com/r2/default/images/1771068223735-6f3b5a3d-5a11-4f2e-9639-10adf921bb50.png" 
+            src="https://www.image2url.com/r2/default/images/1776528081180-f5356afe-2059-4426-8309-4f5af1b9227e.png" 
             alt="Watermark" 
             className="w-[500px] h-[500px] md:w-[700px] md:h-[700px] object-contain opacity-[0.03] grayscale animate-pulse-slow"
           />
@@ -191,7 +191,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
              <div className="relative w-32 h-32 flex items-center justify-center mb-6 animate-bounce">
                 <div className="absolute inset-0 bg-[#A0DEFF]/30 rounded-full blur-2xl opacity-60 animate-pulse"></div>
                 <img 
-                  src="https://image2url.com/r2/default/images/1770790148258-99f209ea-fd45-44cf-9576-9c5205ef8b20.png" 
+                  src="https://www.image2url.com/r2/default/images/1776528081180-f5356afe-2059-4426-8309-4f5af1b9227e.png" 
                   alt="Logo SAGARA" 
                   className="w-full h-full object-contain drop-shadow-xl"
                 />
@@ -208,7 +208,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                 <div className="flex items-center justify-center gap-4 mb-4">
                     <div className="relative w-20 h-20 flex items-center justify-center">
                          <img 
-                           src="https://image2url.com/r2/default/images/1770790148258-99f209ea-fd45-44cf-9576-9c5205ef8b20.png" 
+                           src="https://www.image2url.com/r2/default/images/1776528081180-f5356afe-2059-4426-8309-4f5af1b9227e.png" 
                            alt="Logo SAGARA" 
                            className="w-full h-full object-contain drop-shadow-lg"
                          />

@@ -178,7 +178,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUser, currentView, isOpen, onC
             <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'}`}>
               <div className="w-12 h-12 flex items-center justify-center shrink-0">
                 <img 
-                  src="https://image2url.com/r2/default/images/1770790148258-99f209ea-fd45-44cf-9576-9c5205ef8b20.png" 
+                  src="https://www.image2url.com/r2/default/images/1776528081180-f5356afe-2059-4426-8309-4f5af1b9227e.png" 
                   alt="Logo SAGARA" 
                   className="w-full h-full object-contain animate-float"
                 />
