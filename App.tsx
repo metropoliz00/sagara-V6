@@ -62,6 +62,15 @@ import { cacheService } from './src/services/cacheService';
 import { Menu, Loader2, RefreshCw, AlertCircle, CheckCircle, WifiOff, ChevronDown, UserCog, LogOut, Filter, Bell, X, XCircle, Send } from 'lucide-react';
 
 const App: React.FC = () => {
+  useEffect(() => {
+    // Auto refresh the browser every 30 minutes (30 * 60 * 1000 ms)
+    const refreshInterval = setInterval(() => {
+      window.location.reload();
+    }, 30 * 60 * 1000);
+
+    return () => clearInterval(refreshInterval);
+  }, []);
+
   return (
     <BrowserRouter>
       <AppContent />
