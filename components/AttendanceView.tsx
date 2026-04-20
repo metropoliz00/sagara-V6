@@ -153,13 +153,27 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
   }, [allAttendanceRecords]);
 
   useEffect(() => {
-    const records = (allAttendanceRecords as any[]).filter((r: any) => r.date === selectedDate);
+    const records = (allAttendanceRecords as any[]).filter((r: any) => {
+        let dateStr = String(r.date || '').trim();
+        if (dateStr.includes('T')) {
+            dateStr = dateStr.split('T')[0];
+        }
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+            const y = parts[0];
+            const m = parts[1].padStart(2, '0');
+            const d = parts[2].padStart(2, '0');
+            dateStr = `${y}-${m}-${d}`;
+        }
+        return dateStr === selectedDate;
+    });
+    
     const mappedState: Record<string, {status: AttendanceStatus, notes: string}> = {};
     for (const record of records) {
         const r = record as any;
         if (r.studentId) {
             mappedState[r.studentId] = { 
-                status: r.status as AttendanceStatus, 
+                status: String(r.status).toLowerCase() as AttendanceStatus, 
                 notes: r.notes || '' 
             };
         }
@@ -880,18 +894,17 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
                                                 return (
                                                     <td 
                                                         key={d} 
-                                                        className={`p-1 border text-center relative group transition-colors ${isRed ? bg : !isReadOnly ? 'cursor-pointer hover:bg-blue-50' : ''}`} 
-                                                        title={holidayDesc || (status ? `${STATUS_TEXT[status as AttendanceStatus]}${hasNote ? `: ${notes}` : ''}` : '')}
+                                                        className={`p-1 border text-center relative group transition-colors ${isRed && !status ? bg : !isReadOnly ? 'cursor-pointer hover:bg-blue-50' : ''}`} 
+                                                        title={status ? `${STATUS_TEXT[status as AttendanceStatus]}${hasNote ? `: ${notes}` : ''}` : (holidayDesc || '')}
                                                         onClick={() => {
-                                                            if (isRed || isReadOnly) return;
+                                                            if ((isRed && !status) || isReadOnly) return;
                                                             // Logic: If empty cell, click to fill. If filled, must use edit menu (icon)
                                                             if (!status) {
                                                                 handleRecapCellClick(s, dateStr, status, notes);
                                                             }
                                                         }}
                                                     >
-                                                        {isRed ? <span className="text-[9px] font-bold text-gray-500/80">{holidayCode}</span> : 
-                                                        (status ? (
+                                                        {status ? (
                                                             <div className="relative flex items-center justify-center h-full">
                                                                 <span className={`font-bold ${
                                                                     status === 'present' ? 'text-emerald-600' :
@@ -922,9 +935,11 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
                                                                     </button>
                                                                 )}
                                                             </div>
+                                                        ) : isRed ? (
+                                                            <span className="text-[9px] font-bold text-gray-500/80">{holidayCode}</span>
                                                         ) : (
                                                             <span className="opacity-0 group-hover:opacity-100 text-[#5AB2FF] font-bold">+</span>
-                                                        ))}
+                                                        )}
                                                     </td>
                                                 );
                                             })}
