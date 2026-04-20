@@ -4,6 +4,7 @@ import { Book, Plus, Search, Trash2, CheckCircle, Clock, Filter, ChevronDown, Ch
 import { Student, BookLoan, BookInventory } from '../types';
 import { MOCK_SUBJECTS } from '../constants';
 import { apiService } from '../services/apiService';
+import { getLocalISODate } from '../utils/dateUtils';
 
 interface BookLoanViewProps {
   students: Student[];
@@ -231,7 +232,7 @@ const BookLoanView: React.FC<BookLoanViewProps> = ({
       books: selectedBooks,
       qty: qty,
       status: status,
-      date: new Date().toISOString().split('T')[0],
+      date: getLocalISODate(),
       notes: notes
     };
 

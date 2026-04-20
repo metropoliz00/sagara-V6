@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { apiService } from '../services/apiService';
 import { User } from '../types';
+import { getLocalISODate } from '../utils/dateUtils';
 
 interface BackupRestoreViewProps {
   currentUser: User | null;
@@ -27,7 +28,7 @@ const BackupRestoreView: React.FC<BackupRestoreViewProps> = ({ currentUser }) =>
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `backup-kelasku-${currentUser.classId}-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `backup-kelasku-${currentUser.classId}-${getLocalISODate()}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

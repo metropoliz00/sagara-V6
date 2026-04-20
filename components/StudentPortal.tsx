@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { apiService } from '../services/apiService';
 import { useModal } from '../context/ModalContext';
+import { getLocalISODate } from '../utils/dateUtils';
 import SumatifView from './SumatifView';
 
 interface StudentPortalProps {
@@ -116,7 +117,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
 
   // -- STATES FOR FORMS --
   const [permissionForm, setPermissionForm] = useState({
-      date: new Date().toISOString().split('T')[0],
+      date: getLocalISODate(),
       type: 'sick',
       reason: ''
   });
@@ -242,7 +243,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           if (student.classId) {
               setIsLoadingSchedule(true);
               try {
-                  const today = new Date().toISOString().split('T')[0];
+                  const today = getLocalISODate();
                   const [scheduleData, journalData] = await Promise.all([
                       apiService.getSchedule(student.classId),
                       apiService.getLearningJournal(student.classId)
@@ -339,7 +340,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           await onSaveLiaison({
               classId: student.classId,
               studentId: student.id,
-              date: new Date().toISOString().split('T')[0],
+              date: getLocalISODate(),
               sender: 'Wali Murid',
               category: liaisonForm.category,
               message: liaisonForm.message,
@@ -421,7 +422,6 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
     }
   }, [getGreeting]);
 
-  const getLocalISODate = (date: Date) => { const y = date.getFullYear(); const m = String(date.getMonth() + 1).padStart(2, '0'); const d = String(date.getDate()).padStart(2, '0'); return `${y}-${m}-${d}`; };
 
   const attendanceStats = useMemo(() => {
     // Filter for accumulated data based on academic semester
@@ -1164,7 +1164,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                                   borderColor = 'border-emerald-100';
                               }
 
-                              const isToday = dayData.dateStr === new Date().toISOString().split('T')[0];
+                              const isToday = dayData.dateStr === getLocalISODate();
 
                               return (
                                   <div 

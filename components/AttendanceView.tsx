@@ -13,6 +13,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import CustomModal from './CustomModal';
+import { getLocalISODate } from '../utils/dateUtils';
 
 interface AttendanceViewProps {
   students: Student[];
@@ -59,18 +60,14 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
   const [viewMode, setViewMode] = useState<ViewMode>('rekap');
   const canManageHolidays = userRole === 'admin' && !isReadOnly;
   
-  const toLocalISOString = (date: Date): string => {
-    const offset = date.getTimezoneOffset() * 60000;
-    return new Date(date.getTime() - offset).toISOString().split('T')[0];
-  };
 
-  const [selectedDate, setSelectedDate] = useState(toLocalISOString(new Date())); 
+  const [selectedDate, setSelectedDate] = useState(getLocalISODate(new Date())); 
   const [dailyAttendance, setDailyAttendance] = useState<Record<string, {status: AttendanceStatus, notes: string}>>({});
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [rangeStart, setRangeStart] = useState(toLocalISOString(new Date()));
-  const [rangeEnd, setRangeEnd] = useState(toLocalISOString(new Date()));
+  const [rangeStart, setRangeStart] = useState(getLocalISODate(new Date()));
+  const [rangeEnd, setRangeEnd] = useState(getLocalISODate(new Date()));
   const [rangeAttendance, setRangeAttendance] = useState<Record<string, {status: AttendanceStatus, notes: string}>>({});
   const [skipHolidays, setSkipHolidays] = useState(true);
   const [savingBatch, setSavingBatch] = useState(false);
@@ -92,9 +89,9 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
   // Replaced Modal state with Inline Form state
   const [isSavingHoliday, setIsSavingHoliday] = useState(false);
   const [isHolidayRange, setIsHolidayRange] = useState(false);
-  const [holidayEndDate, setHolidayEndDate] = useState(toLocalISOString(new Date()));
+  const [holidayEndDate, setHolidayEndDate] = useState(getLocalISODate(new Date()));
   const [holidayForm, setHolidayForm] = useState<Partial<Holiday>>({
-      date: toLocalISOString(new Date()),
+      date: getLocalISODate(new Date()),
       description: '',
       type: 'nasional',
       id: '' 
@@ -253,7 +250,7 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
 
   const getDaysArray = (start: string, end: string) => {
       for(var arr=[],dt=new Date(start); dt<=new Date(end); dt.setDate(dt.getDate()+1)){
-          arr.push(toLocalISOString(new Date(dt)));
+          arr.push(getLocalISODate(new Date(dt)));
       }
       return arr;
   };
@@ -270,7 +267,7 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
     const example = [
       students[0]?.nis || "12345",
       students[0]?.name || "Nama Siswa",
-      toLocalISOString(new Date()),
+      getLocalISODate(new Date()),
       "Hadir",
       "Keterangan opsional"
     ];
@@ -310,7 +307,7 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
             // Handle Excel date serial number if necessary
             if (!isNaN(Number(dateStr)) && dateStr.length > 5) {
                 const excelDate = new Date((Number(dateStr) - (25567 + 1)) * 86400 * 1000);
-                dateStr = toLocalISOString(excelDate);
+                dateStr = getLocalISODate(excelDate);
             }
 
             const statusInput = String(row[3] || 'Hadir').toLowerCase();
@@ -502,13 +499,13 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
 
   const resetHolidayForm = () => {
       setHolidayForm({
-          date: toLocalISOString(new Date()),
+          date: getLocalISODate(new Date()),
           description: '',
           type: 'nasional',
           id: ''
       });
       setIsHolidayRange(false);
-      setHolidayEndDate(toLocalISOString(new Date()));
+      setHolidayEndDate(getLocalISODate(new Date()));
   };
 
   const handleEditHolidayClick = (holiday: Holiday) => {
@@ -692,7 +689,7 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
           setLastScannedStudent({ name: student.name, time: new Date().toLocaleTimeString() });
           
           try {
-              const today = toLocalISOString(new Date());
+              const today = getLocalISODate(new Date());
               const targetClassId = student.classId || getRealClassId(student.id);
               const payload = [{ studentId: student.id, classId: targetClassId, status: 'present', notes: 'Via Scan' }];
 

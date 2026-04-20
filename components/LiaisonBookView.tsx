@@ -4,6 +4,7 @@ import { LiaisonLog, Student } from '../types';
 import { Search, CheckCircle, XCircle, Clock, Filter, BookOpen, CheckSquare, MessageCircle, Send, Loader2, ChevronDown } from 'lucide-react';
 import { apiService } from '../services/apiService';
 import { useModal } from '../context/ModalContext';
+import { getLocalISODate } from '../utils/dateUtils';
 
 interface LiaisonBookViewProps {
   logs: LiaisonLog[];
@@ -62,7 +63,7 @@ const LiaisonBookView: React.FC<LiaisonBookViewProps> = ({ logs, students, onRep
         await onReply({
             classId: log.classId,
             studentId: log.studentId,
-            date: new Date().toISOString().split('T')[0],
+            date: getLocalISODate(),
             sender: 'Guru',
             category: `Balasan: ${log.category || 'Pesan'}`,
             message,
@@ -93,7 +94,7 @@ const LiaisonBookView: React.FC<LiaisonBookViewProps> = ({ logs, students, onRep
       await onReply({
         classId,
         studentId: newMessage.studentId,
-        date: new Date().toISOString().split('T')[0],
+        date: getLocalISODate(),
         sender: 'Guru',
         category: newMessage.category,
         message: newMessage.message,

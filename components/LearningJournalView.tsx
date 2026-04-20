@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { LearningJournalEntry, ScheduleItem, SchoolProfileData, TeacherProfileData, User } from '../types';
 import { apiService } from '../services/apiService';
 import { useModal } from '../context/ModalContext';
+import { getLocalISODate } from '../utils/dateUtils';
 import { 
   Save, Calendar, Printer, Plus, Trash2, Loader2, 
   ChevronLeft, ChevronRight, NotebookPen, RefreshCw,
@@ -44,7 +45,7 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
   classId, isReadOnly, targetDate, onSaveBatch, schoolProfile, teacherProfile, currentUser 
 }) => {
   // State
-  const [currentDate, setCurrentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [currentDate, setCurrentDate] = useState(getLocalISODate());
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [entries, setEntries] = useState<LearningJournalEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -132,7 +133,7 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
       for(let i=0; i<6; i++) { // Mon-Sat
           const d = new Date(currentMonday);
           d.setDate(currentMonday.getDate() + i);
-          days.push(d.toISOString().split('T')[0]);
+          days.push(getLocalISODate(d));
       }
       return days;
   }, [currentMonday]);
@@ -524,14 +525,14 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
       const d = new Date(currentDate);
       if (viewMode === 'daily') d.setDate(d.getDate() - 1);
       else d.setDate(d.getDate() - 7);
-      setCurrentDate(d.toISOString().split('T')[0]);
+      setCurrentDate(getLocalISODate(d));
   };
 
   const handleNext = () => {
       const d = new Date(currentDate);
       if (viewMode === 'daily') d.setDate(d.getDate() + 1);
       else d.setDate(d.getDate() + 7);
-      setCurrentDate(d.toISOString().split('T')[0]);
+      setCurrentDate(getLocalISODate(d));
   };
 
   const handleContextMenu = (e: React.MouseEvent, rowIndex: number) => {
@@ -558,7 +559,7 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
 
     const yesterday = new Date(currentDate);
     yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    const yesterdayStr = getLocalISODate(yesterday);
 
     const yesterdaySavedEntries = entries.filter(e => e.date === yesterdayStr);
 

@@ -6,6 +6,7 @@ import {
   Trash2, Printer, Loader2, Save, X, FileText, CalendarRange, Coins, Edit
 } from 'lucide-react';
 import { useModal } from '../context/ModalContext';
+import { getLocalISODate } from '../utils/dateUtils';
 
 interface BOSManagementProps {
   transactions: BOSTransaction[];
@@ -44,7 +45,7 @@ const BOSManagement: React.FC<BOSManagementProps> = ({
   const { showAlert, showConfirm } = useModal();
   
   const [form, setForm] = useState<Partial<BOSTransaction>>({
-    date: new Date().toISOString().split('T')[0],
+    date: getLocalISODate(),
     type: 'expense',
     category: 'Standar Isi',
     description: '',
@@ -145,7 +146,7 @@ const BOSManagement: React.FC<BOSManagementProps> = ({
   const handleOpenModal = () => {
     setForm({
         id: '',
-        date: new Date().toISOString().split('T')[0],
+        date: getLocalISODate(),
         type: 'expense',
         category: 'Standar Isi',
         description: '',

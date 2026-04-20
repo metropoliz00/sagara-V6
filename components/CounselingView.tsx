@@ -11,6 +11,7 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend 
 } from 'recharts';
+import { getLocalISODate } from '../utils/dateUtils';
 
 interface CounselingViewProps {
   students: Student[];
@@ -84,7 +85,7 @@ const CounselingView: React.FC<CounselingViewProps> = ({ students, logs, onCreat
           classId: classId,
           studentId: student.id,
           studentName: student.name,
-          date: new Date().toISOString().split('T')[0],
+          date: getLocalISODate(),
           type: modalType,
           category: category || 'Umum',
           description,

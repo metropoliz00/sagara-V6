@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { BookOpen, Save, Calendar, Clock, Plus, PenTool, Trash2, X } from 'lucide-react';
 import { Guest } from '../../types';
 import { useModal } from '../../context/ModalContext';
+import { getLocalISODate } from '../../utils/dateUtils';
 
 interface GuestBookTabProps {
   guests: Guest[];
@@ -16,7 +17,7 @@ const GuestBookTab: React.FC<GuestBookTabProps> = ({ guests, onSave, onDelete, o
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { showConfirm } = useModal();
   const [editingGuest, setEditingGuest] = useState<Partial<Guest>>({
-    date: new Date().toISOString().split('T')[0],
+    date: getLocalISODate(),
     time: '',
     name: '',
     purpose: '',
@@ -45,7 +46,7 @@ const GuestBookTab: React.FC<GuestBookTabProps> = ({ guests, onSave, onDelete, o
     } else {
         setEditingGuest({
             id: '',
-            date: new Date().toISOString().split('T')[0],
+            date: getLocalISODate(),
             time: new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}),
             name: '',
             purpose: '',

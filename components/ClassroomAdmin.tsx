@@ -6,6 +6,7 @@ import {
   Printer, FileSpreadsheet, Upload, Download, Loader2, CalendarDays, RefreshCw
 } from 'lucide-react';
 import { apiService } from '../services/apiService';
+import { getLocalISODate } from '../utils/dateUtils';
 import { Student, InventoryItem, Guest, ScheduleItem, PiketGroup, TeacherProfileData, SeatingLayouts, AcademicCalendarData, Holiday, OrganizationStructure, User, SchoolProfileData } from '../types';
 import { DEFAULT_TIME_SLOTS, CALENDAR_CODES } from '../constants';
 
@@ -339,7 +340,7 @@ const ClassroomAdmin: React.FC<ClassroomAdminProps> = ({
                 }
             } else if (activeTab === 'guestbook') {
                 for (const row of data) {
-                     const newGuest: Guest = { id: `gst-${Date.now()}-${Math.random()}`, classId: classId, date: row['Tanggal (YYYY-MM-DD)'] || new Date().toISOString().split('T')[0], time: row['Waktu (HH:mm)'] || new Date().toLocaleTimeString('id-ID'), name: row['Nama Tamu'] || '', agency: row['Instansi/Asal'] || '', purpose: row['Keperluan'] || '' };
+                     const newGuest: Guest = { id: `gst-${Date.now()}-${Math.random()}`, classId: classId, date: row['Tanggal (YYYY-MM-DD)'] || getLocalISODate(), time: row['Waktu (HH:mm)'] || new Date().toLocaleTimeString('id-ID'), name: row['Nama Tamu'] || '', agency: row['Instansi/Asal'] || '', purpose: row['Keperluan'] || '' };
                      if (newGuest.name) await handleSaveGuest(newGuest);
                 }
             }

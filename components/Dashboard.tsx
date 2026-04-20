@@ -37,6 +37,8 @@ interface DashboardProps {
 
 const COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316', '#14B8A6', '#6366F1', '#84CC16', '#D946EF'];
 
+import { getLocalISODate } from '../utils/dateUtils';
+
 const Dashboard: React.FC<DashboardProps> = ({ 
   students, agendas, holidays, allAttendanceRecords, 
   teacherName, teachingClass, grades, subjects, adminCompleteness = 0,
@@ -92,7 +94,6 @@ const Dashboard: React.FC<DashboardProps> = ({
   const tzName = tzOffset === 7 ? 'WIB' : tzOffset === 8 ? 'WITA' : tzOffset === 9 ? 'WIT' : `GMT${tzOffset > 0 ? '+' : ''}${tzOffset}`;
   const baseTimeStr = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(currentDate).replace(/\./g, ':');
   const formattedTime = `${baseTimeStr} ${tzName}`;
-  const getLocalISODate = (date: Date) => { const y = date.getFullYear(); const m = String(date.getMonth() + 1).padStart(2, '0'); const d = String(date.getDate()).padStart(2, '0'); return `${y}-${m}-${d}`; };
   const formatLongDate = (dateStr: string) => { if (!dateStr) return "-"; try { const date = new Date(dateStr + 'T00:00:00'); if (isNaN(date.getTime())) return dateStr; return new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(date); } catch (e) { return dateStr; } };
   const getGreeting = () => { 
     const hour = currentDate.getHours(); 

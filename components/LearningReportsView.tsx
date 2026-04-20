@@ -10,6 +10,7 @@ import {
   PieChart, Pie, Cell, Legend 
 } from 'recharts';
 import { useModal } from '../context/ModalContext';
+import { getLocalISODate } from '../utils/dateUtils';
 
 interface LearningReportsViewProps {
   reports: LearningReport[];
@@ -91,7 +92,7 @@ const LearningReportsView: React.FC<LearningReportsViewProps> = ({
       setEditingReport(report);
     } else {
       setEditingReport({
-        date: new Date().toISOString().split('T')[0],
+        date: getLocalISODate(),
         type: 'Jurnal Harian',
         subject: subjects[0]?.name || '',
         topic: '',

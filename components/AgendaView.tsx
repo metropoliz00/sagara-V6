@@ -6,6 +6,7 @@ import {
   Printer, Search, Edit2, Filter, X, AlertCircle, Clock
 } from 'lucide-react';
 import CustomModal from './CustomModal';
+import { getLocalISODate } from '../utils/dateUtils';
 
 interface AgendaViewProps {
   agendas: AgendaItem[];
@@ -29,7 +30,7 @@ const AgendaView: React.FC<AgendaViewProps> = ({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
   const [newAgenda, setNewAgenda] = useState<{title: string; date: string; endDate: string; time: string; type: 'urgent'|'warning'|'info'}>({
-    title: '', date: new Date().toISOString().split('T')[0], endDate: '', time: '', type: 'info'
+    title: '', date: getLocalISODate(), endDate: '', time: '', type: 'info'
   });
 
   const [confirmModal, setConfirmModal] = useState<{isOpen: boolean, action: () => void, message: string}>({
@@ -77,7 +78,7 @@ const AgendaView: React.FC<AgendaViewProps> = ({
           type: newAgenda.type, 
           completed: false
         });
-        setNewAgenda({ title: '', date: new Date().toISOString().split('T')[0], endDate: '', time: '', type: 'info' });
+        setNewAgenda({ title: '', date: getLocalISODate(), endDate: '', time: '', type: 'info' });
         setIsAddModalOpen(false);
       }
     }
