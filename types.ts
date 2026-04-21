@@ -385,6 +385,7 @@ export interface Material {
   title: string;
   description?: string;
   link: string;
+  videoLink?: string;
   isVisible: boolean;
   createdAt: string;
 }

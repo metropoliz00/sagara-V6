@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Material, Subject, User } from '../types';
 import { 
   BookOpen, Plus, Search, ExternalLink, Trash2, Edit2, 
-  Filter, Calendar, Link as LinkIcon, FileText, X
+  Filter, Calendar, Link as LinkIcon, FileText, X, Youtube
 } from 'lucide-react';
 import CustomModal from './CustomModal';
 
@@ -32,6 +32,7 @@ const MaterialsView: React.FC<MaterialsViewProps> = ({
     title: '',
     description: '',
     link: '',
+    videoLink: '',
     isVisible: true
   });
 
@@ -45,6 +46,7 @@ const MaterialsView: React.FC<MaterialsViewProps> = ({
         title: editingMaterial.title,
         description: editingMaterial.description || '',
         link: editingMaterial.link,
+        videoLink: editingMaterial.videoLink || '',
         isVisible: editingMaterial.isVisible
       });
     } else {
@@ -53,6 +55,7 @@ const MaterialsView: React.FC<MaterialsViewProps> = ({
         title: '',
         description: '',
         link: '',
+        videoLink: '',
         isVisible: true
       });
     }
@@ -201,20 +204,33 @@ const MaterialsView: React.FC<MaterialsViewProps> = ({
                     )}
                   </div>
 
-                  <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
-                    <div className="flex items-center text-xs text-gray-400">
+                  <div className="pt-4 border-t border-gray-50 flex flex-col sm:flex-row items-center gap-3">
+                    <div className="flex items-center text-xs text-gray-400 w-full sm:w-auto">
                       <Calendar size={14} className="mr-1" />
                       {new Date(material.createdAt).toLocaleDateString('id-ID')}
                     </div>
-                    <a 
-                      href={material.link} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#FFF9D0] text-amber-700 rounded-lg text-sm font-bold hover:bg-amber-200 transition-colors"
-                    >
-                      <ExternalLink size={14} />
-                      <span>Klik Materi</span>
-                    </a>
+                    <div className="flex gap-2 ml-auto">
+                      {material.videoLink && (
+                        <a 
+                          href={material.videoLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center space-x-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 transition-colors"
+                          title="Lihat Video (Youtube)"
+                        >
+                          <Youtube size={16} />
+                        </a>
+                      )}
+                      <a 
+                        href={material.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#FFF9D0] text-amber-700 rounded-lg text-sm font-bold hover:bg-amber-200 transition-colors"
+                      >
+                        <ExternalLink size={14} />
+                        <span>Materi</span>
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -286,6 +302,19 @@ const MaterialsView: React.FC<MaterialsViewProps> = ({
                     placeholder="https://example.com/materi"
                     value={formData.link}
                     onChange={e => setFormData({...formData, link: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Link Video Youtube (Opsional)</label>
+                <div className="relative">
+                  <Youtube className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <input 
+                    type="url" 
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={formData.videoLink || ''}
+                    onChange={e => setFormData({...formData, videoLink: e.target.value})}
                   />
                 </div>
               </div>

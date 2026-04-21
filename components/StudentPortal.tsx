@@ -10,7 +10,7 @@ import {
   Edit, Save, Loader2, PlusCircle, History, MessageSquare,
   ClipboardList, Bell, Activity, Sparkles, GraduationCap, ChevronDown,
   Camera, ChevronLeft, ChevronRight,
-  Sun, Moon, CloudSun, Sunset, Coffee
+  Sun, Moon, CloudSun, Sunset, Coffee, Youtube
 } from 'lucide-react';
 import { apiService } from '../services/apiService';
 import { useModal } from '../context/ModalContext';
@@ -1360,12 +1360,35 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                                                   </div>
                                                   <h4 className="font-bold text-gray-800 mb-1 group-hover:text-blue-600 transition-colors">{material.title}</h4>
                                                   <p className="text-xs text-gray-500 mb-4 line-clamp-2">{material.description}</p>
-                                                  <button 
-                                                      onClick={() => setViewingMaterialLink(material.link)}
-                                                      className="w-full flex items-center justify-center py-2 bg-white border border-blue-200 text-blue-600 rounded-lg text-sm font-bold hover:bg-blue-50 transition-colors"
-                                                  >
-                                                      <PlusCircle size={16} className="mr-2"/> Klik Materi
-                                                  </button>
+                                                  <div className="flex flex-col gap-2">
+                                                    {material.videoLink && (
+                                                      <button 
+                                                          onClick={() => {
+                                                              let embedUrl = material.videoLink as string;
+                                                              try {
+                                                                  const url = new URL(embedUrl);
+                                                                  if (url.hostname.includes('youtube.com')) {
+                                                                     const v = url.searchParams.get('v');
+                                                                     if (v) embedUrl = `https://www.youtube.com/embed/${v}`;
+                                                                  } else if (url.hostname === 'youtu.be') {
+                                                                     const id = url.pathname.slice(1);
+                                                                     embedUrl = `https://www.youtube.com/embed/${id}`;
+                                                                  }
+                                                              } catch(e) {}
+                                                              setViewingMaterialLink(embedUrl);
+                                                          }}
+                                                          className="w-full flex items-center justify-center py-2 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 transition-colors"
+                                                      >
+                                                          <Youtube size={16} className="mr-2"/> Nonton Video
+                                                      </button>
+                                                    )}
+                                                    <button 
+                                                        onClick={() => setViewingMaterialLink(material.link)}
+                                                        className="w-full flex items-center justify-center py-2 bg-white border border-blue-200 text-blue-600 rounded-lg text-sm font-bold hover:bg-blue-50 transition-colors"
+                                                    >
+                                                        <PlusCircle size={16} className="mr-2"/> Buka Dokumen
+                                                    </button>
+                                                  </div>
                                               </div>
                                           );
                                         })}
