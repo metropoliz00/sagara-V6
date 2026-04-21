@@ -628,10 +628,10 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
     { id: 'attendance', label: 'Izin & Absensi', icon: Calendar },
     { id: 'materi', label: 'Materi', icon: BookOpen },
     { id: 'sumatif', label: 'Sumatif', icon: FileText },
-    { id: 'manual_book', label: 'Buku Panduan', icon: BookOpen },
     { id: 'liaison', label: 'Buku Penghubung', icon: MessageSquare },
     { id: 'profile', label: 'Profil Siswa', icon: User },
     { id: 'character', label: 'Karakter', icon: HeartHandshake },
+    { id: 'manual_book', label: 'Buku Panduan', icon: BookOpen },
   ];
 
   const handleTabChange = (tabId: PortalTab) => {
