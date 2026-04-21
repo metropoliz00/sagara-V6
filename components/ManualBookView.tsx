@@ -46,10 +46,10 @@ const ManualBookView: React.FC<ManualBookViewProps> = ({ schoolProfile, onSavePr
         <div>
           <h1 className="text-2xl font-extrabold text-slate-800 flex items-center">
             <Book className="mr-3 text-[#5AB2FF]" size={28} />
-            Buku Panduan Aplikasi
+            Buku Panduan Aplikasi SAGARA
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Panduan lengkap penggunaan sistem bagi guru, sisa, dan tenaga kependidikan.
+            Panduan lengkap penggunaan sistem aplikasi bagi Kepala sekolah, guru, siswa, tenaga kependidikan dan wali murid.
           </p>
         </div>
         {isAdminRole && !isEditing && (
@@ -134,7 +134,7 @@ const ManualBookView: React.FC<ManualBookViewProps> = ({ schoolProfile, onSavePr
           </div>
           <iframe 
             src={schoolProfile?.manualBookLink} 
-            title="Buku Panduan Aplikasi"
+            title="Buku Panduan Aplikasi SAGARA"
             className="w-full h-full border-0 flex-1 bg-slate-50"
             allow="autoplay"
           >
