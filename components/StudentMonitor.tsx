@@ -231,7 +231,7 @@ const StudentMonitor: React.FC<StudentMonitorProps> = ({
                         <div className="grid grid-cols-5 gap-2">
                             {['sum1', 'sum2', 'sum3', 'sum4'].map((key, idx) => (
                                 <div key={key} className="bg-gray-50 border border-gray-100 p-2 rounded-lg text-center">
-                                    <span className="text-[10px] text-gray-400 font-bold uppercase block mb-1">LM {idx + 1}</span>
+                                    <span className="text-[10px] text-gray-400 font-bold uppercase block mb-1">SUM {idx + 1}</span>
                                     <span className={`text-lg font-bold ${selectedGradeData[key as keyof typeof selectedGradeData] > 0 ? 'text-gray-700' : 'text-gray-300'}`}>
                                         {selectedGradeData[key as keyof typeof selectedGradeData] || '-'}
                                     </span>
