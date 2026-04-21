@@ -356,7 +356,6 @@ const AppContent: React.FC = () => {
                 setSelectedClassId(String(availableClasses[0]));
             }
         } else if (currentUser.role === 'siswa') {
-            navigate('/'); 
             if (currentUser.classId) setSelectedClassId(String(currentUser.classId));
         } else {
             setSelectedClassId(String(currentUser.classId || ''));

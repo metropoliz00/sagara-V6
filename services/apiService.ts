@@ -437,24 +437,35 @@ export const apiService = {
       return [];
     }
     console.log("Materials fetched from Supabase:", data);
-    return data.map((m: any) => ({
-      id: m.id,
-      classId: m.class_id,
-      subjectId: m.subject_id,
-      title: m.title,
-      description: m.description,
-      link: m.link,
-      isVisible: m.is_visible,
-      createdAt: m.created_at
-    }));
+    return data.map((m: any) => {
+      let link = m.link;
+      let videoLink = '';
+      if (link && link.includes('|||')) {
+          const parts = link.split('|||');
+          link = parts[0];
+          videoLink = parts[1] || '';
+      }
+      return {
+        id: m.id,
+        classId: m.class_id,
+        subjectId: m.subject_id,
+        title: m.title,
+        description: m.description,
+        link: link,
+        videoLink: videoLink,
+        isVisible: m.is_visible,
+        createdAt: m.created_at
+      };
+    });
   },
   createMaterial: async (material: Omit<Material, 'id' | 'createdAt'>): Promise<void> => {
+    const combinedLink = material.videoLink ? `${material.link}|||${material.videoLink}` : material.link;
     const { error } = await supabase.from('materials').insert([{
       class_id: material.classId,
       subject_id: material.subjectId,
       title: material.title,
       description: material.description,
-      link: material.link,
+      link: combinedLink,
       is_visible: material.isVisible
     }]);
     if (error) {
@@ -463,11 +474,12 @@ export const apiService = {
     }
   },
   updateMaterial: async (material: Material): Promise<void> => {
+    const combinedLink = material.videoLink ? `${material.link}|||${material.videoLink}` : material.link;
     const { error } = await supabase.from('materials').update({
       subject_id: material.subjectId,
       title: material.title,
       description: material.description,
-      link: material.link,
+      link: combinedLink,
       is_visible: material.isVisible
     }).eq('id', material.id);
     if (error) {
