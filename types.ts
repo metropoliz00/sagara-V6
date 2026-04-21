@@ -276,6 +276,7 @@ export interface SchoolProfileData {
   runningText?: string;
   runningTextSpeed?: number;
   headmasterSignature?: string;
+  manualBookLink?: string;
   developerInfo?: {
     name: string;
     moto: string;

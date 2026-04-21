@@ -53,6 +53,7 @@ import GraduatesView from './components/GraduatesView';
 import AgendaView from './components/AgendaView';
 import MaterialsView from './components/MaterialsView';
 import SumatifView from './components/SumatifView';
+import ManualBookView from './components/ManualBookView';
 import CustomModal from './components/CustomModal'; 
 import PaperPlaneIcon from './components/PaperPlaneIcon';
 import { ViewState, Student, AgendaItem, Material, Extracurricular, BehaviorLog, GradeRecord, TeacherProfileData, SchoolProfileData, User, Holiday, SikapAssessment, KarakterAssessment, EmploymentLink, LearningReport, LiaisonLog, PermissionRequest, LearningJournalEntry, SupportDocument, InventoryItem, SchoolAsset, BOSTransaction, LearningDocumentation, BookLoan, BookInventory, Sumatif } from './types';
@@ -141,7 +142,8 @@ const AppContent: React.FC = () => {
       'administrasi/dana-bos': 'Manajemen BOS',
       'administrasi/peminjaman-buku': 'Peminjaman Buku',
       'sumatif': 'PENILAIAN SUMATIF',
-      'sumatif/manage': 'Kelola Sumatif'
+      'sumatif/manage': 'Kelola Sumatif',
+      'manual-book': 'Buku Panduan',
     };
 
     const title = viewTitles[currentView] || 'Sistem Akademik';
@@ -1935,6 +1937,9 @@ const AppContent: React.FC = () => {
                         <Route path="/karakter-siswa" element={
                             <DashboardContainer isStudentRole={true} isSupervisor={false} myStudentData={myStudentData} allAttendanceRecords={allAttendanceRecords} grades={grades} liaisonLogs={liaisonLogs} filteredCounseling={filteredCounseling} permissionRequests={permissionRequests} karakterAssessments={karakterAssessments} onSavePermission={handleSavePermissionRequest} onSaveLiaison={handleSaveLiaison} onSaveKarakter={handleSaveKarakter} onUpdateStudent={handleUpdateStudent} students={students} users={users} extracurriculars={extracurriculars} inventory={inventory} schoolAssets={schoolAssets} bosTransactions={bosTransactions} filteredStudents={filteredStudents} filteredAgendas={filteredAgendas} filteredAttendance={filteredAttendance} holidays={filteredHolidays} teacherProfile={teacherProfile} activeClassId={activeClassId} adminCompleteness={adminPercentage} employmentLinks={employmentLinks} pendingPermissions={pendingPermissions} onOpenPermissionModal={() => setIsPermissionModalOpen(true)} schoolProfile={schoolProfile} learningDocumentation={filteredLearningDocumentation} learningReports={filteredReports} hasNewMessages={hasNewMessages} unreadMessageCount={unreadMessageCount} bookLoans={bookLoans} subjects={MOCK_SUBJECTS} kktpMap={kktpMap} materials={materials} />
                         } />
+                        <Route path="/buku-panduan-siswa" element={
+                            <DashboardContainer isStudentRole={true} isSupervisor={false} myStudentData={myStudentData} allAttendanceRecords={allAttendanceRecords} grades={grades} liaisonLogs={liaisonLogs} filteredCounseling={filteredCounseling} permissionRequests={permissionRequests} karakterAssessments={karakterAssessments} onSavePermission={handleSavePermissionRequest} onSaveLiaison={handleSaveLiaison} onSaveKarakter={handleSaveKarakter} onUpdateStudent={handleUpdateStudent} students={students} users={users} extracurriculars={extracurriculars} inventory={inventory} schoolAssets={schoolAssets} bosTransactions={bosTransactions} filteredStudents={filteredStudents} filteredAgendas={filteredAgendas} filteredAttendance={filteredAttendance} holidays={filteredHolidays} teacherProfile={teacherProfile} activeClassId={activeClassId} adminCompleteness={adminPercentage} employmentLinks={employmentLinks} pendingPermissions={pendingPermissions} onOpenPermissionModal={() => setIsPermissionModalOpen(true)} schoolProfile={schoolProfile} learningDocumentation={filteredLearningDocumentation} learningReports={filteredReports} hasNewMessages={hasNewMessages} unreadMessageCount={unreadMessageCount} bookLoans={bookLoans} subjects={MOCK_SUBJECTS} kktpMap={kktpMap} materials={materials} />
+                        } />
                     </>
                 )}
 
@@ -2247,6 +2252,16 @@ const AppContent: React.FC = () => {
                 <Route path="/pendahuluan/*" element={
                     isStudentRole ? <Navigate to="/" replace /> :
                     <IntroductionView />
+                } />
+                <Route path="/manual-book" element={
+                    isStudentRole ? <Navigate to="/buku-panduan-siswa" replace /> :
+                    <ManualBookView
+                        schoolProfile={schoolProfile}
+                        onSaveProfile={async (data) => {
+                            await handleUpdateProfile('school', { ...schoolProfile, ...data });
+                        }}
+                        isAdminRole={isAdminRole}
+                    />
                 } />
                 <Route path="*" element={<Navigate to="/" replace />} />
              </Routes>

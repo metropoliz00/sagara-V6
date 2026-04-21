@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Student, GradeRecord, LiaisonLog, AgendaItem, Material, BehaviorLog, PermissionRequest, KarakterAssessment, KARAKTER_INDICATORS, KarakterIndicatorKey, LearningDocumentation, BookLoan, ScheduleItem } from '../types';
+import { Student, GradeRecord, LiaisonLog, AgendaItem, Material, BehaviorLog, PermissionRequest, KarakterAssessment, KARAKTER_INDICATORS, KarakterIndicatorKey, LearningDocumentation, BookLoan, ScheduleItem, SchoolProfileData } from '../types';
 import { MOCK_SUBJECTS, CALENDAR_CODES, PREFILLED_CALENDAR_2025, HOLIDAY_DESCRIPTIONS_2025_2026, WEEKDAYS } from '../constants';
 import { 
   User, Calendar, Send, FileText, CheckCircle, XCircle, 
@@ -16,6 +16,7 @@ import { apiService } from '../services/apiService';
 import { useModal } from '../context/ModalContext';
 import { getLocalISODate } from '../utils/dateUtils';
 import SumatifView from './SumatifView';
+import ManualBookView from './ManualBookView';
 
 interface StudentPortalProps {
   student: Student;
@@ -33,9 +34,10 @@ interface StudentPortalProps {
   learningDocumentation?: LearningDocumentation[];
   bookLoans: BookLoan[];
   materials?: Material[];
+  schoolProfile?: SchoolProfileData;
 }
 
-type PortalTab = 'dashboard' | 'attendance' | 'liaison' | 'profile' | 'character' | 'materi' | 'sumatif' | 'schedule';
+type PortalTab = 'dashboard' | 'attendance' | 'liaison' | 'profile' | 'character' | 'materi' | 'sumatif' | 'schedule' | 'manual_book';
 
 const SUBJECT_COLORS: { [key: string]: string } = {
   'default': 'bg-gray-100 text-gray-700 border-gray-200',
@@ -63,7 +65,7 @@ const getSubjectColor = (subjectName: string) => {
 
 const StudentPortal: React.FC<StudentPortalProps> = ({
   student, allAttendance, grades, liaisonLogs, agendas, behaviorLogs, permissionRequests, karakterAssessments,
-  onSaveLiaison, onSavePermission, onSaveKarakter, onUpdateStudent, learningDocumentation = [], bookLoans = [], materials = []
+  onSaveLiaison, onSavePermission, onSaveKarakter, onUpdateStudent, learningDocumentation = [], bookLoans = [], materials = [], schoolProfile
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -77,7 +79,8 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
     '/sumatif-siswa': 'sumatif',
     '/buku-penghubung-siswa': 'liaison',
     '/profil-siswa': 'profile',
-    '/karakter-siswa': 'character'
+    '/karakter-siswa': 'character',
+    '/buku-panduan-siswa': 'manual_book'
   };
 
   const pathToTabMap: Record<PortalTab, string> = {
@@ -88,7 +91,8 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
     'sumatif': '/sumatif-siswa',
     'liaison': '/buku-penghubung-siswa',
     'profile': '/profil-siswa',
-    'character': '/karakter-siswa'
+    'character': '/karakter-siswa',
+    'manual_book': '/buku-panduan-siswa'
   };
 
   const [activeTab, setActiveTab] = useState<PortalTab>(() => {
@@ -624,6 +628,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
     { id: 'attendance', label: 'Izin & Absensi', icon: Calendar },
     { id: 'materi', label: 'Materi', icon: BookOpen },
     { id: 'sumatif', label: 'Sumatif', icon: FileText },
+    { id: 'manual_book', label: 'Buku Panduan', icon: BookOpen },
     { id: 'liaison', label: 'Buku Penghubung', icon: MessageSquare },
     { id: 'profile', label: 'Profil Siswa', icon: User },
     { id: 'character', label: 'Karakter', icon: HeartHandshake },
@@ -1743,6 +1748,15 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                   </div>
               </div>
           )}
+          {/* --- MANUAL BOOK TAB --- */}
+          {activeTab === 'manual_book' && (
+              <ManualBookView 
+                  schoolProfile={schoolProfile}
+                  onSaveProfile={async () => {}} // Siswa can't save
+                  isAdminRole={false}
+              />
+          )}
+
       </div>
     </div>
   );

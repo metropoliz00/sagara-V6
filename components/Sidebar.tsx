@@ -29,6 +29,7 @@ const menuGroups = [
     icon: Star,
     items: [
       { id: 'pendahuluan', label: 'Pendahuluan', icon: BookText, roles: ['admin', 'guru', 'supervisor'] },
+      { id: 'manual-book', label: 'Buku Panduan', icon: BookOpen, roles: ['admin', 'guru', 'supervisor'] },
     ]
   },
   {
