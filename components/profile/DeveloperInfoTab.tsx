@@ -13,7 +13,7 @@ interface DeveloperInfoTabProps {
 const DeveloperInfoTab: React.FC<DeveloperInfoTabProps> = ({ school, setSchool, isReadOnly }) => {
     const devInfo = school.developerInfo || { name: '', moto: '', photo: '' };
 
-    const handleFieldChange = (field: 'name' | 'moto', value: string) => {
+    const handleFieldChange = (field: 'name' | 'moto' | 'whatsapp' | 'facebook' | 'instagram' | 'tiktok', value: string) => {
         if (isReadOnly) return;
         setSchool(prev => ({
             ...prev,
@@ -73,7 +73,7 @@ const DeveloperInfoTab: React.FC<DeveloperInfoTabProps> = ({ school, setSchool, 
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nama Pengembang</label>
                 <input 
                     type="text" 
-                    value={devInfo.name} 
+                    value={devInfo.name || ''} 
                     onChange={e => handleFieldChange('name', e.target.value)} 
                     disabled={isReadOnly}
                     className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-50" 
@@ -84,11 +84,58 @@ const DeveloperInfoTab: React.FC<DeveloperInfoTabProps> = ({ school, setSchool, 
                 <label className="block text-sm font-medium text-gray-700 mb-1">Moto / Kutipan</label>
                 <textarea 
                     rows={2}
-                    value={devInfo.moto}
+                    value={devInfo.moto || ''}
                     onChange={e => handleFieldChange('moto', e.target.value)}
                     disabled={isReadOnly}
                     className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none resize-none disabled:bg-gray-50"
                 />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp URL (Link/Nomor)</label>
+                    <input 
+                        type="text" 
+                        placeholder="https://wa.me/..."
+                        value={devInfo.whatsapp || ''} 
+                        onChange={e => handleFieldChange('whatsapp', e.target.value)} 
+                        disabled={isReadOnly}
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-50 text-sm" 
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Facebook URL</label>
+                    <input 
+                        type="url" 
+                        placeholder="https://facebook.com/..."
+                        value={devInfo.facebook || ''} 
+                        onChange={e => handleFieldChange('facebook', e.target.value)} 
+                        disabled={isReadOnly}
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-50 text-sm" 
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Instagram URL</label>
+                    <input 
+                        type="url" 
+                        placeholder="https://instagram.com/..."
+                        value={devInfo.instagram || ''} 
+                        onChange={e => handleFieldChange('instagram', e.target.value)} 
+                        disabled={isReadOnly}
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-50 text-sm" 
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">TikTok URL</label>
+                    <input 
+                        type="url" 
+                        placeholder="https://tiktok.com/@..."
+                        value={devInfo.tiktok || ''} 
+                        onChange={e => handleFieldChange('tiktok', e.target.value)} 
+                        disabled={isReadOnly}
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-50 text-sm" 
+                    />
+                </div>
             </div>
         </div>
     );

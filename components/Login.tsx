@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/apiService';
-import { User, Lock, Loader2, ArrowRight, Sparkles, Eye, EyeOff, Code, X } from 'lucide-react';
+import { User, Lock, Loader2, ArrowRight, Sparkles, Eye, EyeOff, Code, X, Facebook, Instagram, MessageCircle, Music } from 'lucide-react';
 import { User as UserType, SchoolProfileData } from '../types';
 
 interface LoginProps {
@@ -24,7 +24,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [initialLoading, setInitialLoading] = useState(true);
 
   // Developer Info State
-  const [devInfo, setDevInfo] = useState<{ name: string; moto: string; photo: string; } | null>(null);
+  const [devInfo, setDevInfo] = useState<{ name: string; moto: string; photo: string; whatsapp?: string; facebook?: string; instagram?: string; tiktok?: string; } | null>(null);
   const [isDevModalOpen, setIsDevModalOpen] = useState(false);
 
   useEffect(() => {
@@ -365,7 +365,36 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                     </p>
                     <img src={devInfo.photo} alt={devInfo.name} className="w-24 h-36 rounded-lg object-cover mb-4 border-4 border-[#CAF4FF] shadow-lg"/>
                     <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-800 whitespace-nowrap w-full text-ellipsis overflow-hidden px-2">{devInfo.name}</h3>
-                    <p className="text-gray-500 mt-2 text-xs md:text-sm italic">"{devInfo.moto}"</p>
+                    <p className="text-gray-500 mt-2 text-xs md:text-sm italic mb-6">"{devInfo.moto}"</p>
+                    
+                    {/* Social Links / Layanan Pengaduan */}
+                    {(devInfo.whatsapp || devInfo.facebook || devInfo.instagram || devInfo.tiktok) && (
+                        <div className="w-full pt-4 border-t border-gray-100">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Layanan Pengaduan & Kontak</p>
+                            <div className="flex items-center justify-center gap-3">
+                                {devInfo.whatsapp && (
+                                    <a href={devInfo.whatsapp} target="_blank" rel="noopener noreferrer" className="p-2 bg-green-50 text-green-600 hover:bg-green-100 rounded-full transition-colors" title="WhatsApp">
+                                        <MessageCircle size={18} />
+                                    </a>
+                                )}
+                                {devInfo.facebook && (
+                                    <a href={devInfo.facebook} target="_blank" rel="noopener noreferrer" className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-full transition-colors" title="Facebook">
+                                        <Facebook size={18} />
+                                    </a>
+                                )}
+                                {devInfo.instagram && (
+                                    <a href={devInfo.instagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-pink-50 text-pink-600 hover:bg-pink-100 rounded-full transition-colors" title="Instagram">
+                                        <Instagram size={18} />
+                                    </a>
+                                )}
+                                {devInfo.tiktok && (
+                                    <a href={devInfo.tiktok} target="_blank" rel="noopener noreferrer" className="p-2 bg-slate-100 text-slate-800 hover:bg-slate-200 rounded-full transition-colors" title="TikTok">
+                                        <Music size={18} />
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
