@@ -1570,7 +1570,11 @@ const AppContent: React.FC = () => {
               developerInfo: { 
                   name: profilesTyped.school?.developerInfo?.name || prev.developerInfo?.name || '',
                   moto: profilesTyped.school?.developerInfo?.moto || prev.developerInfo?.moto || '',
-                  photo: profilesTyped.school?.developerInfo?.photo || prev.developerInfo?.photo || ''
+                  photo: profilesTyped.school?.developerInfo?.photo || prev.developerInfo?.photo || '',
+                  whatsapp: profilesTyped.school?.developerInfo?.whatsapp || prev.developerInfo?.whatsapp || '',
+                  facebook: profilesTyped.school?.developerInfo?.facebook || prev.developerInfo?.facebook || '',
+                  instagram: profilesTyped.school?.developerInfo?.instagram || prev.developerInfo?.instagram || '',
+                  tiktok: profilesTyped.school?.developerInfo?.tiktok || prev.developerInfo?.tiktok || ''
               }
           }));
       }
