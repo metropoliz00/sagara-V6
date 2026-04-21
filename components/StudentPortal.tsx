@@ -624,12 +624,12 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
 
   const TABS = [
     { id: 'dashboard', label: 'Ringkasan', icon: LayoutDashboard },
-    { id: 'schedule', label: 'Jadwal Pelajaran', icon: Calendar },
+    { id: 'profile', label: 'Profil Siswa', icon: User },
     { id: 'attendance', label: 'Izin & Absensi', icon: Calendar },
+    { id: 'schedule', label: 'Jadwal Pelajaran', icon: Calendar },
     { id: 'materi', label: 'Materi', icon: BookOpen },
     { id: 'sumatif', label: 'Sumatif', icon: FileText },
     { id: 'liaison', label: 'Buku Penghubung', icon: MessageSquare },
-    { id: 'profile', label: 'Profil Siswa', icon: User },
     { id: 'character', label: 'Karakter', icon: HeartHandshake },
     { id: 'manual_book', label: 'Buku Panduan', icon: BookOpen },
   ];
