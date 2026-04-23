@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Graduate, Student } from '../types';
 import * as XLSX from 'xlsx';
 import { 
-  Search, Plus, Save, Trash2, X, FileSpreadsheet, Printer, Upload, Download, Edit, RotateCcw, Loader2, GraduationCap
+  Search, Plus, Save, Trash2, X, FileSpreadsheet, Printer, Upload, Download, Edit, Loader2, GraduationCap
 } from 'lucide-react';
 import { useModal } from '../context/ModalContext';
 import { apiService } from '../services/apiService';
@@ -208,67 +208,6 @@ const GraduatesView: React.FC<GraduatesViewProps> = ({ onShowNotification, isRea
         }
       },
       "Hapus Data Lulusan"
-    );
-  };
-
-  const handleRestore = (graduate: Graduate) => {
-    showConfirm(
-      "Apakah Anda yakin ingin mengembalikan data ini ke Data Siswa (Kelas 6)?",
-      async () => {
-        try {
-          const newStudent = {
-            classId: '6',
-            nis: graduate.nisn || `NIS-${Date.now()}`,
-            nisn: graduate.nisn || '',
-            name: graduate.name,
-            gender: 'L' as 'L' | 'P',
-            birthPlace: '',
-            birthDate: null as any as string, // Assign null to avoid DB conflict with DATE type
-            religion: '',
-            address: '',
-            fatherName: '',
-            fatherJob: '',
-            fatherEducation: '',
-            motherName: '',
-            motherJob: '',
-            motherEducation: '',
-            parentName: '',
-            parentPhone: '',
-            parentJob: '',
-            economyStatus: 'Cukup' as 'Mampu' | 'Cukup' | 'Kurang Mampu' | 'KIP',
-            height: 0,
-            weight: 0,
-            bloodType: '',
-            healthNotes: '',
-            hobbies: '',
-            ambition: '',
-            achievements: [],
-            violations: [],
-            behaviorScore: 100,
-            attendance: {
-              present: 0,
-              sick: 0,
-              permit: 0,
-              alpha: 0
-            },
-            photo: '',
-            teacherNotes: ''
-          };
-          
-          const createdStudent = await apiService.createStudent(newStudent);
-          await apiService.deleteGraduate(graduate.id);
-          
-          setGraduates(prev => prev.filter(g => g.id !== graduate.id));
-          if (onRestore) {
-            onRestore({...createdStudent, id: createdStudent.id}); // ensure ID is passed
-          }
-          onShowNotification("Data lulusan berhasil dikembalikan ke Data Siswa (Kelas 6)", "success");
-        } catch (error) {
-          console.error("Error restoring graduate:", error);
-          onShowNotification("Gagal mengembalikan data lulusan", "error");
-        }
-      },
-      "Restore Data Lulusan"
     );
   };
 
@@ -553,13 +492,6 @@ const GraduatesView: React.FC<GraduatesViewProps> = ({ onShowNotification, isRea
                             title="History Nilai"
                           >
                             <FileSpreadsheet size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleRestore(graduate)}
-                            className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors"
-                            title="Restore ke Data Siswa"
-                          >
-                            <RotateCcw size={18} />
                           </button>
                           <button
                             onClick={() => handleOpenModal(graduate)}
