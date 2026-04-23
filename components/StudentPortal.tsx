@@ -1851,7 +1851,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           {/* --- KELULUSAN TAB --- */}
           {activeTab === 'kelulusan' && schoolProfile?.isGraduationAnnounced && (
               <div className="space-y-6 animate-fade-in relative z-20">
-                  <div className="bg-gradient-to-br from-emerald-500 to-teal-700 p-6 sm:p-12 rounded-3xl shadow-xl text-center relative overflow-hidden print:shadow-none print:rounded-none mt-2 min-h-[400px] flex items-center justify-center">
+                  <div className="bg-gradient-to-br from-[#5AB2FF] to-[#005CBB] p-6 sm:p-12 rounded-3xl shadow-xl text-center relative overflow-hidden print:shadow-none print:rounded-none mt-2 min-h-[400px] flex items-center justify-center">
                       {/* Background elements */}
                       <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 print:hidden"></div>
                       <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-2xl -ml-10 -mb-10 print:hidden"></div>
@@ -1883,8 +1883,8 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                               </h2>
                               
                               <div className="bg-white/10 print:bg-transparent p-6 rounded-2xl backdrop-blur-md border border-white/20 print:border-none print:p-0 max-w-2xl mx-auto">
-                                  <p className="text-emerald-50 print:text-black text-sm sm:text-base mb-6 leading-relaxed">
-                                      Berdasarkan hasil rapat pleno Dewan Guru <b>{schoolProfile.name || 'Sekolah'}</b> Tahun Ajaran {graduationData.graduationYear || schoolProfile.year || '2025/2026'}, tentang Kriteria Kelulusan Peserta Didik, maka peserta didik dengan data di bawah ini:
+                                  <p className="text-blue-50 print:text-black text-sm sm:text-base mb-6 leading-relaxed">
+                                      Berdasarkan hasil rapat pleno Dewan Guru <b>{schoolProfile.name || 'Sekolah'}</b> Tahun Ajaran {schoolProfile.year || graduationData.graduationYear || '2025/2026'}, tentang Kriteria Kelulusan Peserta Didik, maka peserta didik dengan data di bawah ini:
                                   </p>
                                   
                                   <div className="bg-white print:bg-transparent print:border print:border-gray-300 rounded-xl p-5 text-left space-y-3 shadow-inner my-6 max-w-xl mx-auto">
@@ -1902,7 +1902,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                                       </div>
                                   </div>
                                   
-                                  <p className="text-emerald-50 print:text-black text-base mt-8 mb-4">
+                                  <p className="text-blue-50 print:text-black text-base mt-8 mb-4">
                                       Dengan ini secara resmi dinyatakan:
                                   </p>
                                   
@@ -1924,7 +1924,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                               <div className="flex justify-center mt-10 no-print">
                                  <button 
                                      onClick={() => window.print()}
-                                     className="bg-white text-teal-700 hover:bg-emerald-50 px-8 py-3.5 rounded-xl font-bold flex items-center shadow-lg transition-all border border-transparent hover:border-emerald-200 transform hover:-translate-y-1"
+                                     className="bg-white text-blue-700 hover:bg-blue-50 px-8 py-3.5 rounded-xl font-bold flex items-center shadow-lg transition-all border border-transparent hover:border-blue-200 transform hover:-translate-y-1"
                                  >
                                      <FileText size={20} className="mr-2" /> Cetak Surat Kelulusan (PDF)
                                  </button>
