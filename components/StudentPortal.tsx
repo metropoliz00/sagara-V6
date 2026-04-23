@@ -107,7 +107,56 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
   }, [location.pathname]);
 
   const [viewingMaterialLink, setViewingMaterialLink] = useState<string | null>(null);
+  const [viewingVideoLink, setViewingVideoLink] = useState<string | null>(null);
   const { showAlert } = useModal();
+  
+  const handleOpenVideo = async (videoUrl: string) => {
+      let embedUrl = videoUrl;
+      try {
+          const url = new URL(embedUrl);
+          if (url.hostname.includes('youtube.com')) {
+             const v = url.searchParams.get('v');
+             if (v) embedUrl = `https://www.youtube.com/embed/${v}?autoplay=1`;
+          } else if (url.hostname === 'youtu.be') {
+             const id = url.pathname.slice(1);
+             embedUrl = `https://www.youtube.com/embed/${id}?autoplay=1`;
+          }
+      } catch(e) {}
+      
+      setViewingVideoLink(embedUrl);
+      
+      // Attempt to go fullscreen and landscape on mobile
+      try {
+          const docElm = document.documentElement as any;
+          if (docElm.requestFullscreen) {
+              await docElm.requestFullscreen();
+          } else if (docElm.webkitRequestFullscreen) { /* Safari */
+              await docElm.webkitRequestFullscreen();
+          }
+          
+          if (screen.orientation && (screen.orientation as any).lock) {
+              await (screen.orientation as any).lock('landscape');
+          }
+      } catch (e) {
+          console.warn("Fullscreen/Orientation lock failed:", e);
+      }
+  };
+
+  const handleCloseVideo = async () => {
+      setViewingVideoLink(null);
+      try {
+          if (document.exitFullscreen) {
+              await document.exitFullscreen();
+          } else if ((document as any).webkitExitFullscreen) {
+              await (document as any).webkitExitFullscreen();
+          }
+          if (screen.orientation && (screen.orientation as any).unlock) {
+              (screen.orientation as any).unlock();
+          }
+      } catch (e) {
+          console.warn("Exit Fullscreen/Orientation lock failed:", e);
+      }
+  };
   
   // -- STATES FOR DASHBOARD GRADES --
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>(MOCK_SUBJECTS[0]?.id || 'pai');
@@ -1363,20 +1412,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                                                   <div className="flex flex-col gap-2">
                                                     {material.videoLink && (
                                                       <button 
-                                                          onClick={() => {
-                                                              let embedUrl = material.videoLink as string;
-                                                              try {
-                                                                  const url = new URL(embedUrl);
-                                                                  if (url.hostname.includes('youtube.com')) {
-                                                                     const v = url.searchParams.get('v');
-                                                                     if (v) embedUrl = `https://www.youtube.com/embed/${v}`;
-                                                                  } else if (url.hostname === 'youtu.be') {
-                                                                     const id = url.pathname.slice(1);
-                                                                     embedUrl = `https://www.youtube.com/embed/${id}`;
-                                                                  }
-                                                              } catch(e) {}
-                                                              setViewingMaterialLink(embedUrl);
-                                                          }}
+                                                          onClick={() => handleOpenVideo(material.videoLink as string)}
                                                           className="w-full flex items-center justify-center py-2 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 transition-colors"
                                                       >
                                                           <Youtube size={16} className="mr-2"/> Nonton Video
@@ -1780,6 +1816,25 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
               />
           )}
 
+          {/* --- VIDEO PLAYER MODAL --- */}
+          {viewingVideoLink && (
+              <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
+                  <button 
+                      onClick={handleCloseVideo}
+                      className="absolute top-4 right-4 z-[110] bg-black/50 text-white p-3 rounded-full hover:bg-black/80 transition-colors"
+                      title="Tutup Video (x)"
+                  >
+                      <X size={24} />
+                  </button>
+                  <iframe 
+                      src={viewingVideoLink} 
+                      className="w-full h-full max-w-6xl mx-auto md:h-[80vh] border-none"
+                      title="Video Pembelajaran"
+                      allowFullScreen
+                      allow="autoplay; encrypted-media; fullscreen"
+                  />
+              </div>
+          )}
       </div>
     </div>
   );
