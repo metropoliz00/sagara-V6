@@ -1906,7 +1906,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                                       Dengan ini secara resmi dinyatakan:
                                   </p>
                                   
-                                  <div className={`bg-gradient-to-r ${graduationData.status?.toLowerCase() === 'lulus' ? 'from-yellow-400 to-amber-500' : 'from-red-400 to-rose-600'} print:from-white print:to-white text-white print:text-black rounded-2xl py-5 sm:py-8 shadow-lg transform transition-transform hover:scale-105 border-4 border-white/30 print:border-4 print:border-black max-w-md mx-auto`}>
+                                  <div className={`bg-gradient-to-r ${graduationData.status?.toLowerCase() === 'lulus' ? 'from-emerald-500 to-green-600' : 'from-red-500 to-rose-700'} print:from-white print:to-white text-white print:text-black rounded-2xl py-5 sm:py-8 shadow-lg transform transition-transform hover:scale-105 border-4 border-white/30 print:border-4 print:border-black max-w-md mx-auto`}>
                                       <h1 className="text-5xl sm:text-6xl font-black tracking-widest drop-shadow-lg print:drop-shadow-none uppercase">
                                           {graduationData.status || 'LULUS'}
                                       </h1>
