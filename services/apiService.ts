@@ -203,22 +203,27 @@ export const apiService = {
       ...g,
       ijazahNumber: g.ijazah_number,
       graduationYear: g.graduation_year,
-      continuedTo: g.continued_to
+      continuedTo: g.continued_to,
+      createdAt: g.created_at ? new Date(g.created_at).getTime() : undefined,
+      updatedAt: g.updated_at ? new Date(g.updated_at).getTime() : undefined
     }));
   },
 
   saveGraduate: async (graduate: Graduate): Promise<void> => {
-    const dbGraduate = {
+    const dbGraduate: any = {
       id: graduate.id,
       nisn: graduate.nisn,
       name: graduate.name,
       ijazah_number: graduate.ijazahNumber,
       status: graduate.status,
       graduation_year: graduate.graduationYear,
-      continued_to: graduate.continuedTo,
-      created_at: graduate.createdAt,
-      updated_at: graduate.updatedAt
+      continued_to: graduate.continuedTo
     };
+    
+    // Only pass dates if they can be converted to ISO strings properly to avoid Postgres TIMESTAMPTZ errors
+    if (graduate.createdAt) dbGraduate.created_at = new Date(graduate.createdAt).toISOString();
+    if (graduate.updatedAt) dbGraduate.updated_at = new Date(graduate.updatedAt).toISOString();
+    
     const { error } = await supabase.from('graduates').upsert(dbGraduate);
     if (error) {
       console.error("Error saving graduate:", error);
@@ -288,17 +293,20 @@ export const apiService = {
   },
 
   saveGraduateBatch: async (graduates: Graduate[]): Promise<void> => {
-    const dbGraduates = graduates.map(g => ({
-      id: g.id,
-      nisn: g.nisn,
-      name: g.name,
-      ijazah_number: g.ijazahNumber,
-      status: g.status,
-      graduation_year: g.graduationYear,
-      continued_to: g.continuedTo,
-      created_at: g.createdAt || Date.now(),
-      updated_at: g.updatedAt || Date.now()
-    }));
+    const dbGraduates = graduates.map(g => {
+      const dbG: any = {
+        id: g.id,
+        nisn: g.nisn,
+        name: g.name,
+        ijazah_number: g.ijazahNumber,
+        status: g.status,
+        graduation_year: g.graduationYear,
+        continued_to: g.continuedTo,
+      };
+      if (g.createdAt) dbG.created_at = new Date(g.createdAt).toISOString();
+      if (g.updatedAt) dbG.updated_at = new Date(g.updatedAt).toISOString();
+      return dbG;
+    });
     const { error } = await supabase.from('graduates').upsert(dbGraduates);
     if (error) {
       console.error("Error saving graduate batch:", error);
