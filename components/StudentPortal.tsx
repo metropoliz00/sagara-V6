@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Student, GradeRecord, LiaisonLog, AgendaItem, Material, BehaviorLog, PermissionRequest, KarakterAssessment, KARAKTER_INDICATORS, KarakterIndicatorKey, LearningDocumentation, BookLoan, ScheduleItem, SchoolProfileData } from '../types';
+import { Student, GradeRecord, LiaisonLog, AgendaItem, Material, BehaviorLog, PermissionRequest, KarakterAssessment, KARAKTER_INDICATORS, KarakterIndicatorKey, LearningDocumentation, BookLoan, ScheduleItem, SchoolProfileData, Graduate } from '../types';
 import { MOCK_SUBJECTS, CALENDAR_CODES, PREFILLED_CALENDAR_2025, HOLIDAY_DESCRIPTIONS_2025_2026, WEEKDAYS } from '../constants';
 import { 
   User, Calendar, Send, FileText, CheckCircle, XCircle, 
@@ -189,6 +189,10 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
   const [karakterForm, setKarakterForm] = useState<Partial<KarakterAssessment>>({});
   const [isSavingKarakter, setIsSavingKarakter] = useState(false);
 
+  // Graduation data
+  const [graduationData, setGraduationData] = useState<Graduate | null>(null);
+  const [isLoadingGraduation, setIsLoadingGraduation] = useState(false);
+
   // Profile Edit State
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState<Partial<Student>>(student);
@@ -316,6 +320,27 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
       };
       fetchSchedule();
   }, [student.classId]);
+
+  // NEW: Fetch graduation data if Grade 6
+  useEffect(() => {
+      const fetchGraduation = async () => {
+          if (student.classId?.startsWith('6') && schoolProfile?.isGraduationAnnounced && student.nis) {
+              setIsLoadingGraduation(true);
+              try {
+                  const data = await apiService.getGraduateById(student.nis);
+                  setGraduationData(data);
+              } catch (e) {
+                  console.error("Error fetching graduation data:", e);
+              } finally {
+                  setIsLoadingGraduation(false);
+              }
+          }
+      };
+      
+      if (activeTab === 'kelulusan') {
+          fetchGraduation();
+      }
+  }, [student.classId, schoolProfile?.isGraduationAnnounced, student.nis, activeTab]);
   
   // Carousel Logic
   useEffect(() => {
@@ -1826,82 +1851,99 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           {/* --- KELULUSAN TAB --- */}
           {activeTab === 'kelulusan' && schoolProfile?.isGraduationAnnounced && (
               <div className="space-y-6 animate-fade-in relative z-20">
-                  <div className="bg-gradient-to-br from-emerald-500 to-teal-700 p-6 sm:p-12 rounded-3xl shadow-xl text-center relative overflow-hidden print:shadow-none print:rounded-none mt-2">
+                  <div className="bg-gradient-to-br from-emerald-500 to-teal-700 p-6 sm:p-12 rounded-3xl shadow-xl text-center relative overflow-hidden print:shadow-none print:rounded-none mt-2 min-h-[400px] flex items-center justify-center">
                       {/* Background elements */}
                       <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 print:hidden"></div>
                       <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-2xl -ml-10 -mb-10 print:hidden"></div>
                       
-                      <div className="relative z-10 space-y-6">
-                          <div className="mx-auto w-24 h-24 bg-white/20 p-4 rounded-full backdrop-blur-md border border-white/30 flex items-center justify-center animate-bounce print:hidden">
-                              <GraduationCap size={48} className="text-white" />
+                      {isLoadingGraduation ? (
+                          <div className="text-white flex flex-col items-center">
+                              <Loader2 size={48} className="animate-spin mb-4" />
+                              <p className="font-bold">Memuat data kelulusan...</p>
                           </div>
-                          
-                          <div className="hidden print:block mb-8 border-b-4 border-black pb-4 text-black text-center">
-                              <h1 className="text-2xl font-black">{schoolProfile?.name?.toUpperCase() || 'SEKOLAH KAMI'}</h1>
-                              <p className="text-sm">{schoolProfile?.address || 'Alamat Sekolah'}</p>
+                      ) : !graduationData ? (
+                          <div className="bg-white/10 p-8 rounded-2xl backdrop-blur-md border border-white/20 text-white max-w-md mx-auto relative z-10">
+                              <GraduationCap size={64} className="mx-auto mb-4 opacity-50" />
+                              <h3 className="text-xl font-bold mb-2">Data Belum Tersedia</h3>
+                              <p className="text-sm opacity-80">Maaf, data kelulusan untuk NIS <b>{student.nis}</b> belum diinput oleh pihak sekolah. Silakan hubungi wali kelas Anda.</p>
                           </div>
-                          
-                          <h2 className="text-3xl sm:text-4xl font-black text-white drop-shadow-md print:text-black mt-0">
-                              PENGUMUMAN KELULUSAN
-                          </h2>
-                          
-                          <div className="bg-white/10 print:bg-transparent p-6 rounded-2xl backdrop-blur-md border border-white/20 print:border-none print:p-0 max-w-2xl mx-auto">
-                              <p className="text-emerald-50 print:text-black text-sm sm:text-base mb-6 leading-relaxed">
-                                  Berdasarkan hasil rapat pleno Dewan Guru <b>{schoolProfile.name || 'Sekolah'}</b> Tahun Ajaran {schoolProfile.year || '2025/2026'}, tentang Kriteria Kelulusan Peserta Didik, maka peserta didik dengan data di bawah ini:
-                              </p>
+                      ) : (
+                          <div className="relative z-10 space-y-6 w-full">
+                              <div className="mx-auto w-24 h-24 bg-white/20 p-4 rounded-full backdrop-blur-md border border-white/30 flex items-center justify-center animate-bounce print:hidden">
+                                  <GraduationCap size={48} className="text-white" />
+                              </div>
                               
-                              <div className="bg-white print:bg-transparent print:border print:border-gray-300 rounded-xl p-5 text-left space-y-3 shadow-inner my-6 max-w-xl mx-auto">
-                                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 border-b border-gray-100 print:border-gray-300 pb-3">
-                                      <span className="text-gray-500 print:text-black text-sm font-medium">Nama Lengkap</span>
-                                      <span className="col-span-2 sm:col-span-3 text-gray-800 print:text-black font-bold uppercase">: {student.name}</span>
+                              <div className="hidden print:block mb-8 border-b-4 border-black pb-4 text-black text-center">
+                                  <h1 className="text-2xl font-black">{schoolProfile?.name?.toUpperCase() || 'SEKOLAH KAMI'}</h1>
+                                  <p className="text-sm">{schoolProfile?.address || 'Alamat Sekolah'}</p>
+                              </div>
+                              
+                              <h2 className="text-3xl sm:text-4xl font-black text-white drop-shadow-md print:text-black mt-0">
+                                  PENGUMUMAN KELULUSAN
+                              </h2>
+                              
+                              <div className="bg-white/10 print:bg-transparent p-6 rounded-2xl backdrop-blur-md border border-white/20 print:border-none print:p-0 max-w-2xl mx-auto">
+                                  <p className="text-emerald-50 print:text-black text-sm sm:text-base mb-6 leading-relaxed">
+                                      Berdasarkan hasil rapat pleno Dewan Guru <b>{schoolProfile.name || 'Sekolah'}</b> Tahun Ajaran {graduationData.graduationYear || schoolProfile.year || '2025/2026'}, tentang Kriteria Kelulusan Peserta Didik, maka peserta didik dengan data di bawah ini:
+                                  </p>
+                                  
+                                  <div className="bg-white print:bg-transparent print:border print:border-gray-300 rounded-xl p-5 text-left space-y-3 shadow-inner my-6 max-w-xl mx-auto">
+                                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 border-b border-gray-100 print:border-gray-300 pb-3">
+                                          <span className="text-gray-500 print:text-black text-sm font-medium">Nama Lengkap</span>
+                                          <span className="col-span-2 sm:col-span-3 text-gray-800 print:text-black font-bold uppercase">: {graduationData.name || student.name}</span>
+                                      </div>
+                                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 border-b border-gray-100 print:border-gray-300 pb-3">
+                                          <span className="text-gray-500 print:text-black text-sm font-medium">NIS / NISN</span>
+                                          <span className="col-span-2 sm:col-span-3 text-gray-800 print:text-black font-bold">: {student.nis} / {graduationData.nisn || student.nisn || '-'}</span>
+                                      </div>
+                                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                          <span className="text-gray-500 print:text-black text-sm font-medium">No. Ijazah</span>
+                                          <span className="col-span-2 sm:col-span-3 text-gray-800 print:text-black font-bold">: {graduationData.ijazahNumber || '-'}</span>
+                                      </div>
                                   </div>
-                                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 border-b border-gray-100 print:border-gray-300 pb-3">
-                                      <span className="text-gray-500 print:text-black text-sm font-medium">NIS / NISN</span>
-                                      <span className="col-span-2 sm:col-span-3 text-gray-800 print:text-black font-bold">: {student.nis} / {student.nisn || '-'}</span>
-                                  </div>
-                                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                                      <span className="text-gray-500 print:text-black text-sm font-medium">Kelas Terakhir</span>
-                                      <span className="col-span-2 sm:col-span-3 text-gray-800 print:text-black font-bold">: Kelas {student.classId}</span>
+                                  
+                                  <p className="text-emerald-50 print:text-black text-base mt-8 mb-4">
+                                      Dengan ini secara resmi dinyatakan:
+                                  </p>
+                                  
+                                  <div className={`bg-gradient-to-r ${graduationData.status?.toLowerCase() === 'lulus' ? 'from-yellow-400 to-amber-500' : 'from-red-400 to-rose-600'} print:from-white print:to-white text-white print:text-black rounded-2xl py-5 sm:py-8 shadow-lg transform transition-transform hover:scale-105 border-4 border-white/30 print:border-4 print:border-black max-w-md mx-auto`}>
+                                      <h1 className="text-5xl sm:text-6xl font-black tracking-widest drop-shadow-lg print:drop-shadow-none uppercase">
+                                          {graduationData.status || 'LULUS'}
+                                      </h1>
                                   </div>
                               </div>
                               
-                              <p className="text-emerald-50 print:text-black text-base mt-8 mb-4">
-                                  Dengan ini secara resmi dinyatakan:
-                              </p>
+                              <div className="max-w-2xl mx-auto mt-8 print:hidden">
+                                  <p className="text-white/90 text-sm italic leading-relaxed">
+                                      {graduationData.status?.toLowerCase() === 'lulus' 
+                                          ? '"Selamat atas kelulusanmu! Ini adalah awal panggung baru dalam perjalanan pendidikanmu. Teruslah rajin belajar, berkarya, tebarkan kebaikan, dan raihlah cita-citamu setinggi langit. Semoga sukses selalu!"'
+                                          : '"Jangan berkecil hati. Kegagalan adalah awal dari keberhasilan yang tertunda. Tetap semangat dan jangan menyerah!"'}
+                                  </p>
+                              </div>
                               
-                              <div className="bg-gradient-to-r from-yellow-400 to-amber-500 print:from-white print:to-white text-white print:text-black rounded-2xl py-5 sm:py-8 shadow-lg transform transition-transform hover:scale-105 border-4 border-white/30 print:border-4 print:border-black max-w-md mx-auto">
-                                  <h1 className="text-5xl sm:text-6xl font-black tracking-widest drop-shadow-lg print:drop-shadow-none">LULUS</h1>
+                              <div className="flex justify-center mt-10 no-print">
+                                 <button 
+                                     onClick={() => window.print()}
+                                     className="bg-white text-teal-700 hover:bg-emerald-50 px-8 py-3.5 rounded-xl font-bold flex items-center shadow-lg transition-all border border-transparent hover:border-emerald-200 transform hover:-translate-y-1"
+                                 >
+                                     <FileText size={20} className="mr-2" /> Cetak Surat Kelulusan (PDF)
+                                 </button>
+                              </div>
+                              
+                              <div className="hidden print:flex justify-end mt-16 pt-8 pr-8">
+                                 <div className="text-center text-black">
+                                     <p className="mb-20">Kepala Sekolah,</p>
+                                     {schoolProfile.headmasterSignature ? (
+                                         <img src={schoolProfile.headmasterSignature} alt="Tanda Tangan" className="h-20 mx-auto -mt-16 mb-2 object-contain" />
+                                     ) : (
+                                         <div className="h-16"></div>
+                                     )}
+                                     <p className="font-bold underline">{schoolProfile.headmaster || '___________________'}</p>
+                                     <p>NIP. {schoolProfile.headmasterNip || '-'}</p>
+                                 </div>
                               </div>
                           </div>
-                          
-                          <div className="max-w-2xl mx-auto mt-8 print:hidden">
-                              <p className="text-white/90 text-sm italic leading-relaxed">
-                                  "Selamat atas kelulusanmu! Ini adalah awal panggung baru dalam perjalanan pendidikanmu. Teruslah rajin belajar, berkarya, tebarkan kebaikan, dan raihlah cita-citamu setinggi langit. Semoga sukses selalu!"
-                              </p>
-                          </div>
-                          
-                          <div className="flex justify-center mt-10 no-print">
-                             <button 
-                                 onClick={() => window.print()}
-                                 className="bg-white text-teal-700 hover:bg-emerald-50 px-8 py-3.5 rounded-xl font-bold flex items-center shadow-lg transition-all border border-transparent hover:border-emerald-200 transform hover:-translate-y-1"
-                             >
-                                 <FileText size={20} className="mr-2" /> Cetak Surat Kelulusan (PDF)
-                             </button>
-                          </div>
-                          
-                          <div className="hidden print:flex justify-end mt-16 pt-8 pr-8">
-                             <div className="text-center text-black">
-                                 <p className="mb-20">Kepala Sekolah,</p>
-                                 {schoolProfile.headmasterSignature ? (
-                                     <img src={schoolProfile.headmasterSignature} alt="Tanda Tangan" className="h-20 mx-auto -mt-16 mb-2 object-contain" />
-                                 ) : (
-                                     <div className="h-16"></div>
-                                 )}
-                                 <p className="font-bold underline">{schoolProfile.headmaster || '___________________'}</p>
-                                 <p>NIP. {schoolProfile.headmasterNip || '-'}</p>
-                             </div>
-                          </div>
-                      </div>
+                      )}
                   </div>
               </div>
           )}

@@ -226,6 +226,22 @@ export const apiService = {
     await supabase.from('graduates').delete().eq('id', id);
   },
 
+  getGraduateById: async (id: string): Promise<Graduate | null> => {
+    const { data, error } = await supabase
+      .from('graduates')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error || !data) return null;
+    return {
+      ...data,
+      ijazahNumber: data.ijazah_number,
+      graduationYear: data.graduation_year,
+      continuedTo: data.continued_to
+    } as Graduate;
+  },
+
   saveGraduateBatch: async (graduates: Graduate[]): Promise<void> => {
     const dbGraduates = graduates.map(g => ({
       id: g.id,
