@@ -118,13 +118,13 @@ const OnlineUsersWidget: React.FC<OnlineUsersWidgetProps> = ({ currentUser }) =>
       {/* Floating Button Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 left-6 z-40 bg-indigo-600 text-white rounded-full p-4 shadow-lg hover:bg-indigo-700 transition-transform transform hover:-translate-y-1 flex items-center justify-center group"
+        className="fixed bottom-6 left-6 z-40 bg-[#5AB2FF] text-white rounded-full p-4 shadow-lg hover:bg-[#4A9FE6] transition-transform transform hover:-translate-y-1 flex items-center justify-center group"
         title="Lihat Status Online"
       >
         <div className="relative">
           <Users size={24} />
           {filteredUsers.length > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-indigo-600 truncate max-w-[24px] text-center">
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white truncate max-w-[24px] text-center">
                {filteredUsers.length}
             </span>
           )}
@@ -140,7 +140,7 @@ const OnlineUsersWidget: React.FC<OnlineUsersWidgetProps> = ({ currentUser }) =>
           >
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 bg-gray-50/50 sm:rounded-t-2xl rounded-t-2xl">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                <div className="w-10 h-10 bg-[#CAF4FF] rounded-full flex items-center justify-center text-[#5AB2FF]">
                   <Users size={20} />
                 </div>
                 <div>
