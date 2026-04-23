@@ -82,7 +82,7 @@ const menuGroups = [
     items: [
        { id: 'profil', label: 'Profil', icon: UserCog, roles: ['admin', 'guru', 'supervisor'] },
        { id: 'manajemen-akun', label: 'Manajemen Akun', icon: UserCog, roles: ['admin'] },
-       { id: 'tautan-kepegawaian', label: 'Link Kepegawaian', icon: Link2, roles: ['admin'] },
+       { id: 'tautan-kepegawaian', label: 'Aplikasi Terintegrasi', icon: Link2, roles: ['admin'] },
        { id: 'cadangan-pemulihan', label: 'Backup & Restore', icon: Database, roles: ['admin'] },
     ]
   }

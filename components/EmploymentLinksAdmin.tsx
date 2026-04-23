@@ -76,7 +76,7 @@ const EmploymentLinksAdmin: React.FC<EmploymentLinksAdminProps> = ({ links, onSa
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Manajemen Link Kepegawaian</h2>
+          <h2 className="text-xl font-bold text-gray-800">Manajemen Aplikasi Terintegrasi</h2>
           <p className="text-gray-500 text-sm">Atur shortcut link yang muncul di dashboard guru.</p>
         </div>
         <button 

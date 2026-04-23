@@ -129,7 +129,7 @@ const AppContent: React.FC = () => {
       'pendahuluan': 'Pendahuluan',
       'sikap': 'Penilaian Sikap',
       'manajemen-akun': 'Manajemen Akun',
-      'tautan-kepegawaian': 'Tautan Kepegawaian',
+      'tautan-kepegawaian': 'Aplikasi Terintegrasi',
       'laporan-pembelajaran': 'Laporan Pembelajaran',
       'jurnal-pembelajaran': 'Jurnal Pembelajaran',
       'dokumentasi-pembelajaran': 'Dokumentasi Pembelajaran',
