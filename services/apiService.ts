@@ -242,6 +242,43 @@ export const apiService = {
     } as Graduate;
   },
 
+  getStudentByNisn: async (nisn: string): Promise<Student | null> => {
+    if (!nisn) return null;
+    const { data, error } = await supabase
+      .from('students')
+      .select('*')
+      .eq('nisn', nisn)
+      .maybeSingle();
+    
+    if (error || !data) return null;
+    return {
+      ...data,
+      classId: data.class_id,
+      birthPlace: data.birth_place,
+      birthDate: data.birth_date,
+      fatherName: data.father_name,
+      fatherJob: data.father_job,
+      fatherEducation: data.father_education,
+      motherName: data.mother_name,
+      motherJob: data.mother_job,
+      motherEducation: data.mother_education,
+      parentName: data.parent_name,
+      parentPhone: data.parent_phone,
+      parentJob: data.parent_job,
+      economyStatus: data.economy_status,
+      bloodType: data.blood_type,
+      healthNotes: data.health_notes,
+      behaviorScore: Number(data.behavior_score),
+      attendance: {
+        present: Number(data.present),
+        sick: Number(data.sick),
+        permit: Number(data.permit),
+        alpha: Number(data.alpha)
+      },
+      teacherNotes: data.teacher_notes
+    } as Student;
+  },
+
   saveGraduateBatch: async (graduates: Graduate[]): Promise<void> => {
     const dbGraduates = graduates.map(g => ({
       id: g.id,

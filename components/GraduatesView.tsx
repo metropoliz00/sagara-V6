@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Graduate } from '../types';
+import { Graduate, Student } from '../types';
 import * as XLSX from 'xlsx';
 import { 
-  Search, Plus, Save, Trash2, X, FileSpreadsheet, Printer, Upload, Download, Edit, RotateCcw
+  Search, Plus, Save, Trash2, X, FileSpreadsheet, Printer, Upload, Download, Edit, RotateCcw, Loader2
 } from 'lucide-react';
 import { useModal } from '../context/ModalContext';
 import { apiService } from '../services/apiService';
@@ -24,6 +24,7 @@ const GraduatesView: React.FC<GraduatesViewProps> = ({ onShowNotification, isRea
   const [selectedGraduateHistory, setSelectedGraduateHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [selectedGraduateName, setSelectedGraduateName] = useState('');
+  const [loadingNis, setLoadingNis] = useState(false);
   const { showConfirm } = useModal();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -88,6 +89,25 @@ const GraduatesView: React.FC<GraduatesViewProps> = ({ onShowNotification, isRea
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingGraduate(null);
+    setLoadingNis(false);
+  };
+
+  const handleNisnChange = async (nisn: string) => {
+    setFormData(prev => ({ ...prev, nisn }));
+    
+    if (nisn.length >= 5) {
+      setLoadingNis(true);
+      try {
+        const student = await apiService.getStudentByNisn(nisn);
+        if (student) {
+          setFormData(prev => ({ ...prev, name: student.name }));
+        }
+      } catch (error) {
+        console.error("Error fetching student by NISN:", error);
+      } finally {
+        setLoadingNis(false);
+      }
+    }
   };
 
   const handleViewHistory = async (graduate: Graduate) => {
@@ -540,13 +560,20 @@ const GraduatesView: React.FC<GraduatesViewProps> = ({ onShowNotification, isRea
             <div className="p-6 overflow-y-auto custom-scrollbar space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">NISN *</label>
-                <input
-                  type="text"
-                  value={formData.nisn}
-                  onChange={(e) => setFormData({ ...formData, nisn: e.target.value })}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#5AB2FF] focus:border-transparent outline-none transition-all"
-                  placeholder="Masukkan NISN"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={formData.nisn}
+                    onChange={(e) => handleNisnChange(e.target.value)}
+                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#5AB2FF] focus:border-transparent outline-none transition-all"
+                    placeholder="Masukkan NISN"
+                  />
+                  {loadingNis && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Loader2 size={16} className="text-[#5AB2FF] animate-spin" />
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap *</label>
