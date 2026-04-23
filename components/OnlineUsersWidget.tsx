@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Users, X, Circle } from 'lucide-react';
+import { Users, X, Circle, BookOpen } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { User } from '../types';
+import { getLocalISODate } from '../utils/dateUtils';
 
 interface OnlineUsersWidgetProps {
   currentUser: User | null;
@@ -18,6 +19,7 @@ const OnlineUsersWidget: React.FC<OnlineUsersWidgetProps> = ({ currentUser }) =>
   const [isOpen, setIsOpen] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<PresenceState[]>([]);
   const [isDemo, setIsDemo] = useState(false);
+  const [activeTeachingMap, setActiveTeachingMap] = useState<Record<string, { subject: string, classId: string }>>({});
 
   useEffect(() => {
     // Check if supabase is initialized
@@ -72,6 +74,44 @@ const OnlineUsersWidget: React.FC<OnlineUsersWidgetProps> = ({ currentUser }) =>
       supabase.removeChannel(channel);
     };
   }, [currentUser]);
+
+  // Fetch teaching status from journal when widget is open
+  useEffect(() => {
+    if (isOpen && !isDemo && supabase) {
+      const fetchTeachingData = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('jurnal_kelas')
+            .select('class_id, content')
+            .eq('date', getLocalISODate());
+            
+          if (!error && data) {
+             const map: Record<string, { subject: string, classId: string }> = {};
+             data.forEach((row: any) => {
+                 if (row.content && Array.isArray(row.content)) {
+                     row.content.forEach((entry: any) => {
+                         if (entry.isTeacherPresent && entry.teacherName) {
+                             // The last row processed per teacher sets their current known activity
+                             map[entry.teacherName.toLowerCase()] = {
+                                 subject: entry.subject || 'Mapel Umum',
+                                 classId: row.class_id
+                             };
+                         }
+                     });
+                 }
+             });
+             setActiveTeachingMap(map);
+          }
+        } catch (e) {
+            console.error(e);
+        }
+      };
+
+      fetchTeachingData();
+      const interval = setInterval(fetchTeachingData, 10000); // Polling every 10s
+      return () => clearInterval(interval);
+    }
+  }, [isOpen, isDemo]);
 
   if (!currentUser) return null;
 
@@ -174,28 +214,40 @@ const OnlineUsersWidget: React.FC<OnlineUsersWidgetProps> = ({ currentUser }) =>
 
               {filteredUsers.length > 0 && (
                 <ul className="space-y-2">
-                  {filteredUsers.map((user, idx) => (
-                    <li key={idx} className="bg-white border border-gray-100 p-3 sm:p-4 rounded-xl flex items-center justify-between shadow-sm hover:shadow transition-shadow">
-                       <div className="flex items-center gap-3">
-                          <div className="relative">
-                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border-2 border-white shadow-sm overflow-hidden">
-                                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="Avatar" className="w-full h-full object-cover" />
-                            </div>
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-                          </div>
-                          <div>
-                            <p className="font-bold text-gray-800 text-sm sm:text-base capitalize">{user.name}</p>
-                            <div className={`mt-1 inline-block px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold border ${getRoleColor(user.role)}`}>
-                              {getRoleLabel(user.role)}
-                            </div>
-                          </div>
-                       </div>
-                       <div className="text-xs text-green-600 font-medium flex items-center bg-green-50 px-2 py-1 rounded-lg">
-                          <Circle size={8} fill="currentColor" className="mr-1.5 animate-pulse" />
-                          Online
-                       </div>
-                    </li>
-                  ))}
+                  {filteredUsers.map((user, idx) => {
+                    const teachingInfo = user.role === 'guru' ? activeTeachingMap[user.name.toLowerCase()] : null;
+                    return (
+                      <li key={idx} className="bg-white border border-gray-100 p-3 sm:p-4 rounded-xl flex flex-col shadow-sm hover:shadow transition-shadow shrink-0">
+                         <div className="flex items-center justify-between">
+                           <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border-2 border-white shadow-sm overflow-hidden shrink-0">
+                                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="Avatar" className="w-full h-full object-cover" />
+                                </div>
+                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                              </div>
+                              <div>
+                                <p className="font-bold text-gray-800 text-sm sm:text-base capitalize line-clamp-1">{user.name}</p>
+                                <div className={`mt-0.5 inline-block px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold border ${getRoleColor(user.role)}`}>
+                                  {getRoleLabel(user.role)}
+                                </div>
+                              </div>
+                           </div>
+                           <div className="text-xs text-green-600 font-medium flex items-center bg-green-50 px-2 py-1 rounded-lg">
+                              <Circle size={8} fill="currentColor" className="mr-1.5 animate-pulse shrink-0" />
+                              Online
+                           </div>
+                         </div>
+                         
+                         {teachingInfo && (
+                             <div className="mt-3 pt-3 border-t border-gray-50 flex items-center gap-2 text-xs text-gray-600 bg-[#CAF4FF]/30 p-2.5 rounded-lg">
+                                 <BookOpen size={14} className="text-[#5AB2FF] shrink-0" />
+                                 <span>Saat ini mengajar <b>{teachingInfo.subject}</b> di <b>Kelas {teachingInfo.classId}</b></span>
+                             </div>
+                         )}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
