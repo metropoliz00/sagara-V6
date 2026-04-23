@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Graduate, Student } from '../types';
 import * as XLSX from 'xlsx';
 import { 
-  Search, Plus, Save, Trash2, X, FileSpreadsheet, Printer, Upload, Download, Edit, RotateCcw, Loader2
+  Search, Plus, Save, Trash2, X, FileSpreadsheet, Printer, Upload, Download, Edit, RotateCcw, Loader2, GraduationCap
 } from 'lucide-react';
 import { useModal } from '../context/ModalContext';
 import { apiService } from '../services/apiService';
