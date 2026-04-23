@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Student, GradeRecord, LiaisonLog, AgendaItem, Material, BehaviorLog, PermissionRequest, KarakterAssessment, KARAKTER_INDICATORS, KarakterIndicatorKey, LearningDocumentation, BookLoan, ScheduleItem, SchoolProfileData } from '../types';
 import { MOCK_SUBJECTS, CALENDAR_CODES, PREFILLED_CALENDAR_2025, HOLIDAY_DESCRIPTIONS_2025_2026, WEEKDAYS } from '../constants';
@@ -1817,11 +1818,11 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           )}
 
           {/* --- VIDEO PLAYER MODAL --- */}
-          {viewingVideoLink && (
-              <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
+          {viewingVideoLink && createPortal(
+              <div className="fixed inset-0 z-[99999] bg-black flex items-center justify-center">
                   <button 
                       onClick={handleCloseVideo}
-                      className="absolute top-4 right-4 z-[110] bg-black/50 text-white p-3 rounded-full hover:bg-black/80 transition-colors"
+                      className="absolute top-4 right-4 z-[999999] bg-black/50 text-white p-3 rounded-full hover:bg-black/80 transition-colors pointer-events-auto"
                       title="Tutup Video (x)"
                   >
                       <X size={24} />
@@ -1833,7 +1834,8 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                       allowFullScreen
                       allow="autoplay; encrypted-media; fullscreen"
                   />
-              </div>
+              </div>,
+              document.body
           )}
       </div>
     </div>
