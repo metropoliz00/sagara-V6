@@ -271,6 +271,29 @@ const SchoolDataTab: React.FC<SchoolDataTabProps> = ({ school, setSchool, onSave
             </div>
         </div>
 
+        {/* --- NEW: Graduation Announcement Settings --- */}
+        <div className="md:col-span-2 bg-emerald-50/50 p-5 rounded-xl border border-emerald-100 mt-0">
+            <h4 className="text-sm font-bold text-emerald-800 uppercase mb-4 flex items-center">
+                <Megaphone size={16} className="mr-2"/> Pengumuman Kelulusan Kelas 6
+            </h4>
+            <div className="flex items-center justify-between">
+                <div>
+                     <p className="text-sm text-gray-700 font-medium">Buka Akses Pengumuman Kelulusan</p>
+                     <p className="text-xs text-gray-500 mt-1">Jika aktif, siswa kelas 6 dapat melihat menu Kelulusan di portal mereka.</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                      type="checkbox" 
+                      className="sr-only peer" 
+                      disabled={isReadOnly}
+                      checked={!!school.isGraduationAnnounced}
+                      onChange={(e) => setSchool({...school, isGraduationAnnounced: e.target.checked})}
+                  />
+                  <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 ${isReadOnly ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
+                </label>
+            </div>
+        </div>
+
         </div>
         <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end">
             {!isReadOnly ? (

@@ -38,7 +38,7 @@ interface StudentPortalProps {
   schoolProfile?: SchoolProfileData;
 }
 
-type PortalTab = 'dashboard' | 'attendance' | 'liaison' | 'profile' | 'character' | 'materi' | 'sumatif' | 'schedule' | 'manual_book';
+type PortalTab = 'dashboard' | 'attendance' | 'liaison' | 'profile' | 'character' | 'materi' | 'sumatif' | 'schedule' | 'manual_book' | 'kelulusan';
 
 const SUBJECT_COLORS: { [key: string]: string } = {
   'default': 'bg-gray-100 text-gray-700 border-gray-200',
@@ -81,7 +81,8 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
     '/buku-penghubung-siswa': 'liaison',
     '/profil-siswa': 'profile',
     '/karakter-siswa': 'character',
-    '/buku-panduan-siswa': 'manual_book'
+    '/buku-panduan-siswa': 'manual_book',
+    '/pengumuman-kelulusan': 'kelulusan'
   };
 
   const pathToTabMap: Record<PortalTab, string> = {
@@ -93,7 +94,8 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
     'liaison': '/buku-penghubung-siswa',
     'profile': '/profil-siswa',
     'character': '/karakter-siswa',
-    'manual_book': '/buku-panduan-siswa'
+    'manual_book': '/buku-panduan-siswa',
+    'kelulusan': '/pengumuman-kelulusan'
   };
 
   const [activeTab, setActiveTab] = useState<PortalTab>(() => {
@@ -683,6 +685,10 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
     { id: 'character', label: 'Karakter', icon: HeartHandshake },
     { id: 'manual_book', label: 'Buku Panduan', icon: BookOpen },
   ];
+
+  if (student?.classId?.startsWith('6') && schoolProfile?.isGraduationAnnounced) {
+      TABS.push({ id: 'kelulusan', label: 'Kelulusan', icon: GraduationCap });
+  }
 
   const handleTabChange = (tabId: PortalTab) => {
     setActiveTab(tabId);
@@ -1815,6 +1821,89 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                   onSaveProfile={async () => {}} // Siswa can't save
                   isAdminRole={false}
               />
+          )}
+
+          {/* --- KELULUSAN TAB --- */}
+          {activeTab === 'kelulusan' && schoolProfile?.isGraduationAnnounced && (
+              <div className="space-y-6 animate-fade-in relative z-20">
+                  <div className="bg-gradient-to-br from-emerald-500 to-teal-700 p-6 sm:p-12 rounded-3xl shadow-xl text-center relative overflow-hidden print:shadow-none print:rounded-none mt-2">
+                      {/* Background elements */}
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 print:hidden"></div>
+                      <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-2xl -ml-10 -mb-10 print:hidden"></div>
+                      
+                      <div className="relative z-10 space-y-6">
+                          <div className="mx-auto w-24 h-24 bg-white/20 p-4 rounded-full backdrop-blur-md border border-white/30 flex items-center justify-center animate-bounce print:hidden">
+                              <GraduationCap size={48} className="text-white" />
+                          </div>
+                          
+                          <div className="hidden print:block mb-8 border-b-4 border-black pb-4 text-black text-center">
+                              <h1 className="text-2xl font-black">{schoolProfile?.name?.toUpperCase() || 'SEKOLAH KAMI'}</h1>
+                              <p className="text-sm">{schoolProfile?.address || 'Alamat Sekolah'}</p>
+                          </div>
+                          
+                          <h2 className="text-3xl sm:text-4xl font-black text-white drop-shadow-md print:text-black mt-0">
+                              PENGUMUMAN KELULUSAN
+                          </h2>
+                          
+                          <div className="bg-white/10 print:bg-transparent p-6 rounded-2xl backdrop-blur-md border border-white/20 print:border-none print:p-0 max-w-2xl mx-auto">
+                              <p className="text-emerald-50 print:text-black text-sm sm:text-base mb-6 leading-relaxed">
+                                  Berdasarkan hasil rapat pleno Dewan Guru <b>{schoolProfile.name || 'Sekolah'}</b> Tahun Ajaran {schoolProfile.year || '2025/2026'}, tentang Kriteria Kelulusan Peserta Didik, maka peserta didik dengan data di bawah ini:
+                              </p>
+                              
+                              <div className="bg-white print:bg-transparent print:border print:border-gray-300 rounded-xl p-5 text-left space-y-3 shadow-inner my-6 max-w-xl mx-auto">
+                                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 border-b border-gray-100 print:border-gray-300 pb-3">
+                                      <span className="text-gray-500 print:text-black text-sm font-medium">Nama Lengkap</span>
+                                      <span className="col-span-2 sm:col-span-3 text-gray-800 print:text-black font-bold uppercase">: {student.name}</span>
+                                  </div>
+                                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 border-b border-gray-100 print:border-gray-300 pb-3">
+                                      <span className="text-gray-500 print:text-black text-sm font-medium">NIS / NISN</span>
+                                      <span className="col-span-2 sm:col-span-3 text-gray-800 print:text-black font-bold">: {student.nis} / {student.nisn || '-'}</span>
+                                  </div>
+                                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                      <span className="text-gray-500 print:text-black text-sm font-medium">Kelas Terakhir</span>
+                                      <span className="col-span-2 sm:col-span-3 text-gray-800 print:text-black font-bold">: Kelas {student.classId}</span>
+                                  </div>
+                              </div>
+                              
+                              <p className="text-emerald-50 print:text-black text-base mt-8 mb-4">
+                                  Dengan ini secara resmi dinyatakan:
+                              </p>
+                              
+                              <div className="bg-gradient-to-r from-yellow-400 to-amber-500 print:from-white print:to-white text-white print:text-black rounded-2xl py-5 sm:py-8 shadow-lg transform transition-transform hover:scale-105 border-4 border-white/30 print:border-4 print:border-black max-w-md mx-auto">
+                                  <h1 className="text-5xl sm:text-6xl font-black tracking-widest drop-shadow-lg print:drop-shadow-none">LULUS</h1>
+                              </div>
+                          </div>
+                          
+                          <div className="max-w-2xl mx-auto mt-8 print:hidden">
+                              <p className="text-white/90 text-sm italic leading-relaxed">
+                                  "Selamat atas kelulusanmu! Ini adalah awal panggung baru dalam perjalanan pendidikanmu. Teruslah rajin belajar, berkarya, tebarkan kebaikan, dan raihlah cita-citamu setinggi langit. Semoga sukses selalu!"
+                              </p>
+                          </div>
+                          
+                          <div className="flex justify-center mt-10 no-print">
+                             <button 
+                                 onClick={() => window.print()}
+                                 className="bg-white text-teal-700 hover:bg-emerald-50 px-8 py-3.5 rounded-xl font-bold flex items-center shadow-lg transition-all border border-transparent hover:border-emerald-200 transform hover:-translate-y-1"
+                             >
+                                 <FileText size={20} className="mr-2" /> Cetak Surat Kelulusan (PDF)
+                             </button>
+                          </div>
+                          
+                          <div className="hidden print:flex justify-end mt-16 pt-8 pr-8">
+                             <div className="text-center text-black">
+                                 <p className="mb-20">Kepala Sekolah,</p>
+                                 {schoolProfile.headmasterSignature ? (
+                                     <img src={schoolProfile.headmasterSignature} alt="Tanda Tangan" className="h-20 mx-auto -mt-16 mb-2 object-contain" />
+                                 ) : (
+                                     <div className="h-16"></div>
+                                 )}
+                                 <p className="font-bold underline">{schoolProfile.headmaster || '___________________'}</p>
+                                 <p>NIP. {schoolProfile.headmasterNip || '-'}</p>
+                             </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
           )}
 
           {/* --- VIDEO PLAYER MODAL --- */}

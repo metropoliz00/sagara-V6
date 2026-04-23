@@ -286,6 +286,7 @@ export interface SchoolProfileData {
     instagram?: string;
     tiktok?: string;
   };
+  isGraduationAnnounced?: boolean;
 }
 
 export interface AcademicCalendarData {
