@@ -239,20 +239,60 @@ export const apiService = {
     }
   },
 
-  getGraduateById: async (id: string): Promise<Graduate | null> => {
-    const { data, error } = await supabase
+  getGraduateByStudent: async (student: Student): Promise<Graduate | null> => {
+    // 1. Try by ID (most reliable if graduated via button)
+    const { data: byId } = await supabase
       .from('graduates')
       .select('*')
-      .eq('id', id)
-      .single();
+      .eq('id', student.id)
+      .maybeSingle();
     
-    if (error || !data) return null;
-    return {
-      ...data,
-      ijazahNumber: data.ijazah_number,
-      graduationYear: data.graduation_year,
-      continuedTo: data.continued_to
-    } as Graduate;
+    if (byId) {
+      return {
+        ...byId,
+        ijazahNumber: byId.ijazah_number,
+        graduationYear: byId.graduation_year,
+        continuedTo: byId.continued_to
+      } as Graduate;
+    }
+
+    // 2. Try by NISN (if graduated via button or manually with NISN)
+    if (student.nisn) {
+      const { data: byNisN } = await supabase
+        .from('graduates')
+        .select('*')
+        .eq('nisn', student.nisn)
+        .maybeSingle();
+      
+      if (byNisN) {
+        return {
+          ...byNisN,
+          ijazahNumber: byNisN.ijazah_number,
+          graduationYear: byNisN.graduation_year,
+          continuedTo: byNisN.continued_to
+        } as Graduate;
+      }
+    }
+
+    // 3. Try by NIS (in case manually added or NIS was put in NISN field)
+    if (student.nis) {
+      const { data: byNis } = await supabase
+        .from('graduates')
+        .select('*')
+        .eq('nisn', student.nis)
+        .maybeSingle();
+      
+      if (byNis) {
+        return {
+          ...byNis,
+          ijazahNumber: byNis.ijazah_number,
+          graduationYear: byNis.graduation_year,
+          continuedTo: byNis.continued_to
+        } as Graduate;
+      }
+    }
+
+    return null;
   },
 
   getStudentByNisn: async (nisn: string): Promise<Student | null> => {

@@ -327,7 +327,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           if (student.classId?.startsWith('6') && schoolProfile?.isGraduationAnnounced && student.id) {
               setIsLoadingGraduation(true);
               try {
-                  const data = await apiService.getGraduateById(student.id);
+                  const data = await apiService.getGraduateByStudent(student);
                   setGraduationData(data);
               } catch (e) {
                   console.error("Error fetching graduation data:", e);
