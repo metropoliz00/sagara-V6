@@ -223,7 +223,7 @@ const GraduatesView: React.FC<GraduatesViewProps> = ({ onShowNotification, isRea
             name: graduate.name,
             gender: 'L' as 'L' | 'P',
             birthPlace: '',
-            birthDate: '',
+            birthDate: null as any as string, // Assign null to avoid DB conflict with DATE type
             religion: '',
             address: '',
             fatherName: '',
@@ -260,7 +260,7 @@ const GraduatesView: React.FC<GraduatesViewProps> = ({ onShowNotification, isRea
           
           setGraduates(prev => prev.filter(g => g.id !== graduate.id));
           if (onRestore) {
-            onRestore(createdStudent);
+            onRestore({...createdStudent, id: createdStudent.id}); // ensure ID is passed
           }
           onShowNotification("Data lulusan berhasil dikembalikan ke Data Siswa (Kelas 6)", "success");
         } catch (error) {
