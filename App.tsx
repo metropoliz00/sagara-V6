@@ -56,6 +56,7 @@ import SumatifView from './components/SumatifView';
 import ManualBookView from './components/ManualBookView';
 import CustomModal from './components/CustomModal'; 
 import PaperPlaneIcon from './components/PaperPlaneIcon';
+import OnlineUsersWidget from './components/OnlineUsersWidget';
 import { ViewState, Student, AgendaItem, Material, Extracurricular, BehaviorLog, GradeRecord, TeacherProfileData, SchoolProfileData, User, Holiday, SikapAssessment, KarakterAssessment, EmploymentLink, LearningReport, LiaisonLog, PermissionRequest, LearningJournalEntry, SupportDocument, InventoryItem, SchoolAsset, BOSTransaction, LearningDocumentation, BookLoan, BookInventory, Sumatif } from './types';
 import { MOCK_SUBJECTS, MOCK_STUDENTS, MOCK_EXTRACURRICULARS } from './constants';
 import { apiService } from './services/apiService';
@@ -2340,6 +2341,8 @@ const AppContent: React.FC = () => {
         onConfirm={modalConfig.onConfirm}
         onCancel={modalConfig.onCancel || (() => setModalConfig(prev => ({...prev, isOpen: false})))}
       />
+
+      <OnlineUsersWidget currentUser={currentUser} />
     </div>
   );
 };
