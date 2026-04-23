@@ -476,11 +476,11 @@ export const apiService = {
       
       // Delete related assessments and logs
       await supabase.from('grades').delete().eq('student_id', id);
-      await supabase.from('counseling_logs').delete().eq('student_id', id);
-      await supabase.from('sikap_assessments').delete().eq('student_id', id);
-      await supabase.from('karakter_assessments').delete().eq('student_id', id);
+      await supabase.from('counseling').delete().eq('student_id', id);
+      await supabase.from('penilaian_sikap').delete().eq('student_id', id);
+      await supabase.from('penilaian_karakter').delete().eq('student_id', id);
       await supabase.from('sumatif_results').delete().eq('student_id', id);
-      await supabase.from('liaison_logs').delete().eq('student_id', id);
+      await supabase.from('buku_penghubung').delete().eq('student_id', id);
       await supabase.from('permission_requests').delete().eq('student_id', id);
       
       // 2. Finally delete the student record

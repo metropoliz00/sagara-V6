@@ -356,7 +356,7 @@ const StudentList: React.FC<StudentListProps> = ({
             }
 
         const graduate: Graduate = {
-          id: student.nis || student.id, // Use NIS for predictable lookup in student portal
+          id: student.id, // Use strict UUID from student object
           nisn: student.nisn || student.nis,
           name: student.name,
           ijazahNumber: '',

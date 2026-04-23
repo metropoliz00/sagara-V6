@@ -324,10 +324,10 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
   // NEW: Fetch graduation data if Grade 6
   useEffect(() => {
       const fetchGraduation = async () => {
-          if (student.classId?.startsWith('6') && schoolProfile?.isGraduationAnnounced && student.nis) {
+          if (student.classId?.startsWith('6') && schoolProfile?.isGraduationAnnounced && student.id) {
               setIsLoadingGraduation(true);
               try {
-                  const data = await apiService.getGraduateById(student.nis);
+                  const data = await apiService.getGraduateById(student.id);
                   setGraduationData(data);
               } catch (e) {
                   console.error("Error fetching graduation data:", e);
@@ -340,7 +340,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
       if (activeTab === 'kelulusan') {
           fetchGraduation();
       }
-  }, [student.classId, schoolProfile?.isGraduationAnnounced, student.nis, activeTab]);
+  }, [student.classId, schoolProfile?.isGraduationAnnounced, student.id, activeTab]);
   
   // Carousel Logic
   useEffect(() => {
