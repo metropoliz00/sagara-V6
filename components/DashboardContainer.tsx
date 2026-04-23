@@ -122,6 +122,7 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
         learningDocumentation={learningDocumentation || []}
         bookLoans={bookLoans.filter(loan => loan.studentId === myStudentData?.id)}
         materials={materials}
+        schoolProfile={schoolProfile}
       />
     );
   }
