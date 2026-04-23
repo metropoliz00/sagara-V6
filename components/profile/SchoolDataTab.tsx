@@ -294,6 +294,33 @@ const SchoolDataTab: React.FC<SchoolDataTabProps> = ({ school, setSchool, onSave
             </div>
         </div>
 
+        {/* --- NEW: Login Poster Settings --- */}
+        <div className="md:col-span-2 bg-purple-50/50 p-5 rounded-xl border border-purple-100 mt-0">
+            <h4 className="text-sm font-bold text-purple-800 uppercase mb-4 flex items-center">
+                <Megaphone size={16} className="mr-2"/> Tampilan Poster Halaman Login
+            </h4>
+            <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-1">Link Gambar Poster (Opsional)</label>
+                 <input 
+                    disabled={isReadOnly} 
+                    type="url" 
+                    value={school.loginPosterUrl || ''} 
+                    onChange={(e) => setSchool({...school, loginPosterUrl: e.target.value})} 
+                    placeholder="https://..." 
+                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all disabled:bg-gray-50 disabled:text-gray-500" 
+                 />
+                 <p className="text-xs text-gray-500 mt-2">
+                     Jika diisi, poster akan muncul sebagai pop-up saat user pertama kali membuka halaman login. Kosongkan untuk menonaktifkan fitur ini.
+                 </p>
+                 {school.loginPosterUrl && (
+                     <div className="mt-4 border border-gray-200 rounded-lg p-2 max-w-sm bg-white shadow-sm">
+                         <span className="text-xs text-gray-400 block mb-2 font-medium">Preview Poster:</span>
+                         <img src={school.loginPosterUrl} alt="Preview Login Poster" className="w-full h-auto rounded object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                     </div>
+                 )}
+            </div>
+        </div>
+
         </div>
         <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end">
             {!isReadOnly ? (

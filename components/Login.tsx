@@ -27,6 +27,10 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [devInfo, setDevInfo] = useState<{ name: string; moto: string; photo: string; whatsapp?: string; facebook?: string; instagram?: string; tiktok?: string; } | null>(null);
   const [isDevModalOpen, setIsDevModalOpen] = useState(false);
 
+  // Poster Info State
+  const [posterUrl, setPosterUrl] = useState<string | null>(null);
+  const [showPoster, setShowPoster] = useState(false);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setInitialLoading(false);
@@ -36,8 +40,14 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       if (apiService.isConfigured()) {
         try {
           const profiles = await apiService.getProfiles();
-          if (profiles.school && profiles.school.developerInfo && profiles.school.developerInfo.name) {
-            setDevInfo(profiles.school.developerInfo);
+          if (profiles.school) {
+            if (profiles.school.developerInfo && profiles.school.developerInfo.name) {
+              setDevInfo(profiles.school.developerInfo);
+            }
+            if (profiles.school.loginPosterUrl) {
+              setPosterUrl(profiles.school.loginPosterUrl);
+              setShowPoster(true); // Automatically show if URL exists
+            }
           }
         } catch (e) {
           // Suppress fetch error on login screen to avoid alarming users
@@ -400,6 +410,25 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         </div>
       )}
 
+      {/* Poster Modal */}
+      {showPoster && posterUrl && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in" onClick={() => setShowPoster(false)}>
+            <div className="relative max-w-2xl w-full max-h-[90vh] flex flex-col items-center animate-scale-in" onClick={e => e.stopPropagation()}>
+                <button 
+                  onClick={() => setShowPoster(false)}
+                  className="absolute -top-12 right-0 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full backdrop-blur-md transition-all shadow-sm"
+                  title="Tutup Poster"
+                >
+                  <X size={24} />
+                </button>
+                <img 
+                    src={posterUrl} 
+                    alt="School Poster" 
+                    className="w-full h-auto max-h-[85vh] object-contain rounded-2xl shadow-2xl"
+                />
+            </div>
+        </div>
+      )}
     </div>
   );
 };
