@@ -12,6 +12,7 @@ interface PresenceState {
   id: string;
   name: string;
   role: string;
+  photo?: string;
   onlineAt: string;
 }
 
@@ -50,6 +51,7 @@ const OnlineUsersWidget: React.FC<OnlineUsersWidgetProps> = ({ currentUser }) =>
                   id: p.id,
                   name: p.name,
                   role: p.role,
+                  photo: p.photo,
                   onlineAt: p.onlineAt,
               });
           }
@@ -65,6 +67,7 @@ const OnlineUsersWidget: React.FC<OnlineUsersWidgetProps> = ({ currentUser }) =>
             id: currentUser.id,
             name: currentUser.fullName,
             role: currentUser.role,
+            photo: currentUser.photo || '',
             onlineAt: new Date().toISOString(),
           });
         }
@@ -222,7 +225,7 @@ const OnlineUsersWidget: React.FC<OnlineUsersWidgetProps> = ({ currentUser }) =>
                            <div className="flex items-center gap-3">
                               <div className="relative">
                                 <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border-2 border-white shadow-sm overflow-hidden shrink-0">
-                                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="Avatar" className="w-full h-full object-cover" />
+                                    <img src={user.photo ? user.photo : `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="Avatar" className="w-full h-full object-cover" />
                                 </div>
                                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
                               </div>
