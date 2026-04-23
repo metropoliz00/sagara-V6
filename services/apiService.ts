@@ -219,11 +219,19 @@ export const apiService = {
       created_at: graduate.createdAt,
       updated_at: graduate.updatedAt
     };
-    await supabase.from('graduates').upsert(dbGraduate);
+    const { error } = await supabase.from('graduates').upsert(dbGraduate);
+    if (error) {
+      console.error("Error saving graduate:", error);
+      throw error;
+    }
   },
 
   deleteGraduate: async (id: string): Promise<void> => {
-    await supabase.from('graduates').delete().eq('id', id);
+    const { error } = await supabase.from('graduates').delete().eq('id', id);
+    if (error) {
+      console.error("Error deleting graduate:", error);
+      throw error;
+    }
   },
 
   getGraduateById: async (id: string): Promise<Graduate | null> => {
@@ -291,7 +299,11 @@ export const apiService = {
       created_at: g.createdAt || Date.now(),
       updated_at: g.updatedAt || Date.now()
     }));
-    await supabase.from('graduates').upsert(dbGraduates);
+    const { error } = await supabase.from('graduates').upsert(dbGraduates);
+    if (error) {
+      console.error("Error saving graduate batch:", error);
+      throw error;
+    }
   },
 
   // --- Students ---
@@ -357,10 +369,18 @@ export const apiService = {
       violations: student.violations,
       behavior_score: student.behaviorScore,
       photo: student.photo,
-      teacher_notes: student.teacherNotes
+      teacher_notes: student.teacherNotes,
+      present: student.attendance?.present || 0,
+      sick: student.attendance?.sick || 0,
+      permit: student.attendance?.permit || 0,
+      alpha: student.attendance?.alpha || 0
     };
     const { data, error } = await supabase.from('students').insert([dbStudent]).select().single();
-    return error ? { ...student, id: 'temp' } as Student : { ...data, classId: data.class_id } as unknown as Student;
+    if (error) {
+      console.error("Error creating student:", error);
+      throw error;
+    }
+    return { ...data, classId: data.class_id } as unknown as Student;
   },
 
   createStudentBatch: async (students: Omit<Student, 'id'>[]): Promise<any> => {
@@ -394,9 +414,18 @@ export const apiService = {
       violations: s.violations,
       behavior_score: s.behaviorScore,
       photo: s.photo,
-      teacher_notes: s.teacherNotes
+      teacher_notes: s.teacherNotes,
+      present: s.attendance?.present || 0,
+      sick: s.attendance?.sick || 0,
+      permit: s.attendance?.permit || 0,
+      alpha: s.attendance?.alpha || 0
     }));
-    return await supabase.from('students').insert(dbStudents);
+    const { data, error } = await supabase.from('students').insert(dbStudents);
+    if (error) {
+      console.error("Error creating student batch:", error);
+      throw error;
+    }
+    return data;
   },
 
   updateStudent: async (student: Student): Promise<void> => {
@@ -440,7 +469,13 @@ export const apiService = {
   },
 
   deleteStudent: async (id: string): Promise<void> => {
-    await supabase.from('students').delete().eq('id', id);
+    const { error } = await supabase.from('students').delete().eq('id', id);
+    if (error) {
+      console.error("Error deleting student:", error);
+      throw error;
+    }
+    // Also delete user account if exists
+    await supabase.from('users').delete().eq('student_id', id);
   },
 
   // --- Agendas ---

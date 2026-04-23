@@ -31,6 +31,7 @@ interface StudentListProps {
   onBatchAdd?: (students: Omit<Student, 'id'>[]) => void;
   onUpdate: (student: Student) => void;
   onDelete: (id: string) => void;
+  onRemoveFiltered?: (id: string) => void;
   onShowNotification: (message: string, type: 'success' | 'error' | 'warning') => void;
   isReadOnly?: boolean;
 }
@@ -40,7 +41,7 @@ type ViewType = 'grid' | 'list' | 'dashboard' | 'qr-codes' | 'health-data' | 'pa
 
 const StudentList: React.FC<StudentListProps> = ({ 
   students, teacherProfile, schoolProfile, classId, allAttendanceRecords,
-  onAdd, onBatchAdd, onUpdate, onDelete, onShowNotification, isReadOnly = false
+  onAdd, onBatchAdd, onUpdate, onDelete, onRemoveFiltered, onShowNotification, isReadOnly = false
 }) => {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('biodata');
@@ -332,7 +333,7 @@ const StudentList: React.FC<StudentListProps> = ({
         const currentClass = student.classId || classId;
         // Save grade history
         const currentGrades = await apiService.getGradesForStudent(student.id);
-        if (currentGrades && Object.keys(currentGrades.subjects).length > 0) {
+        if (currentGrades && Object.keys(currentGrades.subjects || {}).length > 0) {
           const historyEntry = {
             id: `${schoolProfile?.year || new Date().getFullYear()}-Semester ${schoolProfile?.semester || '1'}-${currentClass}`,
             academicYear: schoolProfile?.year || new Date().getFullYear().toString(),
@@ -346,7 +347,7 @@ const StudentList: React.FC<StudentListProps> = ({
         }
 
         const graduate: Graduate = {
-          id: crypto.randomUUID(),
+          id: student.id, // Use same ID to maintain historical links
           nisn: student.nisn || student.nis,
           name: student.name,
           ijazahNumber: '',
@@ -356,8 +357,17 @@ const StudentList: React.FC<StudentListProps> = ({
           createdAt: Date.now(),
           updatedAt: Date.now()
         };
+        
         await apiService.saveGraduate(graduate);
-        onDelete(student.id);
+        await apiService.deleteStudent(student.id);
+        
+        if (onRemoveFiltered) {
+          onRemoveFiltered(student.id);
+        } else {
+          // If onRemoveFiltered is not provided, fallback to standard delete (might re-confirm)
+          onDelete(student.id);
+        }
+        
         onShowNotification("Siswa berhasil diluluskan dan dipindah ke Data Lulusan.", 'success');
         setSelectedStudent(null);
       } catch (error) {

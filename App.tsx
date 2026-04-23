@@ -1959,6 +1959,13 @@ const AppContent: React.FC = () => {
                         onBatchAdd={handleBatchAddStudents} 
                         onUpdate={handleUpdateStudent} 
                         onDelete={handleDeleteStudent} 
+                        onRemoveFiltered={(id) => {
+                          setStudents(prev => {
+                            const newStudents = prev.filter(s => s.id !== id);
+                            cacheService.set('students', newStudents);
+                            return newStudents;
+                          });
+                        }}
                         onShowNotification={handleShowNotification}
                         isReadOnly={isGlobalReadOnly} 
                     />
@@ -1969,8 +1976,11 @@ const AppContent: React.FC = () => {
                         onShowNotification={handleShowNotification}
                         isReadOnly={isGlobalReadOnly}
                         onRestore={(student) => {
-                          setStudents(prev => [...prev, student]);
-                          cacheService.set('students', [...students, student]);
+                          setStudents(prev => {
+                            const newStudents = [...prev, student];
+                            cacheService.set('students', newStudents);
+                            return newStudents;
+                          });
                         }}
                     />
                 } />
