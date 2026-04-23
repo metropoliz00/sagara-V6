@@ -331,23 +331,32 @@ const StudentList: React.FC<StudentListProps> = ({
     showConfirm("Apakah Anda yakin ingin meluluskan siswa ini? Data akan dipindah ke Data Lulusan.", async () => {
       try {
         const currentClass = student.classId || classId;
-        // Save grade history
-        const currentGrades = await apiService.getGradesForStudent(student.id);
-        if (currentGrades && Object.keys(currentGrades.subjects || {}).length > 0) {
-          const historyEntry = {
-            id: `${schoolProfile?.year || new Date().getFullYear()}-Semester ${schoolProfile?.semester || '1'}-${currentClass}`,
-            academicYear: schoolProfile?.year || new Date().getFullYear().toString(),
-            semester: schoolProfile?.semester || '1',
-            classId: currentClass,
-            timestamp: Date.now(),
-            subjects: currentGrades.subjects
-          };
-          await apiService.saveGradeHistory(student.id, historyEntry);
-          await apiService.deleteGradesForStudent(student.id);
-        }
+        
+        // Skip backend calls in Demo Mode
+        const isConfigured = apiService.isConfigured();
+
+        if (isConfigured) {
+            // Save grade history
+            try {
+                const currentGrades = await apiService.getGradesForStudent(student.id);
+                if (currentGrades && Object.keys(currentGrades.subjects || {}).length > 0) {
+                  const historyEntry = {
+                    id: `${schoolProfile?.year || new Date().getFullYear()}-Semester ${schoolProfile?.semester || '1'}-${currentClass}`,
+                    academicYear: schoolProfile?.year || new Date().getFullYear().toString(),
+                    semester: schoolProfile?.semester || '1',
+                    classId: currentClass,
+                    timestamp: Date.now(),
+                    subjects: currentGrades.subjects
+                  };
+                  await apiService.saveGradeHistory(student.id, historyEntry);
+                  await apiService.deleteGradesForStudent(student.id);
+                }
+            } catch (gradeError) {
+                console.warn("Failed to save grade history, continuing with graduation:", gradeError);
+            }
 
         const graduate: Graduate = {
-          id: student.id, // Use same ID to maintain historical links
+          id: student.nis || student.id, // Use NIS for predictable lookup in student portal
           nisn: student.nisn || student.nis,
           name: student.name,
           ijazahNumber: '',
@@ -357,22 +366,28 @@ const StudentList: React.FC<StudentListProps> = ({
           createdAt: Date.now(),
           updatedAt: Date.now()
         };
+            
+            await apiService.saveGraduate(graduate);
+            await apiService.deleteStudent(student.id);
+        }
         
-        await apiService.saveGraduate(graduate);
-        await apiService.deleteStudent(student.id);
-        
+        // Update local state
         if (onRemoveFiltered) {
           onRemoveFiltered(student.id);
         } else {
-          // If onRemoveFiltered is not provided, fallback to standard delete (might re-confirm)
           onDelete(student.id);
         }
         
-        onShowNotification("Siswa berhasil diluluskan dan dipindah ke Data Lulusan.", 'success');
+        onShowNotification(
+            isConfigured 
+            ? "Siswa berhasil diluluskan dan dipindah ke Data Lulusan." 
+            : "Siswa berhasil diluluskan (Mode Demo).", 
+            'success'
+        );
         setSelectedStudent(null);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error graduating student:", error);
-        onShowNotification("Gagal meluluskan siswa.", 'error');
+        onShowNotification(`Gagal meluluskan siswa. Pastikan koneksi dan database sudah siap. (${error.message || 'Database Error'})`, 'error');
       }
     });
   };

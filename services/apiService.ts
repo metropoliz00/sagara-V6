@@ -469,13 +469,30 @@ export const apiService = {
   },
 
   deleteStudent: async (id: string): Promise<void> => {
-    const { error } = await supabase.from('students').delete().eq('id', id);
-    if (error) {
-      console.error("Error deleting student:", error);
+    try {
+      // 1. Delete dependent records first to avoid Foreign Key constraint violations
+      // Delete user account
+      await supabase.from('users').delete().eq('student_id', id);
+      
+      // Delete related assessments and logs
+      await supabase.from('grades').delete().eq('student_id', id);
+      await supabase.from('counseling_logs').delete().eq('student_id', id);
+      await supabase.from('sikap_assessments').delete().eq('student_id', id);
+      await supabase.from('karakter_assessments').delete().eq('student_id', id);
+      await supabase.from('sumatif_results').delete().eq('student_id', id);
+      await supabase.from('liaison_logs').delete().eq('student_id', id);
+      await supabase.from('permission_requests').delete().eq('student_id', id);
+      
+      // 2. Finally delete the student record
+      const { error } = await supabase.from('students').delete().eq('id', id);
+      if (error) {
+        console.error("Error deleting student:", error);
+        throw error;
+      }
+    } catch (error) {
+      console.error("Critical error in deleteStudent:", error);
       throw error;
     }
-    // Also delete user account if exists
-    await supabase.from('users').delete().eq('student_id', id);
   },
 
   // --- Agendas ---

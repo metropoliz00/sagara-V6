@@ -25,6 +25,8 @@ const GraduatesView: React.FC<GraduatesViewProps> = ({ onShowNotification, isRea
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [selectedGraduateName, setSelectedGraduateName] = useState('');
   const [loadingNis, setLoadingNis] = useState(false);
+  const [schoolProfile, setSchoolProfile] = useState<any>(null);
+  const [isSavingToggle, setIsSavingToggle] = useState(false);
   const { showConfirm } = useModal();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -39,7 +41,33 @@ const GraduatesView: React.FC<GraduatesViewProps> = ({ onShowNotification, isRea
 
   useEffect(() => {
     fetchGraduates();
+    fetchSchoolProfile();
   }, []);
+
+  const fetchSchoolProfile = async () => {
+    try {
+      const p = await apiService.getProfiles();
+      if (p.school) setSchoolProfile(p.school);
+    } catch (e) {
+      console.error("Error fetching school profile:", e);
+    }
+  };
+
+  const handleToggleGraduationAnnounce = async () => {
+    const newValue = !schoolProfile?.isGraduationAnnounced;
+    const updated = { ...schoolProfile, isGraduationAnnounced: newValue };
+    setSchoolProfile(updated);
+    setIsSavingToggle(true);
+    try {
+      await apiService.saveProfile('school', updated);
+      onShowNotification(newValue ? "Pengumuman kelulusan diaktifkan" : "Pengumuman kelulusan dinonaktifkan", "success");
+    } catch (e) {
+      onShowNotification("Gagal mengubah status pengumuman", "error");
+      setSchoolProfile(schoolProfile);
+    } finally {
+      setIsSavingToggle(false);
+    }
+  };
 
   const fetchGraduates = async () => {
     setLoading(true);
@@ -394,7 +422,21 @@ const GraduatesView: React.FC<GraduatesViewProps> = ({ onShowNotification, isRea
         {!isReadOnly && (
           <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={handleDownloadTemplate}
+               onClick={handleToggleGraduationAnnounce}
+               disabled={isSavingToggle}
+               className={`px-4 py-2 rounded-xl transition-all flex items-center space-x-2 text-sm font-medium ${
+                 schoolProfile?.isGraduationAnnounced 
+                 ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200' 
+                 : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200'
+               }`}
+               title={schoolProfile?.isGraduationAnnounced ? "Klik untuk menyembunyikan pengumuman dari siswa" : "Klik untuk menampilkan pengumuman ke siswa"}
+            >
+              {isSavingToggle ? <Loader2 size={18} className="animate-spin" /> : <GraduationCap size={18} />}
+              <span>{schoolProfile?.isGraduationAnnounced ? "Tutup Pengumuman" : "Buka Pengumuman"}</span>
+            </button>
+
+            <button
+               onClick={handleDownloadTemplate}
               className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors flex items-center space-x-2 text-sm font-medium"
             >
               <Download size={18} />
