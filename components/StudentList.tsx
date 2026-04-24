@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Student, TeacherProfileData, SchoolProfileData, Graduate } from '../types';
 import * as XLSX from 'xlsx';
+import JSZip from 'jszip';
 import { compressImage } from '../utils/imageHelper';
 import QRCode from 'react-qr-code';
 import { 
@@ -573,6 +574,137 @@ const StudentList: React.FC<StudentListProps> = ({
       student.classId.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [students, searchTerm]);
+
+  const [isDownloadingAllQR, setIsDownloadingAllQR] = useState(false);
+
+  const handleDownloadAllQR = async () => {
+    setIsDownloadingAllQR(true);
+    try {
+      const zip = new JSZip();
+      
+      const generateQRBlob = (student: Student): Promise<Blob | null> => {
+        return new Promise((resolve) => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const dpi = 300;
+          const width = Math.round((65 / 25.4) * dpi); 
+          const height = Math.round((102 / 25.4) * dpi);
+
+          canvas.width = width;
+          canvas.height = height;
+
+          if (!ctx) { resolve(null); return; }
+
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
+
+          ctx.strokeStyle = '#5AB2FF'; 
+          ctx.lineWidth = 30;
+          ctx.strokeRect(0, 0, width, height);
+          
+          ctx.strokeStyle = '#A0DEFF';
+          ctx.lineWidth = 5;
+          ctx.strokeRect(30, 30, width - 60, height - 60);
+
+          const centerX = width / 2;
+
+          ctx.fillStyle = '#1e3a8a';
+          ctx.font = 'bold 45px Arial, sans-serif';
+          ctx.textAlign = 'center';
+          const schoolName = (schoolProfile?.name || 'SEKOLAH').toUpperCase();
+          ctx.fillText(schoolName, centerX, 120);
+
+          ctx.fillStyle = '#64748b';
+          ctx.font = '35px Arial, sans-serif';
+          ctx.fillText('KARTU IDENTITAS DIGITAL', centerX, 180);
+
+          const svgElement = document.getElementById(`qr-code-${student.id}`);
+          if (!svgElement) { resolve(null); return; }
+          
+          const svgData = new XMLSerializer().serializeToString(svgElement);
+          const img = new Image();
+          img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+          
+          img.onload = () => {
+              const qrSize = 500; 
+              const qrY = 250;
+              ctx.drawImage(img, centerX - (qrSize / 2), qrY, qrSize, qrSize);
+
+              ctx.fillStyle = '#000000';
+              ctx.font = 'bold 50px Arial, sans-serif';
+              
+              const maxWidth = width - 120;
+              const words = student.name.split(' ');
+              let line = '';
+              const lines = [];
+              
+              for (let n = 0; n < words.length; n++) {
+                  const testLine = line + words[n] + ' ';
+                  const metrics = ctx.measureText(testLine);
+                  if (metrics.width > maxWidth && n > 0) {
+                      lines.push(line.trim());
+                      line = words[n] + ' ';
+                  } else {
+                      line = testLine;
+                  }
+              }
+              lines.push(line.trim());
+
+              const lineHeight = 60;
+              const nameBaseY = height - 280;
+              const startY = nameBaseY - ((lines.length - 1) * lineHeight / 2);
+
+              lines.forEach((l, i) => {
+                  ctx.fillText(l, centerX, startY + (i * lineHeight));
+              });
+
+              const boxY = height - 220;
+              const boxHeight = 150;
+              const boxWidth = width - 100;
+              
+              ctx.fillStyle = '#f0f9ff';
+              ctx.fillRect((width - boxWidth)/2, boxY, boxWidth, boxHeight);
+              
+              ctx.fillStyle = '#0369a1';
+              ctx.font = 'bold 40px monospace';
+              ctx.fillText(`NIS : ${student.nis}`, centerX, boxY + 60);
+              
+              if (student.nisn) {
+                  ctx.fillText(`NISN: ${student.nisn}`, centerX, boxY + 110);
+              } else {
+                  ctx.fillText(`KELAS: ${student.classId}`, centerX, boxY + 110);
+              }
+
+              canvas.toBlob((blob) => {
+                  resolve(blob);
+              }, 'image/jpeg', 0.9);
+          };
+          img.onerror = () => resolve(null);
+        });
+      };
+
+      for (const student of filteredStudents) {
+        const blob = await generateQRBlob(student);
+        if (blob) {
+            const safeName = student.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            zip.file(`${student.classId}_${safeName}_QR.jpg`, blob);
+        }
+      }
+
+      const content = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = `QR_Code_${classId || 'All'}_${new Date().toISOString().split('T')[0]}.zip`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+
+    } catch (error) {
+      console.error("Error generating zip:", error);
+      onShowNotification("Gagal mengunduh QR Code masal", "error");
+    } finally {
+      setIsDownloadingAllQR(false);
+    }
+  };
 
   // --- QR Code Downloader Logic ---
   const handleDownloadQR = (student: Student) => {
@@ -1720,7 +1852,32 @@ const StudentList: React.FC<StudentListProps> = ({
           </div>
         ) : viewType === 'qr-codes' ? (
             /* QR CODE CARD LAYOUT */
-            <div className="p-6 bg-gray-50">
+            <div className="p-6 bg-gray-50 flex flex-col space-y-4">
+                <div className="flex justify-between items-center bg-indigo-50 p-4 rounded-xl border border-indigo-100 no-print">
+                    <div className="flex items-center text-indigo-800">
+                        <QrCodeIcon className="mr-3" size={24} />
+                        <div>
+                            <h3 className="font-bold">QR Code Siswa</h3>
+                            <p className="text-sm opacity-80">Total {filteredStudents.length} QR Code siap dicetak atau didownload</p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={handleDownloadAllQR}
+                        disabled={isDownloadingAllQR || filteredStudents.length === 0}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-bold flex items-center shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isDownloadingAllQR ? (
+                            <>
+                                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                                Memproses ZIP...
+                            </>
+                        ) : (
+                            <>
+                                <Download size={18} className="mr-2" /> Download Semua QR (.zip)
+                            </>
+                        )}
+                    </button>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {filteredStudents.map((student) => (
                         <div key={student.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 flex flex-col items-center text-center">

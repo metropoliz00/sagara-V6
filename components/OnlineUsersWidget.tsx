@@ -199,7 +199,7 @@ const OnlineUsersWidget: React.FC<OnlineUsersWidgetProps> = ({ currentUser }) =>
               </button>
             </div>
 
-            <div className="overflow-y-auto flex-1 p-2 sm:p-4 bg-gray-50/30">
+            <div className="overflow-y-auto custom-scrollbar flex-1 p-2 sm:p-4 bg-gray-50/30">
               {isDemo && onlineUsers.length === 0 && (
                 <div className="text-center p-6 text-gray-500">
                   <p className="text-sm">Tidak dapat melacak pengguna di Mode Demo karena tidak ada koneksi database aktif.</p>
