@@ -407,7 +407,8 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
                         <th style="width: 15%">Jam</th>
                         <th style="width: 20%">Mata Pelajaran</th>
                         <th style="width: 20%">Materi / Topik</th>
-                        <th style="width: 40%">Kegiatan Pembelajaran</th>
+                        <th style="width: 30%">Kegiatan Pembelajaran</th>
+                        <th style="width: 10%">Kehadiran</th>
                         <th style="width: 10%">Ket.</th>
                     </tr>
                 </thead>
@@ -419,6 +420,7 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
                             <td>${row.subject || ''}</td>
                             <td>${row.topic || ''}</td>
                             <td>${row.activities || ''}</td>
+                            <td>${row.isTeacherPresent ? 'Hadir' : 'Tidak Hadir'}</td>
                             <td>${row.followUp ? 'TL: '+row.followUp : (row.reflection ? 'Ref: '+row.reflection : '')}</td>
                         </tr>
                     `).join('')}
@@ -443,10 +445,11 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
                                 <th style="width: 10%">Jam</th>
                                 <th style="width: 15%">Mapel</th>
                                 <th style="width: 15%">Materi</th>
-                                <th style="width: 25%">Kegiatan</th>
+                                <th style="width: 20%">Kegiatan</th>
                                 <th style="width: 10%">Evaluasi</th>
                                 <th style="width: 10%">Refleksi</th>
                                 <th style="width: 10%">Tindak Lanjut</th>
+                                <th style="width: 10%">Kehadiran</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -460,6 +463,7 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
                                     <td>${row.evaluation || ''}</td>
                                     <td>${row.reflection || ''}</td>
                                     <td>${row.followUp || ''}</td>
+                                    <td>${row.isTeacherPresent ? 'Hadir' : 'Tidak Hadir'}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -821,6 +825,7 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
                                             <th className="p-2 w-32">Evaluasi</th>
                                             <th className="p-2 w-32">Refleksi</th>
                                             <th className="p-2 w-32">Tindak Lanjut</th>
+                                            <th className="p-2 w-24">Kehadiran</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100 print:divide-gray-400">
@@ -838,6 +843,13 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
                                                 <td className="p-2 align-top text-gray-600">{row.evaluation || '-'}</td>
                                                 <td className="p-2 align-top text-gray-600">{row.reflection || '-'}</td>
                                                 <td className="p-2 align-top text-gray-600">{row.followUp || '-'}</td>
+                                                <td className="p-2 align-top text-gray-600">
+                                                    {isBreak ? '-' : (
+                                                        <span className={`px-2 py-1 rounded text-[10px] font-bold ${row.isTeacherPresent ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                                                            {row.isTeacherPresent ? 'Hadir' : 'Tidak Hadir'}
+                                                        </span>
+                                                    )}
+                                                </td>
                                             </tr>
                                         )})}
                                     </tbody>
