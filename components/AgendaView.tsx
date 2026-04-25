@@ -262,7 +262,7 @@ const AgendaView: React.FC<AgendaViewProps> = ({
                   onChange={e => editingAgenda ? setEditingAgenda({...editingAgenda, title: e.target.value}) : setNewAgenda({...newAgenda, title: e.target.value})}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tanggal Mulai</label>
                   <input 
@@ -271,15 +271,6 @@ const AgendaView: React.FC<AgendaViewProps> = ({
                     className="w-full border p-2 rounded-xl text-sm focus:ring-2 focus:ring-[#5AB2FF] outline-none" 
                     value={editingAgenda ? editingAgenda.date : newAgenda.date} 
                     onChange={e => editingAgenda ? setEditingAgenda({...editingAgenda, date: e.target.value}) : setNewAgenda({...newAgenda, date: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tanggal Selesai (Opsional)</label>
-                  <input 
-                    type="date" 
-                    className="w-full border p-2 rounded-xl text-sm focus:ring-2 focus:ring-[#5AB2FF] outline-none" 
-                    value={editingAgenda ? (editingAgenda.endDate || '') : newAgenda.endDate} 
-                    onChange={e => editingAgenda ? setEditingAgenda({...editingAgenda, endDate: e.target.value}) : setNewAgenda({...newAgenda, endDate: e.target.value})}
                   />
                 </div>
               </div>

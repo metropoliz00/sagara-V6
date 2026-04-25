@@ -559,23 +559,28 @@ export const apiService = {
       class_id: agenda.classId,
       title: agenda.title,
       date: agenda.date,
-      end_date: agenda.endDate,
       time: agenda.time,
       type: agenda.type,
       completed: agenda.completed
     }]);
-    if (error) console.error("Error creating agenda:", error);
+    if (error) {
+      console.error("Error creating agenda:", error);
+      throw error;
+    }
   },
   updateAgenda: async (agenda: AgendaItem): Promise<void> => {
-    await supabase.from('agendas').update({
+    const { error } = await supabase.from('agendas').update({
       class_id: agenda.classId,
       title: agenda.title,
       date: agenda.date,
-      end_date: agenda.endDate,
       time: agenda.time,
       type: agenda.type,
       completed: agenda.completed
     }).eq('id', agenda.id);
+    if (error) {
+      console.error("Error updating agenda:", error);
+      throw error;
+    }
   },
   deleteAgenda: async (id: string): Promise<void> => {
     await supabase.from('agendas').delete().eq('id', id);
