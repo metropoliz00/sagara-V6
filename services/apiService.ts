@@ -383,7 +383,7 @@ export const apiService = {
         alpha: Number(s.alpha)
       },
       teacherNotes: s.teacher_notes
-    }));
+    })).sort((a: Student, b: Student) => a.name.localeCompare(b.name));
   },
 
   createStudent: async (student: Omit<Student, 'id'>): Promise<Student> => {

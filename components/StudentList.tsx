@@ -572,7 +572,7 @@ const StudentList: React.FC<StudentListProps> = ({
       student.nis.includes(searchTerm) ||
       (student.nisn && student.nisn.includes(searchTerm)) ||
       student.classId.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    ).sort((a, b) => a.name.localeCompare(b.name));
   }, [students, searchTerm]);
 
   const [isDownloadingAllQR, setIsDownloadingAllQR] = useState(false);

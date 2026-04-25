@@ -626,7 +626,7 @@ const AppContent: React.FC = () => {
     const newStudent = { ...studentWithClass, id: optimisticId };
 
     const oldStudents = students;
-    const newStudents = [...oldStudents, newStudent];
+    const newStudents = [...oldStudents, newStudent].sort((a, b) => a.name.localeCompare(b.name));
     setStudents(newStudents);
     cacheService.set('students', newStudents);
     handleShowNotification('Siswa berhasil ditambahkan.', 'success');
@@ -653,12 +653,12 @@ const AppContent: React.FC = () => {
   };
   const handleBatchAddStudents = async (newStudents: Omit<Student, 'id'>[]) => { 
     const batchWithClass = newStudents.map(s => ({ ...s, classId: s.classId || activeClassId || '1A' }));
-    if (isDemoMode) { const demoStudents = batchWithClass.map((s, i) => ({ ...s, id: Date.now().toString() + i })); setStudents([...students, ...demoStudents]); return; }
+    if (isDemoMode) { const demoStudents = batchWithClass.map((s, i) => ({ ...s, id: Date.now().toString() + i })); setStudents([...students, ...demoStudents].sort((a, b) => a.name.localeCompare(b.name))); return; }
     try { const res = await apiService.createStudentBatch(batchWithClass); if (res.status === 'success') { fetchData(); handleShowNotification(`Berhasil menambahkan ${newStudents.length} siswa!`, 'success'); } } catch (e) { handleShowNotification('Gagal upload batch siswa', 'error'); }
   };
   const handleUpdateStudent = async (updatedStudent: Student) => {
     const oldStudents = students;
-    const newStudents = oldStudents.map(s => s.id === updatedStudent.id ? updatedStudent : s);
+    const newStudents = oldStudents.map(s => s.id === updatedStudent.id ? updatedStudent : s).sort((a, b) => a.name.localeCompare(b.name));
     setStudents(newStudents);
     cacheService.set('students', newStudents);
     // No notification for updates to keep UI quiet
@@ -1451,7 +1451,7 @@ const AppContent: React.FC = () => {
       ] = results;
       
       if (fUsers !== null) setUsers(Array.isArray(fUsers) ? fUsers as User[] : []);
-      if (fStudents !== null) setStudents(Array.isArray(fStudents) ? fStudents as Student[] : []);
+      if (fStudents !== null) setStudents(Array.isArray(fStudents) ? (fStudents as Student[]).sort((a,b) => a.name.localeCompare(b.name)) : []);
       if (fAgendas !== null) setAgendas(Array.isArray(fAgendas) ? (fAgendas as AgendaItem[]).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()) : []);
       console.log("Fetched materials:", fMaterials);
       if (fMaterials !== null) setMaterials(Array.isArray(fMaterials) ? fMaterials as Material[] : []);
@@ -1980,7 +1980,7 @@ const AppContent: React.FC = () => {
                         isReadOnly={isGlobalReadOnly}
                         onRestore={(student) => {
                           setStudents(prev => {
-                            const newStudents = [...prev, student];
+                            const newStudents = [...prev, student].sort((a, b) => a.name.localeCompare(b.name));
                             cacheService.set('students', newStudents);
                             return newStudents;
                           });
