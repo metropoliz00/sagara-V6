@@ -804,7 +804,7 @@ export const apiService = {
     });
     return profiles;
   },
-  saveProfile: async (type: 'teacher' | 'school', data: any): Promise<void> => {
+  saveProfile: async (type: 'teacher' | 'school' | 'service_info', data: any): Promise<void> => {
     const { error } = await supabase.from('profiles').upsert({ id: type, data });
     if (error) {
       console.error("Error saving profile:", error);

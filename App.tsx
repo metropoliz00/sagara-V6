@@ -47,7 +47,8 @@ import BackupRestore from './components/BackupRestore';
 import SupportDocumentsView from './components/SupportDocumentsView';
 import SupervisorOverview from './components/SupervisorOverview'; 
 import SchoolAssetsAdmin from './components/SchoolAssetsAdmin'; 
-import BOSManagement from './components/BOSManagement'; // NEW IMPORT
+import BOSManagement from './components/BOSManagement';
+import ServiceInfo from './components/ServiceInfo';
 import BookLoanView from './components/BookLoanView';
 import GraduatesView from './components/GraduatesView';
 import AgendaView from './components/AgendaView';
@@ -61,7 +62,7 @@ import { ViewState, Student, AgendaItem, Material, Extracurricular, BehaviorLog,
 import { MOCK_SUBJECTS, MOCK_STUDENTS, MOCK_EXTRACURRICULARS } from './constants';
 import { apiService } from './services/apiService';
 import { cacheService } from './src/services/cacheService';
-import { Menu, Loader2, RefreshCw, AlertCircle, CheckCircle, WifiOff, ChevronDown, UserCog, LogOut, Filter, Bell, X, XCircle, Send } from 'lucide-react';
+import { Menu, Loader2, RefreshCw, AlertCircle, CheckCircle, WifiOff, ChevronDown, UserCog, LogOut, Filter, Bell, X, XCircle, Send, Info } from 'lucide-react';
 
 const App: React.FC = () => {
   useEffect(() => {
@@ -1745,6 +1746,22 @@ const AppContent: React.FC = () => {
                              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
                          )}
                      </button>
+
+                     {/* Service Info Button */}
+                     {currentUser && (
+                         <ServiceInfo 
+                             currentUser={currentUser} 
+                             onShowNotification={handleShowNotification} 
+                             trigger={
+                                 <button 
+                                     className="p-2 text-gray-500 hover:text-[#5AB2FF] hover:bg-[#CAF4FF]/50 rounded-full transition-colors"
+                                     title="Informasi Layanan"
+                                 >
+                                     <Info size={20} />
+                                 </button>
+                             }
+                         />
+                     )}
                  </div>
              )}
 
