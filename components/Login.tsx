@@ -2,8 +2,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/apiService';
-import { User, Lock, Loader2, ArrowRight, Sparkles, Eye, EyeOff, Code, X, Facebook, Instagram, MessageCircle, Music } from 'lucide-react';
+import { User, Lock, Loader2, ArrowRight, Sparkles, Eye, EyeOff, Code, X, Facebook, Instagram, MessageCircle, Music, MessageSquareText } from 'lucide-react';
 import { User as UserType, SchoolProfileData } from '../types';
+import ServiceInfo from './ServiceInfo';
 
 interface LoginProps {
   onLoginSuccess: (user: UserType) => void;
@@ -343,6 +344,19 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           </div>
         )}
       </div>
+
+      <ServiceInfo 
+        currentUser={null} 
+        onShowNotification={() => {}}
+        trigger={
+            <button 
+                className="fixed bottom-[5.5rem] right-6 z-20 w-14 h-14 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:border-blue-300 transition-all transform animate-slide-in-right"
+                title="Informasi Layanan"
+            >
+                <MessageSquareText size={24} />
+            </button>
+        }
+      />
 
       {/* Developer Info FAB */}
       {devInfo && (

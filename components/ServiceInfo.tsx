@@ -78,7 +78,7 @@ const ServiceInfo: React.FC<ServiceInfoProps> = ({ currentUser, onShowNotificati
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity">
           <div 
-            className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden transform transition-all animate-in fade-in zoom-in duration-300"
+            className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden transform transition-all animate-in fade-in zoom-in duration-300 mx-auto my-auto"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 flex justify-between items-center text-white shrink-0">
