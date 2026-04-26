@@ -397,7 +397,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Layanan Pengaduan & Kontak</p>
                             <div className="flex items-center justify-center gap-3">
                                 {devInfo.email && (
-                                    <a href={`mailto:${devInfo.email}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-full transition-colors" title="Email">
+                                    <a href={`mailto:${devInfo.email}`} className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-full transition-colors" title="Email">
                                         <Mail size={18} />
                                     </a>
                                 )}
