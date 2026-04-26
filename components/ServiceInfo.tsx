@@ -78,10 +78,10 @@ const ServiceInfo: React.FC<ServiceInfoProps> = ({ currentUser, onShowNotificati
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity">
           <div 
-            className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in fade-in zoom-in duration-300"
+            className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden transform transition-all animate-in fade-in zoom-in duration-300"
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 flex justify-between items-center text-white">
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 flex justify-between items-center text-white shrink-0">
               <div className="flex items-center space-x-3">
                 <div className="bg-white/20 p-2 rounded-xl">
                   <Info size={24} />
@@ -91,30 +91,31 @@ const ServiceInfo: React.FC<ServiceInfoProps> = ({ currentUser, onShowNotificati
               <button 
                 onClick={handleClose}
                 className="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors"
+                title="Tutup"
               >
                 <X size={20} />
               </button>
             </div>
 
             {/* Content */}
-            <div className="p-8">
+            <div className="p-8 overflow-y-auto flex-1">
               {isLoading ? (
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                 </div>
               ) : isEditing ? (
-                <div className="space-y-4">
+                <div className="space-y-4 h-full flex flex-col">
                   <label className="block text-sm font-semibold text-gray-700">Edit Informasi Layanan</label>
                   <textarea
                     value={draftText}
                     onChange={(e) => setDraftText(e.target.value)}
-                    className="w-full h-40 p-4 border-2 border-blue-100 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all resize-none text-gray-700 outline-none"
+                    className="w-full min-h-[200px] flex-1 p-4 border-2 border-blue-100 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all resize-y text-gray-700 outline-none"
                     placeholder="Ketik informasi layanan di sini..."
                   />
                 </div>
               ) : (
                 <div className="prose prose-blue max-w-none">
-                  <div className="bg-blue-50/50 p-6 rounded-2xl text-gray-700 whitespace-pre-wrap leading-relaxed shadow-inner border border-blue-100/50">
+                  <div className="bg-blue-50/50 p-6 rounded-2xl text-gray-700 whitespace-pre-wrap leading-relaxed shadow-inner border border-blue-100/50 break-words">
                     {infoText}
                   </div>
                 </div>
@@ -123,7 +124,7 @@ const ServiceInfo: React.FC<ServiceInfoProps> = ({ currentUser, onShowNotificati
 
             {/* Footer */}
             {isAdmin && (
-              <div className="px-8 pb-8 flex justify-end">
+              <div className="px-8 pb-8 shrink-0 flex justify-end">
                 {isEditing ? (
                   <div className="flex space-x-3 w-full">
                     <button
