@@ -11,9 +11,9 @@ interface DeveloperInfoTabProps {
 }
 
 const DeveloperInfoTab: React.FC<DeveloperInfoTabProps> = ({ school, setSchool, isReadOnly }) => {
-    const devInfo = school.developerInfo || { name: '', moto: '', photo: '' };
+    const devInfo: any = school.developerInfo || { name: '', moto: '', photo: '', whatsapp: '', facebook: '', instagram: '', tiktok: '', email: '' };
 
-    const handleFieldChange = (field: 'name' | 'moto' | 'whatsapp' | 'facebook' | 'instagram' | 'tiktok', value: string) => {
+    const handleFieldChange = (field: 'name' | 'moto' | 'whatsapp' | 'facebook' | 'instagram' | 'tiktok' | 'email', value: string) => {
         if (isReadOnly) return;
         setSchool(prev => ({
             ...prev,
@@ -132,6 +132,17 @@ const DeveloperInfoTab: React.FC<DeveloperInfoTabProps> = ({ school, setSchool, 
                         placeholder="https://tiktok.com/@..."
                         value={devInfo.tiktok || ''} 
                         onChange={e => handleFieldChange('tiktok', e.target.value)} 
+                        disabled={isReadOnly}
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-50 text-sm" 
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input 
+                        type="email" 
+                        placeholder="pengembang@example.com"
+                        value={devInfo.email || ''} 
+                        onChange={e => handleFieldChange('email', e.target.value)} 
                         disabled={isReadOnly}
                         className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-50 text-sm" 
                     />

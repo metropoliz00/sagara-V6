@@ -267,6 +267,11 @@ export interface SchoolProfileData {
     name: string;
     moto: string;
     photo: string;
+    whatsapp?: string;
+    facebook?: string;
+    instagram?: string;
+    tiktok?: string;
+    email?: string;
   };
 }
 

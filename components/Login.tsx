@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/apiService';
-import { User, Lock, Loader2, ArrowRight, Sparkles, Eye, EyeOff, Code, X, Facebook, Instagram, MessageCircle, Music, MessageSquareText } from 'lucide-react';
+import { User, Lock, Loader2, ArrowRight, Sparkles, Eye, EyeOff, Code, X, Facebook, Instagram, MessageCircle, Music, MessageSquareText, Mail } from 'lucide-react';
 import { User as UserType, SchoolProfileData } from '../types';
 import ServiceInfo from './ServiceInfo';
 
@@ -25,7 +25,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [initialLoading, setInitialLoading] = useState(true);
 
   // Developer Info State
-  const [devInfo, setDevInfo] = useState<{ name: string; moto: string; photo: string; whatsapp?: string; facebook?: string; instagram?: string; tiktok?: string; } | null>(null);
+  const [devInfo, setDevInfo] = useState<{ name: string; moto: string; photo: string; whatsapp?: string; facebook?: string; instagram?: string; tiktok?: string; email?: string; } | null>(null);
   const [isDevModalOpen, setIsDevModalOpen] = useState(false);
 
   // Poster Info State
@@ -350,7 +350,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         onShowNotification={() => {}}
         trigger={
             <button 
-                className="fixed bottom-[5.5rem] right-6 z-20 w-14 h-14 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:border-blue-300 transition-all transform animate-slide-in-right"
+                className="fixed bottom-24 right-6 z-20 w-14 h-14 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:border-blue-300 transition-all transform animate-slide-in-right"
                 title="Informasi Layanan"
             >
                 <MessageSquareText size={24} />
@@ -392,10 +392,15 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                     <p className="text-gray-500 mt-2 text-xs md:text-sm italic mb-6">"{devInfo.moto}"</p>
                     
                     {/* Social Links / Layanan Pengaduan */}
-                    {(devInfo.whatsapp || devInfo.facebook || devInfo.instagram || devInfo.tiktok) && (
+                    {(devInfo.whatsapp || devInfo.facebook || devInfo.instagram || devInfo.tiktok || devInfo.email) && (
                         <div className="w-full pt-4 border-t border-gray-100">
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Layanan Pengaduan & Kontak</p>
                             <div className="flex items-center justify-center gap-3">
+                                {devInfo.email && (
+                                    <a href={`mailto:${devInfo.email}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-full transition-colors" title="Email">
+                                        <Mail size={18} />
+                                    </a>
+                                )}
                                 {devInfo.whatsapp && (
                                     <a href={devInfo.whatsapp} target="_blank" rel="noopener noreferrer" className="p-2 bg-green-50 text-green-600 hover:bg-green-100 rounded-full transition-colors" title="WhatsApp">
                                         <MessageCircle size={18} />
