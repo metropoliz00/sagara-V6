@@ -691,10 +691,10 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
           try {
               const today = getLocalISODate(new Date());
               const targetClassId = student.classId || getRealClassId(student.id);
-              const payload = [{ studentId: student.id, classId: targetClassId, status: 'present', notes: 'Via Scan' }];
+              const payload = { studentId: student.id, classId: targetClassId, status: 'present', notes: 'Via Scan' };
 
               if (!isDemoMode) {
-                  await apiService.saveAttendance(today, payload as any);
+                  await (apiService as any).saveSingleScanAttendance(today, payload);
                   onRefreshData(); 
                   onShowNotification(`Absensi ${student.name} (${targetClassId}) berhasil dicatat.`, 'success');
               } else {

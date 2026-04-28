@@ -894,6 +894,27 @@ export const apiService = {
       await supabase.from('attendance').upsert({ id, records: classGroups[classId] });
     }
   },
+  saveSingleScanAttendance: async (date: string, scanRecord: any): Promise<void> => {
+    const classId = scanRecord.classId;
+    if (!classId) return;
+    const id = `${classId}_${date}`;
+    
+    const { data } = await supabase.from('attendance').select('records').eq('id', id).single();
+    
+    let existingRecords: any[] = [];
+    if (data && data.records && Array.isArray(data.records)) {
+      existingRecords = data.records;
+    }
+    
+    const existingIndex = existingRecords.findIndex((r: any) => String(r.studentId) === String(scanRecord.studentId));
+    if (existingIndex >= 0) {
+      existingRecords[existingIndex] = { studentId: scanRecord.studentId, status: scanRecord.status, notes: scanRecord.notes || '' };
+    } else {
+      existingRecords.push({ studentId: scanRecord.studentId, status: scanRecord.status, notes: scanRecord.notes || '' });
+    }
+    
+    await supabase.from('attendance').upsert({ id, records: existingRecords });
+  },
   saveAttendanceBatch: async (batchData: { date: string, records: any[] }[], forceClasses?: string[]): Promise<void> => {
     const upserts: any[] = [];
     const classGroupsByDate: Record<string, Record<string, any[]>> = {};
