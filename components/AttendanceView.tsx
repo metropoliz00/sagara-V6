@@ -686,12 +686,13 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
           oscillator.start();
           setTimeout(() => oscillator.stop(), 200);
 
-          setLastScannedStudent({ name: student.name, time: new Date().toLocaleTimeString() });
+          const scanTime = new Date().toLocaleTimeString('id-ID').replace(/\./g, ':');
+          setLastScannedStudent({ name: student.name, time: scanTime });
           
           try {
               const today = getLocalISODate(new Date());
               const targetClassId = student.classId || getRealClassId(student.id);
-              const payload = { studentId: student.id, classId: targetClassId, status: 'present', notes: 'Via Scan' };
+              const payload = { studentId: student.id, classId: targetClassId, status: 'present', notes: `Via Scan ${scanTime}` };
 
               if (!isDemoMode) {
                   await (apiService as any).saveSingleScanAttendance(today, payload);
