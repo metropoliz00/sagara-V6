@@ -686,7 +686,8 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
           oscillator.start();
           setTimeout(() => oscillator.stop(), 200);
 
-          const scanTime = new Date().toLocaleTimeString('id-ID').replace(/\./g, ':');
+          const now = new Date();
+          const scanTime = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\./g, ':');
           setLastScannedStudent({ name: student.name, time: scanTime });
           
           try {
