@@ -876,31 +876,6 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                       })}
                   </div>
 
-                  {/* Integrated Applications (Mini Grid for Student) */}
-                  {employmentLinks && employmentLinks.length > 0 && (
-                      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                          <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">Aplikasi Terintegrasi</h3>
-                          <div className="grid grid-cols-5 gap-3">
-                              {employmentLinks.map((link) => (
-                                  <a 
-                                      key={link.id} 
-                                      href={link.url} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="flex flex-col items-center justify-center aspect-square rounded-xl bg-gray-50 border border-gray-100 p-2 hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm active:scale-95"
-                                      title={link.title}
-                                  >
-                                      {link.icon ? (
-                                          <img src={link.icon} alt={link.title} className="w-full h-full object-contain" />
-                                      ) : (
-                                          <Link2 className="text-gray-400 w-5 h-5" />
-                                      )}
-                                  </a>
-                              ))}
-                          </div>
-                      </div>
-                  )}
-
                   {/* 1. Catatan Guru - HIGHLIGHTED */}
                   {student.teacherNotes && (
                       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 rounded-2xl shadow-lg text-white animate-fade-in relative overflow-hidden">
