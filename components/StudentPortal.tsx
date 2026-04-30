@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Student, GradeRecord, LiaisonLog, AgendaItem, Material, BehaviorLog, PermissionRequest, KarakterAssessment, KARAKTER_INDICATORS, KarakterIndicatorKey, LearningDocumentation, BookLoan, ScheduleItem, SchoolProfileData, Graduate } from '../types';
+import { Student, GradeRecord, LiaisonLog, AgendaItem, Material, BehaviorLog, PermissionRequest, KarakterAssessment, KARAKTER_INDICATORS, KarakterIndicatorKey, LearningDocumentation, BookLoan, ScheduleItem, SchoolProfileData, Graduate, EmploymentLink } from '../types';
 import { MOCK_SUBJECTS, CALENDAR_CODES, PREFILLED_CALENDAR_2025, HOLIDAY_DESCRIPTIONS_2025_2026, WEEKDAYS } from '../constants';
 import { 
   User, Calendar, Send, FileText, CheckCircle, XCircle, 
@@ -10,7 +10,7 @@ import {
   MapPin, CheckSquare, X, Medal, Heart, MessageCircle, Trophy,
   Edit, Save, Loader2, PlusCircle, History, MessageSquare,
   ClipboardList, Bell, Activity, Sparkles, GraduationCap, ChevronDown,
-  Camera, ChevronLeft, ChevronRight,
+  Camera, ChevronLeft, ChevronRight, Link2,
   Sun, Moon, CloudSun, Sunset, Coffee, Youtube
 } from 'lucide-react';
 import { apiService } from '../services/apiService';
@@ -36,6 +36,7 @@ interface StudentPortalProps {
   bookLoans: BookLoan[];
   materials?: Material[];
   schoolProfile?: SchoolProfileData;
+  employmentLinks?: EmploymentLink[];
 }
 
 type PortalTab = 'dashboard' | 'attendance' | 'liaison' | 'profile' | 'character' | 'materi' | 'sumatif' | 'schedule' | 'manual_book' | 'kelulusan';
@@ -66,7 +67,8 @@ const getSubjectColor = (subjectName: string) => {
 
 const StudentPortal: React.FC<StudentPortalProps> = ({
   student, allAttendance, grades, liaisonLogs, agendas, behaviorLogs, permissionRequests, karakterAssessments,
-  onSaveLiaison, onSavePermission, onSaveKarakter, onUpdateStudent, learningDocumentation = [], bookLoans = [], materials = [], schoolProfile
+  onSaveLiaison, onSavePermission, onSaveKarakter, onUpdateStudent, learningDocumentation = [], bookLoans = [], materials = [], schoolProfile,
+  employmentLinks = []
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -815,8 +817,8 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           </div>
       </div>
 
-      {/* 2. STICKY NAVIGATION */}
-      <div className="sticky top-0 z-30 bg-gray-50/95 backdrop-blur-md py-2 -mx-4 px-4 border-b border-gray-200 shadow-sm overflow-x-auto no-scrollbar">
+      {/* 2. STICKY NAVIGATION (Desktop Only) */}
+      <div className="hidden md:block sticky top-0 z-30 bg-gray-50/95 backdrop-blur-md py-2 -mx-4 px-4 border-b border-gray-200 shadow-sm overflow-x-auto no-scrollbar">
         <div className="flex gap-2 min-w-max pb-1">
             {TABS.map((tab) => {
                 const Icon = tab.icon;
@@ -844,6 +846,31 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           {/* --- DASHBOARD TAB --- */}
           {activeTab === 'dashboard' && (
               <div className="space-y-6">
+                  {/* Integrated Applications (Mini Grid for Student) - User Request 4/5 */}
+                  {employmentLinks && employmentLinks.length > 0 && (
+                      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Aplikasi Terintegrasi</h3>
+                          <div className="grid grid-cols-5 gap-3">
+                              {employmentLinks.map((link) => (
+                                  <a 
+                                      key={link.id} 
+                                      href={link.url} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="flex flex-col items-center justify-center aspect-square rounded-xl bg-gray-50 border border-gray-100 p-2 hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm active:scale-95"
+                                      title={link.title}
+                                  >
+                                      {link.icon ? (
+                                          <img src={link.icon} alt={link.title} className="w-full h-full object-contain" />
+                                      ) : (
+                                          <Link2 className="text-gray-400 w-6 h-6" />
+                                      )}
+                                  </a>
+                              ))}
+                          </div>
+                      </div>
+                  )}
+
                   {/* 1. Catatan Guru - HIGHLIGHTED */}
                   {student.teacherNotes && (
                       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 rounded-2xl shadow-lg text-white animate-fade-in relative overflow-hidden">
@@ -1968,6 +1995,41 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
               </div>,
               document.body
           )}
+
+          {/* --- MOBILE BOTTOM NAVIGATION (User Request 5) --- */}
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-t border-gray-100 flex justify-around items-center px-4 py-2 md:hidden shadow-[0_-8px_20px_rgba(0,0,0,0.08)]">
+              {[
+                  { id: 'dashboard', label: 'Beranda', icon: LayoutDashboard },
+                  { id: 'schedule', label: 'Jadwal', icon: Calendar },
+                  { id: 'liaison', label: 'Layanan', icon: Bell, badge: hasNewTeacherMessage },
+                  { id: 'profile', label: 'Akun', icon: User }
+              ].map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                      <button
+                          key={item.id}
+                          onClick={() => handleTabChange(item.id as PortalTab)}
+                          className={`flex flex-col items-center justify-center py-1 transition-all relative ${
+                              isActive ? 'text-[#5AB2FF]' : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                      >
+                          <div className={`p-1.5 rounded-xl transition-all ${isActive ? 'bg-blue-50' : ''}`}>
+                              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                          </div>
+                          <span className={`text-[10px] mt-0.5 font-bold ${isActive ? 'scale-105' : ''}`}>
+                              {item.label}
+                          </span>
+                          {item.badge && (
+                              <span className="absolute top-1 right-2 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full animate-pulse"></span>
+                          )}
+                          {isActive && (
+                              <span className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-[#5AB2FF] rounded-full"></span>
+                          )}
+                      </button>
+                  );
+              })}
+          </div>
       </div>
     </div>
   );
