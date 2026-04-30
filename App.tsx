@@ -1692,9 +1692,6 @@ const AppContent: React.FC = () => {
                     alt="Logo SAGARA"
                     className="h-8 w-8 object-contain"
                 />
-                <h1 className="text-xl font-extrabold tracking-tight flex items-center">
-                    <span className="text-gradient-brand">SAGARA</span>
-                </h1>
             </div>
 
             {canSelectClass && (
