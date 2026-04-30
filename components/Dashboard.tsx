@@ -791,7 +791,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             )}
         </div>
 
-        <div className="fixed bottom-8 right-8 z-40 flex flex-col items-end space-y-4">
+        <div className="fixed md:bottom-8 bottom-24 right-8 z-40 flex flex-col items-end space-y-4">
             {isFabOpen && (
             <div className="flex flex-col space-y-3 animate-fade-in-up">
                 <button onClick={() => navigate('/nilai')} className="flex items-center space-x-2 bg-white text-gray-700 px-4 py-2 rounded-full shadow-lg border border-gray-100 hover:scale-105 transition-transform">
