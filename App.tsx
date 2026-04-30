@@ -62,7 +62,7 @@ import { ViewState, Student, AgendaItem, Material, Extracurricular, BehaviorLog,
 import { MOCK_SUBJECTS, MOCK_STUDENTS, MOCK_EXTRACURRICULARS } from './constants';
 import { apiService } from './services/apiService';
 import { cacheService } from './src/services/cacheService';
-import { Menu, Loader2, RefreshCw, AlertCircle, CheckCircle, WifiOff, ChevronDown, UserCog, LogOut, Filter, Bell, X, XCircle, Send, Info } from 'lucide-react';
+import { Menu, Loader2, RefreshCw, AlertCircle, CheckCircle, WifiOff, ChevronDown, UserCog, LogOut, Filter, Bell, X, XCircle, Send, Info, LayoutDashboard, CalendarCheck, ClipboardList, FileText } from 'lucide-react';
 
 const App: React.FC = () => {
   useEffect(() => {
@@ -1832,7 +1832,7 @@ const AppContent: React.FC = () => {
             </div>
         )}
 
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8 scroll-smooth print:p-0 relative z-10">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8 pb-24 lg:pb-8 scroll-smooth print:p-0 relative z-10">
            <div className="max-w-[1440px] mx-auto print:w-full">
              {error && (
                 <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between no-print">
@@ -2370,6 +2370,59 @@ const AppContent: React.FC = () => {
       />
 
       <OnlineUsersWidget currentUser={currentUser} />
+
+      {/* --- MOBILE BOTTOM NAVIGATION (Staff/Admin/Supervisor) - User Request 4/30 --- */}
+      {!isStudentRole && (
+          <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-xl border-t border-[#CAF4FF] flex justify-around items-center px-1 py-1 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] h-16 pb-safe">
+              {[
+                  { id: 'dashboard', label: 'Beranda', icon: LayoutDashboard, path: '/dashboard' },
+                  { id: 'absensi', label: 'Absensi', icon: CalendarCheck, path: '/absensi' },
+                  { id: 'profile-center', label: 'Profil', icon: null, isProfile: true }, 
+                  { id: 'jurnal', label: 'Jurnal', icon: ClipboardList, path: '/jurnal-pembelajaran' },
+                  { id: 'nilai', label: 'Nilai', icon: FileText, path: '/nilai' }
+              ].map((item) => {
+                  if (item.isProfile) {
+                    return (
+                      <div key="profile-center" className="relative flex flex-col items-center flex-1">
+                        <button
+                            onClick={() => navigate('/profil')}
+                            className="w-14 h-14 rounded-full border-4 border-white bg-[#5AB2FF] shadow-lg flex items-center justify-center overflow-hidden transition-transform active:scale-95 absolute -top-11 z-20"
+                        >
+                            <img 
+                              src={teacherProfile.photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.fullName}`} 
+                              alt="Profile" 
+                              className="w-full h-full object-cover"
+                            />
+                        </button>
+                        <span className="text-[10px] mt-4 font-bold text-slate-400 opacity-70">
+                            Profil
+                        </span>
+                      </div>
+                    );
+                  }
+                  
+                  const Icon = item.icon!;
+                  const isActive = location.pathname === item.path;
+                  
+                  return (
+                      <button
+                          key={item.id}
+                          onClick={() => item.path && navigate(item.path)}
+                          className={`flex flex-col items-center justify-center py-1 transition-all relative flex-1 ${
+                              isActive ? 'text-[#5AB2FF]' : 'text-slate-400'
+                          }`}
+                      >
+                          <div className={`p-1.5 rounded-xl transition-all ${isActive ? 'bg-blue-50' : ''}`}>
+                              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                          </div>
+                          <span className={`text-[10px] mt-0.5 font-bold ${isActive ? 'opacity-100' : 'opacity-70'}`}>
+                              {item.label}
+                          </span>
+                      </button>
+                  );
+              })}
+          </div>
+      )}
     </div>
   );
 };
