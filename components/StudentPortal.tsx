@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Student, GradeRecord, LiaisonLog, AgendaItem, Material, BehaviorLog, PermissionRequest, KarakterAssessment, KARAKTER_INDICATORS, KarakterIndicatorKey, LearningDocumentation, BookLoan, ScheduleItem, SchoolProfileData, Graduate, EmploymentLink } from '../types';
 import { MOCK_SUBJECTS, CALENDAR_CODES, PREFILLED_CALENDAR_2025, HOLIDAY_DESCRIPTIONS_2025_2026, WEEKDAYS } from '../constants';
 import { 
-  User, Calendar, Send, FileText, CheckCircle, XCircle, 
+  User, Calendar, CalendarDays, Send, FileText, CheckCircle, XCircle, 
   BookOpen, LayoutDashboard, Clock,
   Star, HeartHandshake, ListTodo,
   MapPin, CheckSquare, X, Medal, Heart, MessageCircle, Trophy,
@@ -846,10 +846,40 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           {/* --- DASHBOARD TAB --- */}
           {activeTab === 'dashboard' && (
               <div className="space-y-6">
-                  {/* Integrated Applications (Mini Grid for Student) - User Request 4/5 */}
+                  {/* Feature Menu Grid (Mobile Only) - User Request 4/5 */}
+                  <div className="md:hidden grid grid-cols-4 gap-3 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                      {[
+                          { id: 'materi', label: 'Materi', icon: BookOpen, color: 'bg-orange-50 text-orange-600' },
+                          { id: 'sumatif', label: 'Sumatif', icon: FileText, color: 'bg-blue-50 text-blue-600' },
+                          { id: 'attendance', label: 'Izin', icon: Calendar, color: 'bg-green-50 text-green-600' },
+                          { id: 'character', label: '7KAIH', icon: HeartHandshake, color: 'bg-pink-50 text-pink-600' },
+                          { id: 'liaison', label: 'Layanan', icon: Bell, color: 'bg-indigo-50 text-indigo-600' },
+                          { id: 'schedule', label: 'Jadwal', icon: CalendarDays, color: 'bg-purple-50 text-purple-600' },
+                          { id: 'manual_book', label: 'Panduan', icon: BookOpen, color: 'bg-slate-50 text-slate-600' },
+                          ...(student?.classId?.startsWith('6') && schoolProfile?.isGraduationAnnounced 
+                              ? [{ id: 'kelulusan', label: 'Lulus', icon: GraduationCap, color: 'bg-rose-50 text-rose-600' }] 
+                              : [])
+                      ].map((item) => {
+                          const Icon = item.icon;
+                          return (
+                              <button
+                                  key={item.id}
+                                  onClick={() => handleTabChange(item.id as PortalTab)}
+                                  className="flex flex-col items-center justify-center space-y-1 active:scale-95 transition-transform"
+                              >
+                                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${item.color}`}>
+                                      <Icon size={24} />
+                                  </div>
+                                  <span className="text-[10px] font-bold text-gray-600 truncate w-full text-center">{item.label}</span>
+                              </button>
+                          );
+                      })}
+                  </div>
+
+                  {/* Integrated Applications (Mini Grid for Student) */}
                   {employmentLinks && employmentLinks.length > 0 && (
                       <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Aplikasi Terintegrasi</h3>
+                          <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">Aplikasi Terintegrasi</h3>
                           <div className="grid grid-cols-5 gap-3">
                               {employmentLinks.map((link) => (
                                   <a 
@@ -863,7 +893,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                                       {link.icon ? (
                                           <img src={link.icon} alt={link.title} className="w-full h-full object-contain" />
                                       ) : (
-                                          <Link2 className="text-gray-400 w-6 h-6" />
+                                          <Link2 className="text-gray-400 w-5 h-5" />
                                       )}
                                   </a>
                               ))}
