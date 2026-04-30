@@ -2394,9 +2394,6 @@ const AppContent: React.FC = () => {
                               className="w-full h-full object-cover object-top"
                             />
                         </button>
-                        <span className="text-[10px] mt-4 font-bold text-slate-400 opacity-70">
-                            Profil
-                        </span>
                       </div>
                     );
                   }
