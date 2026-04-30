@@ -434,23 +434,25 @@ const Dashboard: React.FC<DashboardProps> = ({
         {/* Links Grid - UPDATED COLORS */}
         {employmentLinks.length > 0 && (
           <div className="bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-[#CAF4FF]">
-             <div className="grid grid-cols-4 md:flex md:flex-wrap gap-2 md:gap-4 justify-center items-stretch">
+             <div className="grid grid-cols-5 md:flex md:flex-wrap gap-2 md:gap-4 justify-center items-stretch">
                 {employmentLinks.map((link, index) => (
                   <a 
                     key={link.id} 
                     href={link.url} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-start p-2 md:p-3 w-full h-full md:w-28 md:h-auto rounded-xl transition-all border-2 bg-white border-[#CAF4FF] hover:border-[#5AB2FF] shadow-sm md:hover:-translate-y-1 hover:shadow-lg group text-center"
+                    className="flex flex-col items-center justify-center p-2 rounded-xl transition-all border-2 bg-white border-[#CAF4FF] hover:border-[#5AB2FF] shadow-sm md:hover:-translate-y-1 hover:shadow-lg group text-center aspect-square md:w-28 md:h-auto"
                   >
-                    <div className="w-8 h-8 md:w-10 md:h-10 mb-1.5 md:mb-2 shrink-0 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center overflow-hidden md:group-hover:scale-110 transition-transform">
-                       {link.icon ? (
-                         <img src={link.icon} alt={link.title} className="w-full h-full object-contain" />
-                       ) : (
-                         <LinkIcon className="text-gray-400 md:w-5 md:h-5" size={16} />
-                       )}
+                    <div className="w-full h-full flex flex-col items-center justify-center">
+                      <div className="w-8 h-8 md:w-12 md:h-12 mb-0 md:mb-2 shrink-0 rounded-lg bg-white flex items-center justify-center overflow-hidden md:group-hover:scale-110 transition-transform">
+                         {link.icon ? (
+                           <img src={link.icon} alt={link.title} className="w-full h-full object-contain" />
+                         ) : (
+                           <LinkIcon className="text-gray-400 w-5 h-5 md:w-6 md:h-6" size={24} />
+                         )}
+                      </div>
+                      <span className="hidden md:block text-[10px] md:text-xs font-bold text-gray-700 leading-tight w-full break-words">{link.title}</span>
                     </div>
-                    <span className="text-[10px] md:text-xs font-bold text-gray-700 leading-tight w-full break-words">{link.title}</span>
                   </a>
                 ))}
              </div>
