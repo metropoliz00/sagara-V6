@@ -50,7 +50,7 @@ const DeveloperInfoTab: React.FC<DeveloperInfoTabProps> = ({ school, setSchool, 
                     onClick={() => !isReadOnly && document.getElementById('dev-photo-upload')?.click()}
                 >
                     {devInfo.photo ? (
-                        <img src={devInfo.photo} alt="Developer" className="w-full h-full object-cover"/>
+                        <img src={devInfo.photo} alt="Developer" className="w-full h-full object-cover object-top"/>
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400"><ImageIcon size={32}/></div>
                     )}

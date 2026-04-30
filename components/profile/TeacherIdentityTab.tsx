@@ -176,7 +176,7 @@ const TeacherIdentityTab: React.FC<TeacherIdentityTabProps> = ({ profile, setPro
                     <img 
                         src={profile.photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`} 
                         alt="Profile" 
-                        className="w-full h-full object-cover" 
+                        className="w-full h-full object-cover object-top" 
                     />
                 </div>
                 <div>

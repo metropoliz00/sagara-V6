@@ -780,7 +780,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           <div className="relative z-10 flex flex-col md:flex-row items-center md:items-end gap-6">
               <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white shrink-0">
                   {student.photo && !student.photo.startsWith('ERROR') ? (
-                      <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
+                      <img src={student.photo} alt={student.name} className="w-full h-full object-cover object-top" />
                   ) : (
                       <div className="w-full h-full flex items-center justify-center text-indigo-300 bg-indigo-50"><User size={48}/></div>
                   )}

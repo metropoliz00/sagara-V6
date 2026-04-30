@@ -1780,7 +1780,7 @@ const AppContent: React.FC = () => {
                         <img 
                           src={teacherProfile.photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.fullName}`} 
                           alt="Avatar" 
-                          className="w-full h-full object-cover" 
+                          className="w-full h-full object-cover object-top" 
                         />
                     </div>
                     <div className="hidden md:flex flex-col items-start mr-2">
@@ -2391,7 +2391,7 @@ const AppContent: React.FC = () => {
                             <img 
                               src={teacherProfile.photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.fullName}`} 
                               alt="Profile" 
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover object-top"
                             />
                         </button>
                         <span className="text-[10px] mt-4 font-bold text-slate-400 opacity-70">
