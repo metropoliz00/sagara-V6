@@ -2376,7 +2376,7 @@ const AppContent: React.FC = () => {
           <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-xl border-t border-[#CAF4FF] flex justify-around items-center px-1 py-1 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] h-16 pb-safe">
               {[
                   { id: 'dashboard', label: 'Beranda', icon: LayoutDashboard, path: '/dashboard' },
-                  { id: 'absensi', label: 'Absensi', icon: CalendarCheck, path: '/absensi' },
+                  { id: 'absensi', label: 'Absensi', icon: CalendarCheck, path: '/absensi?scan=true' },
                   { id: 'profile-center', label: 'Profil', icon: null, isProfile: true }, 
                   { id: 'jurnal', label: 'Jurnal', icon: ClipboardList, path: '/jurnal-pembelajaran' },
                   { id: 'nilai', label: 'Nilai', icon: FileText, path: '/nilai' }

@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { Student, Holiday, TeacherProfileData, SchoolProfileData } from '../types';
 import { apiService } from '../services/apiService';
@@ -58,9 +59,9 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
   teacherProfile, schoolProfile, classId, isReadOnly = false, userRole
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('rekap');
+  const location = useLocation();
   const canManageHolidays = userRole === 'admin' && !isReadOnly;
   
-
   const [selectedDate, setSelectedDate] = useState(getLocalISODate(new Date())); 
   const [dailyAttendance, setDailyAttendance] = useState<Record<string, {status: AttendanceStatus, notes: string}>>({});
   const [saving, setSaving] = useState(false);
@@ -101,6 +102,16 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
   const [confirmModal, setConfirmModal] = useState<{isOpen: boolean, action: () => void, message: string}>({
       isOpen: false, action: () => {}, message: ''
   });
+
+  // Logic to auto-open scanner if scan=true in URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('scan') === 'true') {
+      setIsScannerOpen(true);
+      // Optional: Clear the parameter so it doesn't reopen if the user navigates back
+      // window.history.replaceState({}, '', location.pathname);
+    }
+  }, [location.search]);
 
   // Pagination State
   const [rowsPerPage, setRowsPerPage] = useState(20);
