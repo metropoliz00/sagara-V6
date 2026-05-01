@@ -43,19 +43,17 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
     }
   };
 
-  const filteredJournals = useMemo(() => {
+  const groupedJournals = useMemo(() => {
     const academicExcludedKeywords = [
       'istirahat', 'pembiasaan', 'upacara', 'sholat', 'dhuha', 'dzuhur', 
       'senam', 'apel', 'istirahat 1', 'istirahat 2', 'upacara bendera'
     ];
 
-    return journals.filter(j => {
+    const filtered = journals.filter(j => {
       const matchesDate = j.date === filterDate;
       const subject = (j.subject || '').toLowerCase();
       
-      // Filter out non-academic activities
       const isAcademic = !academicExcludedKeywords.some(keyword => {
-        // Precise matching to avoid filtering out actual subjects that might contain keywords
         return subject === keyword || subject.includes(` ${keyword}`) || subject.startsWith(`${keyword} `);
       });
 
@@ -65,7 +63,33 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
         (j.classId || '').toLowerCase().includes(searchTerm.toLowerCase());
       
       return matchesDate && matchesSearch && isAcademic;
-    }).sort((a, b) => (a.timeSlot || '').localeCompare(b.timeSlot || ''));
+    });
+
+    // Grouping logic: date + classId + subject + teacherName
+    const groups: Record<string, LearningJournalEntry> = {};
+    
+    filtered.forEach(j => {
+      const key = `${j.date}-${j.classId}-${j.subject}-${j.teacherName}`;
+      if (!groups[key]) {
+        groups[key] = { ...j };
+      } else {
+        // If we already have a group, keep the one with feedback if available
+        // Or just keep the one where teacher is present
+        if (!groups[key].supervisionFeedback && j.supervisionFeedback) {
+          groups[key].supervisionFeedback = j.supervisionFeedback;
+          groups[key].supervisorName = j.supervisorName;
+        }
+        if (!groups[key].isTeacherPresent && j.isTeacherPresent) {
+          groups[key].isTeacherPresent = true;
+        }
+        // Merge time slots for display
+        if (j.timeSlot && !groups[key].timeSlot?.includes(j.timeSlot)) {
+          groups[key].timeSlot = `${groups[key].timeSlot}, ${j.timeSlot}`;
+        }
+      }
+    });
+
+    return Object.values(groups).sort((a, b) => (a.timeSlot || '').localeCompare(b.timeSlot || ''));
   }, [journals, filterDate, searchTerm]);
 
   const handleSaveFeedback = async () => {
@@ -73,27 +97,34 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
 
     setIsSubmitting(true);
     try {
-      // Find all entries for this date/class to update the batch
-      const entriesForDay = journals.filter(j => j.date === selectedEntry.date && j.classId === selectedEntry.classId);
+      // Since we grouped them, we should find ALL specific entries that belong to this group
+      // and update them with the same feedback.
+      const entriesToUpdate = journals.filter(j => 
+        j.date === selectedEntry.date && 
+        j.classId === selectedEntry.classId && 
+        j.subject === selectedEntry.subject && 
+        j.teacherName === selectedEntry.teacherName
+      );
       
-      const updatedEntries = entriesForDay.map(j => {
-        if (j.id === selectedEntry.id) {
-          return {
-            ...j,
-            supervisionFeedback: feedback,
-            supervisorName: currentUser?.fullName || 'Supervisor',
-            feedbackRead: false
-          };
-        }
-        return j;
-      });
+      const updatedEntries = entriesToUpdate.map(j => ({
+        ...j,
+        supervisionFeedback: feedback,
+        supervisorName: currentUser?.fullName || 'Supervisor',
+        feedbackRead: false
+      }));
 
       await apiService.saveLearningJournalBatch(updatedEntries);
-      onShowNotification("Umpan balik berhasil disimpan", "success");
+      onShowNotification("Umpan balik per mata pelajaran berhasil disimpan", "success");
       
-      // Refresh local state
+      // Update local state for all matching journals
       setJournals(prev => prev.map(j => {
-        if (j.id === selectedEntry.id) {
+        const isMatch = 
+          j.date === selectedEntry.date && 
+          j.classId === selectedEntry.classId && 
+          j.subject === selectedEntry.subject && 
+          j.teacherName === selectedEntry.teacherName;
+        
+        if (isMatch) {
           return {
             ...j,
             supervisionFeedback: feedback,
@@ -115,12 +146,12 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
   };
 
   const stats = useMemo(() => {
-    const totalToday = filteredJournals.length;
-    const withFeedback = filteredJournals.filter(j => j.supervisionFeedback).length;
-    const attendance = filteredJournals.filter(j => j.isTeacherPresent).length;
+    const totalToday = groupedJournals.length;
+    const withFeedback = groupedJournals.filter(j => j.supervisionFeedback).length;
+    const attendance = groupedJournals.filter(j => j.isTeacherPresent).length;
 
     return { totalToday, withFeedback, attendance };
-  }, [filteredJournals]);
+  }, [groupedJournals]);
 
   return (
     <div className="space-y-6 animate-fade-in pb-20">
@@ -175,7 +206,7 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
           <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-gray-500 font-medium">Memuat data jurnal...</p>
         </div>
-      ) : filteredJournals.length === 0 ? (
+      ) : groupedJournals.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-gray-300 text-center px-4">
           <div className="p-4 bg-gray-100 rounded-full text-gray-400 mb-4">
             <BookOpen size={32} />
@@ -184,8 +215,8 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
           <p className="text-gray-500 text-sm max-w-xs mt-1">Belum ada guru yang mengisi jurnal untuk tanggal ini atau kriteria pencarian Anda.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {filteredJournals.map((journal) => (
+        <div className="grid grid-cols-1 gap-3">
+          {groupedJournals.map((journal) => (
             <motion.div 
               layout
               key={journal.id}
@@ -197,19 +228,19 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
             >
               <div className="p-4 flex items-center gap-4">
                 {/* Status Indicator */}
-                <div className={`w-1.5 h-12 rounded-full ${journal.isTeacherPresent ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                <div className={`w-1.5 h-14 rounded-full ${journal.isTeacherPresent ? 'bg-emerald-500' : 'bg-rose-500'}`} />
 
                 {/* Details */}
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">Pelajaran</p>
-                    <h4 className="font-bold text-gray-800 text-sm leading-tight flex items-center gap-2">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase leading-none">Pelajaran</p>
+                    <h4 className="font-extrabold text-gray-800 text-sm leading-tight flex items-center gap-2">
                        {journal.subject}
                        <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[9px] rounded-md font-black">
                          {journal.classId}
                        </span>
                     </h4>
-                    <p className="text-[10px] text-gray-500 mt-1 line-clamp-1 italic">"{journal.topic}"</p>
+                    <p className="text-[10px] text-gray-500 line-clamp-1 italic">"{journal.topic}"</p>
                   </div>
 
                   <div>
@@ -217,25 +248,31 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
                     <p className="font-bold text-gray-700 text-sm truncate">
                       {journal.teacherName || `Guru Kelas ${journal.classId}`}
                     </p>
-                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-400">
-                      <Clock size={10} /> {journal.timeSlot}
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500">
+                        <Clock size={11} className="text-indigo-400" /> {journal.timeSlot}
+                      </div>
+                      <div className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider ${journal.isTeacherPresent ? 'text-emerald-600' : 'text-rose-500'}`}>
+                        {journal.isTeacherPresent ? <CheckCircle2 size={11}/> : <AlertCircle size={11}/>}
+                        {journal.isTeacherPresent ? 'Guru Hadir' : 'Guru Tidak Hadir'}
+                      </div>
                     </div>
                   </div>
 
                   <div className="md:col-span-2 flex justify-end gap-2">
                     {journal.supervisionFeedback ? (
-                      <div className="flex-1 bg-white p-2 rounded-xl border border-gray-100 flex items-start gap-2 max-w-md">
-                        <MessageSquare size={12} className="text-emerald-500 mt-0.5 shrink-0" />
-                        <div>
-                          <p className="text-[9px] text-gray-400 font-bold uppercase">Umpan Balik</p>
-                          <p className="text-xs text-gray-600 line-clamp-1 italic">"{journal.supervisionFeedback}"</p>
+                      <div className="flex-1 bg-white p-2.5 rounded-xl border border-gray-100 flex items-start gap-2 max-w-md shadow-sm">
+                        <MessageSquare size={14} className="text-emerald-500 mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[9px] text-gray-400 font-bold uppercase mb-0.5">Umpan Balik</p>
+                          <p className="text-xs text-gray-600 line-clamp-2 italic leading-tight">"{journal.supervisionFeedback}"</p>
                         </div>
                         <button 
                           onClick={() => {
                             setSelectedEntry(journal);
                             setFeedback(journal.supervisionFeedback || '');
                           }}
-                          className="ml-auto p-1 text-gray-400 hover:text-indigo-600 transition-colors"
+                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-gray-50 rounded-lg transition-colors"
                         >
                           <Filter size={14} />
                         </button>
@@ -246,7 +283,7 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
                           setSelectedEntry(journal);
                           setFeedback('');
                         }}
-                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-sm"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-black hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 active:scale-95"
                       >
                          <MessageSquare size={14} />
                          Input Respon
