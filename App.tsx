@@ -2279,6 +2279,7 @@ const AppContent: React.FC = () => {
                         schoolAssets={schoolAssets}
                         bosTransactions={bosTransactions}
                         currentUser={currentUser}
+                        activeClassId={activeClassId}
                         onShowNotification={handleShowNotification}
                     />
                 } />

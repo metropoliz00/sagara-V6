@@ -11,11 +11,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface LearningMonitoringViewProps {
   currentUser: AppUser | null;
+  activeClassId: string;
   onShowNotification: (message: string, type: 'success' | 'error' | 'warning') => void;
 }
 
 const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({ 
   currentUser, 
+  activeClassId,
   onShowNotification 
 }) => {
   const [journals, setJournals] = useState<LearningJournalEntry[]>([]);
@@ -51,6 +53,7 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
 
     const filtered = journals.filter(j => {
       const matchesDate = j.date === filterDate;
+      const matchesClass = j.classId === activeClassId;
       const subject = (j.subject || '').toLowerCase();
       
       const isAcademic = !academicExcludedKeywords.some(keyword => {
@@ -59,10 +62,9 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
 
       const matchesSearch = 
         (j.teacherName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (j.subject || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (j.classId || '').toLowerCase().includes(searchTerm.toLowerCase());
+        (j.subject || '').toLowerCase().includes(searchTerm.toLowerCase());
       
-      return matchesDate && matchesSearch && isAcademic;
+      return matchesDate && matchesClass && matchesSearch && isAcademic;
     });
 
     // Grouping logic: date + classId + subject + teacherName

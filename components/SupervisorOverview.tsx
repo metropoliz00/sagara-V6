@@ -24,11 +24,12 @@ interface SupervisorOverviewProps {
   schoolAssets: SchoolAsset[];
   bosTransactions: BOSTransaction[]; // NEW PROP
   currentUser: User | null;
+  activeClassId: string;
   onShowNotification: (message: string, type: 'success' | 'error' | 'warning') => void;
 }
 
 const SupervisorOverview: React.FC<SupervisorOverviewProps> = ({
-  students, users, attendanceRecords, grades, liaisonLogs, permissionRequests, counselingLogs, extracurriculars, inventory, schoolAssets, bosTransactions, currentUser, onShowNotification
+  students, users, attendanceRecords, grades, liaisonLogs, permissionRequests, counselingLogs, extracurriculars, inventory, schoolAssets, bosTransactions, currentUser, onShowNotification, activeClassId
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'monitoring'>('overview');
   const [activeModal, setActiveModal] = useState<'permissions' | 'discipline' | 'incomplete' | null>(null);
@@ -253,6 +254,7 @@ const SupervisorOverview: React.FC<SupervisorOverviewProps> = ({
           <LearningMonitoringView 
             currentUser={currentUser}
             onShowNotification={onShowNotification}
+            activeClassId={activeClassId}
           />
         ) : (
           <>

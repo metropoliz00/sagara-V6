@@ -161,6 +161,7 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
         schoolAssets={schoolAssets}
         bosTransactions={bosTransactions}
         currentUser={null} // We don't have it here but we can pass null or find it
+        activeClassId={activeClassId}
         onShowNotification={(msg: string, type: 'success' | 'error' | 'warning') => {}}
       />
     );
