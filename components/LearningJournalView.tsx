@@ -6,7 +6,7 @@ import { getLocalISODate } from '../utils/dateUtils';
 import { 
   Save, Calendar, Printer, Plus, Trash2, Loader2, 
   ChevronLeft, ChevronRight, NotebookPen, RefreshCw,
-  LayoutList, CalendarRange, Coffee, CheckCircle
+  LayoutList, CalendarRange, Coffee, CheckCircle, MessageSquare
 } from 'lucide-react';
 
 interface LearningJournalViewProps {
@@ -769,6 +769,27 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
                                     }</td>
                                     <td className="p-3 border text-center no-print align-middle">
                                         <div className="flex flex-col items-center gap-2">
+                                            {row.supervisionFeedback && (
+                                                <div 
+                                                    onClick={() => {
+                                                        if (!row.feedbackRead && row.id && !row.id.startsWith('temp-') && !row.id.startsWith('manual-')) {
+                                                            apiService.markJournalFeedbackAsRead(row.id, classId);
+                                                            setEntries(prev => prev.map(e => e.id === row.id ? { ...e, feedbackRead: true } : e));
+                                                        }
+                                                    }}
+                                                    className={`p-1.5 rounded-lg border transition-all cursor-help relative ${
+                                                        !row.feedbackRead 
+                                                        ? 'bg-amber-50 border-amber-300 text-amber-700 animate-pulse' 
+                                                        : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                                                    }`}
+                                                    title={`Umpan Balik: ${row.supervisionFeedback}`}
+                                                >
+                                                    <MessageSquare size={16} />
+                                                    {!row.feedbackRead && (
+                                                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 border border-white rounded-full"></span>
+                                                    )}
+                                                </div>
+                                            )}
                                             <button 
                                                 onClick={() => handleTogglePresence(idx)}
                                                 disabled={disabled}

@@ -5,13 +5,13 @@ import {
   PieChart, Pie, Cell, RadialBarChart, RadialBar, Legend 
 } from 'recharts';
 import PaperPlaneIcon from './PaperPlaneIcon';
-import { Student, AgendaItem, Holiday, ViewState, GradeRecord, Subject, EmploymentLink, PermissionRequest, SchoolProfileData, LearningDocumentation, LearningReport } from '../types';
+import { Student, AgendaItem, Holiday, ViewState, GradeRecord, Subject, EmploymentLink, PermissionRequest, SchoolProfileData, LearningDocumentation, LearningReport, LearningJournalEntry } from '../types';
 import { 
   Users, UserCheck, Calendar, FileText, TrendingUp, 
   Plus, Send, Bell, ChevronRight, CheckCircle, AlertCircle, 
   GraduationCap, BookOpen, Clock, CalendarRange,
   Activity, XCircle, ExternalLink, Link as LinkIcon, Mail, Info, Camera, ChevronLeft,
-  Sun, Moon, CloudSun, Sunset
+  Sun, Moon, CloudSun, Sunset, MessageSquare
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -33,6 +33,7 @@ interface DashboardProps {
   hasNewMessages?: boolean;
   unreadMessageCount?: number;
   kktpMap?: Record<string, number>;
+  learningJournals?: LearningJournalEntry[];
 }
 
 const COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316', '#14B8A6', '#6366F1', '#84CC16', '#D946EF'];
@@ -46,7 +47,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   learningDocumentation = [],
   learningReports = [],
   hasNewMessages = false, unreadMessageCount = 0,
-  kktpMap = {}
+  kktpMap = {},
+  learningJournals = []
 }) => {
   const navigate = useNavigate();
   const [isFabOpen, setIsFabOpen] = useState(false);
@@ -668,6 +670,58 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 </div>
                             );
                         })
+                    )}
+                </div>
+            </div>
+
+            {/* NEW: Supervision Results Section */}
+            <div 
+                onClick={() => navigate('/jurnal-pembelajaran')}
+                className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+            >
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-gray-800 flex items-center">
+                        <Activity size={18} className="mr-2 text-rose-500" /> Hasil Supervisi
+                    </h3>
+                    {learningJournals.some(j => j.supervisionFeedback && !j.feedbackRead) && (
+                        <div className="flex items-center gap-1.5 bg-rose-50 px-2 py-1 rounded-full border border-rose-100 animate-pulse">
+                            <div className="w-2 h-2 bg-rose-500 rounded-full"></div>
+                            <span className="text-[10px] font-black text-rose-600 uppercase">BARU</span>
+                        </div>
+                    )}
+                </div>
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                    {learningJournals.filter(j => j.supervisionFeedback).length === 0 ? (
+                        <div className="flex flex-col items-center justify-center text-center py-6">
+                            <MessageSquare size={32} className="text-gray-200 mb-2" />
+                            <p className="text-xs text-gray-400 italic font-medium">Belum ada umpan balik supervisi.</p>
+                        </div>
+                    ) : (
+                        learningJournals
+                            .filter(j => j.supervisionFeedback)
+                            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                            .slice(0, 5)
+                            .map((journal, idx) => (
+                                <div key={journal.id} className={`p-3 rounded-xl border relative transition-all ${!journal.feedbackRead ? 'bg-rose-50 border-rose-100 ring-1 ring-rose-200 ring-offset-1' : 'bg-gray-50 border-gray-100'}`}>
+                                    <div className="flex justify-between items-start mb-1">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">
+                                            {formatLongDate(journal.date)}
+                                        </p>
+                                        {!journal.feedbackRead && (
+                                            <span className="w-2 h-2 bg-rose-500 rounded-full animate-ping"></span>
+                                        )}
+                                    </div>
+                                    <h4 className="text-xs font-bold text-gray-700 mb-1">{journal.subject} — {journal.topic}</h4>
+                                    <div className="flex items-start gap-2 bg-white/60 p-2 rounded-lg border border-white/80">
+                                        <MessageSquare size={12} className="text-rose-400 shrink-0 mt-0.5" />
+                                        <p className="text-xs text-gray-600 italic">"{journal.supervisionFeedback}"</p>
+                                    </div>
+                                    <div className="mt-2 text-[9px] font-bold text-rose-500 flex items-center justify-between">
+                                        <span>Supervisor: {journal.supervisorName || 'Kepala Sekolah'}</span>
+                                        {!journal.feedbackRead && <span className="text-rose-600 animate-pulse">KLIK UNTUK BACA</span>}
+                                    </div>
+                                </div>
+                            ))
                     )}
                 </div>
             </div>

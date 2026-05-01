@@ -7,9 +7,10 @@ import {
     ViewState, Student, AgendaItem, BehaviorLog, GradeRecord, Material,
     TeacherProfileData, SchoolProfileData, User, Holiday, KarakterAssessment, 
     EmploymentLink, LiaisonLog, PermissionRequest, InventoryItem, SchoolAsset, BOSTransaction, Extracurricular, LearningDocumentation, BookLoan,
-    Subject, LearningReport
+    Subject, LearningReport, LearningJournalEntry
 } from '../types';
 import { MOCK_SUBJECTS } from '../constants';
+import { apiService } from '../services/apiService';
 
 interface DashboardContainerProps {
   isStudentRole: boolean;
@@ -92,6 +93,22 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
   subjects,
   materials = []
 }) => {
+  const [learningJournals, setLearningJournals] = React.useState<LearningJournalEntry[]>([]);
+
+  React.useEffect(() => {
+    const fetchJournals = async () => {
+      if (!isStudentRole && activeClassId) {
+        try {
+          const data = await apiService.getLearningJournal(activeClassId);
+          setLearningJournals(data);
+        } catch (e) {
+          console.error("Error fetching journals for dashboard", e);
+        }
+      }
+    };
+    fetchJournals();
+  }, [activeClassId, isStudentRole]);
+
   if (isStudentRole) {
     if (!myStudentData) {
       return (
@@ -143,6 +160,8 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
         inventory={inventory}
         schoolAssets={schoolAssets}
         bosTransactions={bosTransactions}
+        currentUser={null} // We don't have it here but we can pass null or find it
+        onShowNotification={(msg: string, type: 'success' | 'error' | 'warning') => {}}
       />
     );
   }
@@ -167,6 +186,7 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
       hasNewMessages={hasNewMessages}
       unreadMessageCount={unreadMessageCount}
       kktpMap={kktpMap}
+      learningJournals={learningJournals}
     />
   );
 };

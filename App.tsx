@@ -2278,6 +2278,8 @@ const AppContent: React.FC = () => {
                         inventory={inventory} 
                         schoolAssets={schoolAssets}
                         bosTransactions={bosTransactions}
+                        currentUser={currentUser}
+                        onShowNotification={handleShowNotification}
                     />
                 } />
                 <Route path="/pendahuluan/*" element={

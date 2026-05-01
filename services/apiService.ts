@@ -1166,7 +1166,10 @@ export const apiService = {
             pendekatan: e.pendekatan,
             metode: e.metode,
             isTeacherPresent: e.isTeacherPresent,
-            teacherName: e.teacherName
+            teacherName: e.teacherName,
+            supervisionFeedback: e.supervisionFeedback,
+            supervisorName: e.supervisorName,
+            feedbackRead: e.feedbackRead
         }));
 
         return {
@@ -1192,6 +1195,49 @@ export const apiService = {
 
     const row = data[0];
     const newContent = row.content.filter((entry: any) => entry.id !== id);
+
+    await supabase
+      .from('jurnal_kelas')
+      .update({ content: newContent })
+      .eq('id', row.id);
+  },
+
+  getAllLearningJournals: async (): Promise<LearningJournalEntry[]> => {
+    const { data, error } = await supabase.from('jurnal_kelas').select('*');
+    if (error) return [];
+    
+    const entries: LearningJournalEntry[] = [];
+    data.forEach((row: any) => {
+        if (Array.isArray(row.content)) {
+            row.content.forEach((item: any) => {
+                entries.push({
+                    ...item,
+                    classId: row.class_id,
+                    date: row.date,
+                    day: row.day
+                });
+            });
+        }
+    });
+    return entries;
+  },
+
+  markJournalFeedbackAsRead: async (entryId: string, classId: string): Promise<void> => {
+    const { data, error } = await supabase
+      .from('jurnal_kelas')
+      .select('*')
+      .eq('class_id', classId)
+      .filter('content', 'cs', `[{"id": "${entryId}"}]`);
+    
+    if (error || !data || data.length === 0) return;
+
+    const row = data[0];
+    const newContent = row.content.map((entry: any) => {
+        if (entry.id === entryId) {
+            return { ...entry, feedbackRead: true };
+        }
+        return entry;
+    });
 
     await supabase
       .from('jurnal_kelas')

@@ -215,6 +215,9 @@ export interface LearningJournalEntry {
   metode?: string[];
   isTeacherPresent?: boolean;
   teacherName?: string;
+  supervisionFeedback?: string;
+  supervisorName?: string;
+  feedbackRead?: boolean;
 }
 
 export interface LearningDocumentation {

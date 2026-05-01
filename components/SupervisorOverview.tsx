@@ -6,9 +6,10 @@ import {
 } from 'recharts';
 import { 
   Users, Briefcase, TrendingDown, AlertTriangle, CheckCircle, 
-  MessageSquare, FileText, Activity, GraduationCap, Bell, UserX, X, Tent, Package, UserCheck, Shield, Building, Wallet, Coins, TrendingUp
+  MessageSquare, FileText, Activity, GraduationCap, Bell, UserX, X, Tent, Package, UserCheck, Shield, Building, Wallet, Coins, TrendingUp, BarChart3
 } from 'lucide-react';
 import { Student, User, GradeRecord, LiaisonLog, PermissionRequest, BehaviorLog, GradeData, Extracurricular, InventoryItem, SchoolAsset, BOSTransaction } from '../types';
+import LearningMonitoringView from './LearningMonitoringView';
 
 interface SupervisorOverviewProps {
   students: Student[];
@@ -22,11 +23,14 @@ interface SupervisorOverviewProps {
   inventory: InventoryItem[]; 
   schoolAssets: SchoolAsset[];
   bosTransactions: BOSTransaction[]; // NEW PROP
+  currentUser: User | null;
+  onShowNotification: (message: string, type: 'success' | 'error' | 'warning') => void;
 }
 
 const SupervisorOverview: React.FC<SupervisorOverviewProps> = ({
-  students, users, attendanceRecords, grades, liaisonLogs, permissionRequests, counselingLogs, extracurriculars, inventory, schoolAssets, bosTransactions
+  students, users, attendanceRecords, grades, liaisonLogs, permissionRequests, counselingLogs, extracurriculars, inventory, schoolAssets, bosTransactions, currentUser, onShowNotification
 }) => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'monitoring'>('overview');
   const [activeModal, setActiveModal] = useState<'permissions' | 'discipline' | 'incomplete' | null>(null);
   const [showAllAssets, setShowAllAssets] = useState(false);
   const [showAllInventory, setShowAllInventory] = useState(false);
@@ -216,19 +220,43 @@ const SupervisorOverview: React.FC<SupervisorOverviewProps> = ({
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div>
                 <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                    <Activity className="mr-3 text-indigo-600"/> Overview Kepala Sekolah
+                    <Activity className="mr-3 text-indigo-600"/> Supervisi & Monitoring
                 </h2>
-                <p className="text-gray-500 text-sm">Ringkasan eksekutif data akademik, kepegawaian, dan keuangan.</p>
+                <p className="text-gray-500 text-sm">Panel kendali untuk supervisor dan pimpinan sekolah.</p>
             </div>
             
-            <div className="flex items-center gap-3 bg-white p-2 rounded-xl border border-gray-200 shadow-sm mt-3 md:mt-0">
-                <div className="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-sm font-bold border border-indigo-100">
-                    Total: {students.length} Siswa
-                </div>
+            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200 mt-4 md:mt-0">
+                <button 
+                  onClick={() => setActiveTab('overview')}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${
+                    activeTab === 'overview' 
+                    ? 'bg-white text-indigo-600 shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <Activity size={16} /> Overview
+                </button>
+                <button 
+                  onClick={() => setActiveTab('monitoring')}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${
+                    activeTab === 'monitoring' 
+                    ? 'bg-white text-indigo-600 shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <BarChart3 size={16} /> Monitoring
+                </button>
             </div>
         </div>
 
-        {/* --- BOS FINANCIAL OVERVIEW (NEW SECTION) --- */}
+        {activeTab === 'monitoring' ? (
+          <LearningMonitoringView 
+            currentUser={currentUser}
+            onShowNotification={onShowNotification}
+          />
+        ) : (
+          <>
+            {/* --- BOS FINANCIAL OVERVIEW (NEW SECTION) --- */}
         <h3 className="text-lg font-bold text-gray-800 flex items-center">
             <Wallet className="mr-2 text-indigo-600" size={20} /> Pengelolaan BOS
         </h3>
@@ -608,6 +636,8 @@ const SupervisorOverview: React.FC<SupervisorOverviewProps> = ({
                     </div>
                 </div>
             </div>
+        )}
+          </>
         )}
     </div>
   );
