@@ -434,14 +434,14 @@ const Dashboard: React.FC<DashboardProps> = ({
         {/* Links Grid - UPDATED COLORS */}
         {employmentLinks.length > 0 && (
           <div className="bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-[#CAF4FF]">
-             <div className="grid grid-cols-5 md:flex md:flex-wrap gap-2 md:gap-4 justify-center items-stretch">
+              <div className="flex md:flex-wrap overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 gap-3 md:gap-4 justify-start md:justify-center items-stretch scrollbar-hide">
                 {employmentLinks.map((link, index) => (
                   <a 
                     key={link.id} 
                     href={link.url} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center p-2 rounded-xl transition-all border-2 bg-white border-[#CAF4FF] hover:border-[#5AB2FF] shadow-sm md:hover:-translate-y-1 hover:shadow-lg group text-center aspect-square md:w-28 md:h-auto"
+                    className="flex flex-col items-center justify-center p-2 rounded-xl transition-all border-2 bg-white border-[#CAF4FF] hover:border-[#5AB2FF] shadow-sm md:hover:-translate-y-1 hover:shadow-lg group text-center aspect-square w-20 h-20 md:w-28 md:h-28 shrink-0"
                   >
                     <div className="w-full h-full flex flex-col items-center justify-center">
                       <div className="w-8 h-8 md:w-12 md:h-12 mb-0 md:mb-2 shrink-0 rounded-lg bg-white flex items-center justify-center overflow-hidden md:group-hover:scale-110 transition-transform">
@@ -452,10 +452,12 @@ const Dashboard: React.FC<DashboardProps> = ({
                          )}
                       </div>
                       <span className="hidden md:block text-[10px] md:text-xs font-bold text-gray-700 leading-tight w-full break-words">{link.title}</span>
+                      {/* Mobile Label (optional but usually links need it if they aren't obvious) */}
+                      <span className="md:hidden text-[8px] font-bold text-gray-600 truncate w-full mt-1">{link.title}</span>
                     </div>
                   </a>
                 ))}
-             </div>
+              </div>
           </div>
         )}
 
