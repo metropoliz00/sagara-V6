@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Student, GradeRecord, LiaisonLog, AgendaItem, Material, BehaviorLog, PermissionRequest, KarakterAssessment, KARAKTER_INDICATORS, KarakterIndicatorKey, LearningDocumentation, BookLoan, ScheduleItem, SchoolProfileData, Graduate, EmploymentLink } from '../types';
+import { Student, GradeRecord, LiaisonLog, AgendaItem, Material, BehaviorLog, PermissionRequest, KarakterAssessment, KARAKTER_INDICATORS, KarakterIndicatorKey, LearningDocumentation, BookLoan, BookInventory, ScheduleItem, SchoolProfileData, Graduate, EmploymentLink } from '../types';
 import { MOCK_SUBJECTS, CALENDAR_CODES, PREFILLED_CALENDAR_2025, HOLIDAY_DESCRIPTIONS_2025_2026, WEEKDAYS } from '../constants';
 import { 
   User, Calendar, CalendarDays, Send, FileText, CheckCircle, XCircle, 
-  BookOpen, LayoutDashboard, Clock,
+  BookOpen, Book, LayoutDashboard, Clock,
   Star, HeartHandshake, ListTodo,
   MapPin, CheckSquare, X, Medal, Heart, MessageCircle, Trophy,
   Edit, Save, Loader2, PlusCircle, History, MessageSquare,
@@ -72,6 +72,24 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [inventory, setInventory] = useState<BookInventory[]>([]);
+  const [loadingInventory, setLoadingInventory] = useState(true);
+
+  useEffect(() => {
+    const fetchInventory = async () => {
+      if (!student.classId) return;
+      try {
+        setLoadingInventory(true);
+        const data = await apiService.getBookInventory(student.classId);
+        setInventory(data);
+      } catch (error) {
+        console.error("Failed to fetch inventory in StudentPortal:", error);
+      } finally {
+        setLoadingInventory(false);
+      }
+    };
+    fetchInventory();
+  }, [student.classId, bookLoans]);
 
   const tabPathMap: Record<string, PortalTab> = {
     '/dashboard-student': 'dashboard',
@@ -1217,6 +1235,64 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                               </tbody>
                           </table>
                       </div>
+                  </div>
+
+                  {/* 7. Ketersediaan Buku Paket (Visual Inventory) */}
+                  <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm animate-fade-in-up">
+                      <h3 className="font-bold text-gray-800 mb-4 flex items-center">
+                          <Book className="mr-2 text-indigo-500" size={20}/> Ketersediaan Buku Paket
+                      </h3>
+                      
+                      {loadingInventory ? (
+                          <div className="flex justify-center items-center p-8">
+                              <Loader2 className="animate-spin text-indigo-500" size={24} />
+                              <span className="ml-2 text-sm text-gray-500">Memuat data buku...</span>
+                          </div>
+                      ) : inventory.length === 0 ? (
+                          <div className="text-center p-8 text-gray-400 italic text-sm">
+                              Belum ada data stok buku paket.
+                          </div>
+                      ) : (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                              {inventory.map((book) => (
+                                  <div key={book.id} className="bg-gray-50 rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all group">
+                                      <div className="aspect-[3/4] bg-gray-200 relative overflow-hidden">
+                                          {book.coverUrl ? (
+                                              <img 
+                                                  src={book.coverUrl} 
+                                                  alt={book.name} 
+                                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                              />
+                                          ) : (
+                                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                  <Book size={40} />
+                                              </div>
+                                          )}
+                                          <div className="absolute top-2 right-2">
+                                              <span className={`px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm ${
+                                                  book.stock > 0 
+                                                  ? 'bg-emerald-500 text-white' 
+                                                  : 'bg-red-500 text-white'
+                                              }`}>
+                                                  {book.stock > 0 ? 'Tersedia' : 'Habis'}
+                                              </span>
+                                          </div>
+                                      </div>
+                                      <div className="p-3">
+                                          <div className="text-xs font-bold text-gray-800 truncate" title={book.name}>
+                                              {book.name}
+                                          </div>
+                                          <div className="flex justify-between items-center mt-1">
+                                              <span className="text-[10px] text-gray-500 uppercase font-semibold">Tersisa</span>
+                                              <span className={`text-xs font-bold ${book.stock < 5 ? 'text-red-500' : 'text-indigo-600'}`}>
+                                                  {book.stock} Eks
+                                              </span>
+                                          </div>
+                                      </div>
+                                  </div>
+                              ))}
+                          </div>
+                      )}
                   </div>
               </div>
           )}

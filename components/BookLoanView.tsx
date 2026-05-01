@@ -60,6 +60,15 @@ const BookLoanView: React.FC<BookLoanViewProps> = ({
              coverUrl: ''
           }));
           setInventory(initialData);
+          
+          // Pre-populate database with initial subjects if empty
+          if (!isDemoMode && classId) {
+            try {
+              await apiService.saveBookInventory(initialData);
+            } catch (err) {
+              console.error("Initial save failed:", err);
+            }
+          }
         } else {
           setInventory(data);
         }
@@ -122,7 +131,7 @@ const BookLoanView: React.FC<BookLoanViewProps> = ({
   };
 
   // Inventory Handlers
-  const handleUpdateStock = (id: string) => {
+  const handleUpdateStock = async (id: string) => {
     const updatedInventory = inventory.map(item => {
       if (item.id === id) {
         const diff = editStockValue - item.totalStock;
@@ -132,6 +141,17 @@ const BookLoanView: React.FC<BookLoanViewProps> = ({
     });
     setInventory(updatedInventory);
     setEditingBookId(null);
+
+    // Auto-save to database
+    if (!isDemoMode) {
+      try {
+        await apiService.saveBookInventory(updatedInventory);
+        onShowNotification('Stok buku berhasil diperbarui ke database!', 'success');
+      } catch (error) {
+        console.error("Failed to save inventory:", error);
+        onShowNotification('Gagal menyimpan perubahan ke database.', 'error');
+      }
+    }
   };
 
   const startEditing = (book: BookInventory) => {
@@ -151,6 +171,7 @@ const BookLoanView: React.FC<BookLoanViewProps> = ({
     const bookId = uploadingBookId;
     if (file && bookId) {
       try {
+        setLoadingInventory(true);
         // Compress image before saving to avoid Google Sheets 50k char limit
         const compressedBase64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
@@ -191,13 +212,22 @@ const BookLoanView: React.FC<BookLoanViewProps> = ({
           reader.onerror = (error) => reject(error);
         });
 
-        setInventory(prev => prev.map(item => 
+        const updatedInventory = inventory.map(item => 
           item.id === bookId ? { ...item, coverUrl: compressedBase64 } : item
-        ));
+        );
+        
+        setInventory(updatedInventory);
+
+        // Auto-save to database
+        if (!isDemoMode) {
+          await apiService.saveBookInventory(updatedInventory);
+          onShowNotification('Cover buku berhasil diupload dan disimpan!', 'success');
+        }
       } catch (error) {
-        console.error("Error compressing image:", error);
-        onShowNotification('Gagal memproses gambar. Coba gambar lain.', 'error');
+        console.error("Error processing image or saving:", error);
+        onShowNotification('Gagal memproses/menyimpan gambar. Coba gambar lain.', 'error');
       } finally {
+        setLoadingInventory(false);
         setUploadingBookId(null);
         if (fileInputRef.current) {
           fileInputRef.current.value = ''; // Reset input
