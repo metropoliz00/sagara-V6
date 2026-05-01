@@ -49,7 +49,20 @@ const BookLoanView: React.FC<BookLoanViewProps> = ({
       try {
         setLoadingInventory(true);
         const data = await apiService.getBookInventory(classId);
-        setInventory(data);
+        if (data.length === 0) {
+          const initialData: BookInventory[] = MOCK_SUBJECTS.map((s) => ({
+             id: `book-${classId}-${s.id}`,
+             classId,
+             subjectId: s.id,
+             name: s.name,
+             stock: 0,
+             totalStock: 0,
+             coverUrl: ''
+          }));
+          setInventory(initialData);
+        } else {
+          setInventory(data);
+        }
       } catch (error) {
         console.error("Failed to fetch book inventory:", error);
       } finally {
