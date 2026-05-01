@@ -44,13 +44,27 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
   };
 
   const filteredJournals = useMemo(() => {
+    const academicExcludedKeywords = [
+      'istirahat', 'pembiasaan', 'upacara', 'sholat', 'dhuha', 'dzuhur', 
+      'senam', 'apel', 'istirahat 1', 'istirahat 2', 'upacara bendera'
+    ];
+
     return journals.filter(j => {
       const matchesDate = j.date === filterDate;
+      const subject = (j.subject || '').toLowerCase();
+      
+      // Filter out non-academic activities
+      const isAcademic = !academicExcludedKeywords.some(keyword => {
+        // Precise matching to avoid filtering out actual subjects that might contain keywords
+        return subject === keyword || subject.includes(` ${keyword}`) || subject.startsWith(`${keyword} `);
+      });
+
       const matchesSearch = 
         (j.teacherName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (j.subject || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (j.classId || '').toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesDate && matchesSearch;
+      
+      return matchesDate && matchesSearch && isAcademic;
     }).sort((a, b) => (a.timeSlot || '').localeCompare(b.timeSlot || ''));
   }, [journals, filterDate, searchTerm]);
 
@@ -175,86 +189,70 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
             <motion.div 
               layout
               key={journal.id}
-              className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all hover:shadow-md ${
-                journal.supervisionFeedback ? 'border-emerald-100' : 'border-amber-100 ring-1 ring-amber-50'
+              className={`bg-white rounded-2xl border transition-all ${
+                journal.supervisionFeedback 
+                  ? 'border-gray-100' 
+                  : 'border-rose-200 bg-rose-50/10 ring-1 ring-rose-100 animate-pulse-slow'
               }`}
             >
-              <div className="p-5 flex flex-col md:flex-row gap-6">
-                {/* Time & Class Badge */}
-                <div className="md:w-40 flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start gap-2">
-                  <div className="flex items-center gap-2 text-gray-500">
-                    <Clock size={16} />
-                    <span className="text-sm font-bold">{journal.timeSlot || '-'}</span>
-                  </div>
-                  <div className="px-3 py-1 bg-indigo-600 text-white rounded-full text-xs font-black uppercase tracking-wider">
-                    KELAS {journal.classId}
-                  </div>
-                  <div className={`mt-2 flex items-center gap-1.5 text-xs font-bold ${journal.isTeacherPresent ? 'text-emerald-600' : 'text-red-500'}`}>
-                    {journal.isTeacherPresent ? <CheckCircle2 size={14}/> : <AlertCircle size={14}/>}
-                    {journal.isTeacherPresent ? 'GURU HADIR' : 'GURU TIDAK HADIR'}
-                  </div>
-                </div>
+              <div className="p-4 flex items-center gap-4">
+                {/* Status Indicator */}
+                <div className={`w-1.5 h-12 rounded-full ${journal.isTeacherPresent ? 'bg-emerald-500' : 'bg-rose-500'}`} />
 
-                {/* Info Section */}
-                <div className="flex-1 space-y-4">
-                   <div className="flex flex-col md:flex-row justify-between gap-4">
-                      <div className="flex items-start gap-3">
-                         <div className="p-2.5 bg-gray-100 rounded-xl text-gray-600 shrink-0">
-                            <User size={20} />
-                         </div>
-                         <div>
-                            <p className="text-xs font-bold text-gray-400 uppercase leading-none mb-1">Nama Guru</p>
-                            <h4 className="font-bold text-gray-800 text-lg leading-tight">{journal.teacherName || 'Unknown Teacher'}</h4>
-                            <p className="text-indigo-600 font-medium text-sm mt-1">{journal.subject}</p>
-                         </div>
-                      </div>
-                      <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex-1 md:max-w-xs">
-                         <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Materi</p>
-                         <p className="text-sm text-gray-700 font-medium italic">"{journal.topic}"</p>
-                      </div>
-                   </div>
+                {/* Details */}
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">Pelajaran</p>
+                    <h4 className="font-bold text-gray-800 text-sm leading-tight flex items-center gap-2">
+                       {journal.subject}
+                       <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[9px] rounded-md font-black">
+                         {journal.classId}
+                       </span>
+                    </h4>
+                    <p className="text-[10px] text-gray-500 mt-1 line-clamp-1 italic">"{journal.topic}"</p>
+                  </div>
 
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                         <p className="text-[10px] font-bold text-indigo-500 uppercase mb-1 flex items-center tracking-wider">
-                            <Info size={10} className="mr-1"/> Kegiatan & Refleksi
-                         </p>
-                         <p className="text-gray-600 line-clamp-3 leading-relaxed">{journal.activities}</p>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">Guru Pengajar</p>
+                    <p className="font-bold text-gray-700 text-sm truncate">
+                      {journal.teacherName || `Guru Kelas ${journal.classId}`}
+                    </p>
+                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-400">
+                      <Clock size={10} /> {journal.timeSlot}
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2 flex justify-end gap-2">
+                    {journal.supervisionFeedback ? (
+                      <div className="flex-1 bg-white p-2 rounded-xl border border-gray-100 flex items-start gap-2 max-w-md">
+                        <MessageSquare size={12} className="text-emerald-500 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase">Umpan Balik</p>
+                          <p className="text-xs text-gray-600 line-clamp-1 italic">"{journal.supervisionFeedback}"</p>
+                        </div>
+                        <button 
+                          onClick={() => {
+                            setSelectedEntry(journal);
+                            setFeedback(journal.supervisionFeedback || '');
+                          }}
+                          className="ml-auto p-1 text-gray-400 hover:text-indigo-600 transition-colors"
+                        >
+                          <Filter size={14} />
+                        </button>
                       </div>
-                      <div className="space-y-2">
-                        {journal.supervisionFeedback ? (
-                          <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 relative group">
-                            <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1 flex items-center tracking-wider">
-                              <MessageSquare size={10} className="mr-1"/> Umpan Balik Supervisor
-                            </p>
-                            <p className="text-gray-700 text-sm italic">"{journal.supervisionFeedback}"</p>
-                            <p className="text-[10px] text-emerald-500 mt-2 font-bold">— {journal.supervisorName}</p>
-                            
-                            <button 
-                              onClick={() => {
-                                setSelectedEntry(journal);
-                                setFeedback(journal.supervisionFeedback || '');
-                              }}
-                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-emerald-200 rounded-lg text-emerald-700"
-                            >
-                              <Filter size={14} />
-                            </button>
-                          </div>
-                        ) : (
-                          <button 
-                            onClick={() => {
-                              setSelectedEntry(journal);
-                              setFeedback('');
-                            }}
-                            className="w-full flex items-center justify-center gap-2 py-4 border-2 border-dashed border-indigo-200 rounded-xl text-indigo-500 font-bold hover:bg-indigo-50 hover:border-indigo-400 transition-all text-sm group"
-                          >
-                             <MessageSquare size={16} className="group-hover:scale-110 transition-transform" />
-                             Beri Umpan Balik
-                             <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                          </button>
-                        )}
-                      </div>
-                   </div>
+                    ) : (
+                      <button 
+                        onClick={() => {
+                          setSelectedEntry(journal);
+                          setFeedback('');
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-sm"
+                      >
+                         <MessageSquare size={14} />
+                         Input Respon
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </motion.div>
