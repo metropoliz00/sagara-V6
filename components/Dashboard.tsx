@@ -11,7 +11,7 @@ import {
   Plus, Send, Bell, ChevronRight, CheckCircle, AlertCircle, 
   GraduationCap, BookOpen, Clock, CalendarRange,
   Activity, XCircle, ExternalLink, Link as LinkIcon, Mail, Info, Camera, ChevronLeft,
-  Sun, Moon, CloudSun, Sunset, MessageSquare
+  Sun, Moon, CloudSun, Sunset, MessageSquare, User
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -711,7 +711,16 @@ const Dashboard: React.FC<DashboardProps> = ({
                                             <span className="w-2 h-2 bg-rose-500 rounded-full animate-ping"></span>
                                         )}
                                     </div>
-                                    <h4 className="text-xs font-bold text-gray-700 mb-1">{journal.subject} — {journal.topic}</h4>
+                                    <h4 className="text-xs font-bold text-gray-700 mb-1">
+                                        {journal.subject} — {journal.topic}
+                                        <span className="ml-2 px-1.5 py-0.5 bg-gray-200 text-[#555] rounded text-[8px] font-black uppercase">
+                                            KELAS {journal.classId}
+                                        </span>
+                                    </h4>
+                                    <div className="flex items-center gap-1 mb-2 text-[10px] font-bold text-gray-500">
+                                        <User size={10} className="text-gray-400" />
+                                        {journal.teacherName || 'Guru Pengajar'}
+                                    </div>
                                     <div className="flex items-start gap-2 bg-white/60 p-2 rounded-lg border border-white/80">
                                         <MessageSquare size={12} className="text-rose-400 shrink-0 mt-0.5" />
                                         <p className="text-xs text-gray-600 italic">"{journal.supervisionFeedback}"</p>
