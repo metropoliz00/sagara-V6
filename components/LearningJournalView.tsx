@@ -772,21 +772,27 @@ const LearningJournalView: React.FC<LearningJournalViewProps> = ({
                                             {row.supervisionFeedback && (
                                                 <div 
                                                     onClick={() => {
+                                                        showAlert(
+                                                            `Catatan dari ${row.supervisorName || 'Kepala Sekolah'}: \n\n"${row.supervisionFeedback}"`,
+                                                            'alert',
+                                                            'Umpan Balik Supervisi'
+                                                        );
+                                                        
                                                         if (!row.feedbackRead && row.id && !row.id.startsWith('temp-') && !row.id.startsWith('manual-')) {
                                                             apiService.markJournalFeedbackAsRead(row.id, classId);
                                                             setEntries(prev => prev.map(e => e.id === row.id ? { ...e, feedbackRead: true } : e));
                                                         }
                                                     }}
-                                                    className={`p-1.5 rounded-lg border transition-all cursor-help relative ${
+                                                    className={`p-1.5 rounded-lg border transition-all cursor-pointer relative hover:scale-110 active:scale-95 ${
                                                         !row.feedbackRead 
-                                                        ? 'bg-amber-50 border-amber-300 text-amber-700 animate-pulse' 
+                                                        ? 'bg-amber-50 border-amber-300 text-amber-700 animate-pulse ring-2 ring-amber-200 ring-offset-1' 
                                                         : 'bg-emerald-50 border-emerald-200 text-emerald-700'
                                                     }`}
-                                                    title={`Umpan Balik: ${row.supervisionFeedback}`}
+                                                    title="Klik untuk melihat umpan balik"
                                                 >
                                                     <MessageSquare size={16} />
                                                     {!row.feedbackRead && (
-                                                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 border border-white rounded-full"></span>
+                                                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 border border-white rounded-full"></span>
                                                     )}
                                                 </div>
                                             )}
