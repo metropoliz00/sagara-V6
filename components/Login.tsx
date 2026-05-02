@@ -191,7 +191,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           <img 
             src="https://www.image2url.com/r2/default/images/1776528081180-f5356afe-2059-4426-8309-4f5af1b9227e.png" 
             alt="Watermark" 
-            className="w-[500px] h-[500px] md:w-[700px] md:h-[700px] object-contain opacity-[0.30] grayscale animate-pulse-slow"
+            className="w-[500px] h-[500px] md:w-[700px] md:h-[700px] object-contain opacity-[0.01] grayscale animate-pulse-slow"
           />
       </div>
 
@@ -244,7 +244,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                </div>
             </div>
 
-            <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-[#CAF4FF] p-8 md:p-10 relative overflow-hidden">
+            <div className="bg-white backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-[#CAF4FF] p-8 md:p-10 relative overflow-hidden">
                 {/* Glossy Effect */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#5AB2FF] via-[#A0DEFF] to-[#CAF4FF]"></div>
                 
