@@ -377,4 +377,28 @@ export type ViewState =
   | 'support-docs' 
   | 'supervisor-overview'
   | 'school-assets'
-  | 'bos-admin';
+  | 'bos-admin'
+  | 'data-gtk';
+
+export interface GtkRecord {
+  id: string;
+  userId?: string;
+  nama: string;
+  nip: string;
+  nuptk: string;
+  jenisKelamin: 'L' | 'P' | '';
+  tempatLahir: string;
+  tanggalLahir: string;
+  ijazahTertinggi: string;
+  jabatan: string;
+  statusPegawai: string;
+  tmtPengangkatan: string;
+  mulaiBekerjaDiSini: string;
+  pangkatGolongan: string;
+  masaKerjaTahun: number;
+  masaKerjaBulan: number;
+  skTerakhir: string;
+  emailPribadi: string;
+  emailBelajar: string;
+  foto: string;
+}

@@ -36,6 +36,7 @@ const menuGroups = [
     title: 'Data Induk',
     icon: FolderOpen,
     items: [
+      { id: 'data-gtk', label: 'Data GTK', icon: Users, roles: ['admin', 'guru', 'supervisor'] },
       { id: 'siswa', label: 'Data Siswa', icon: Users, roles: ['admin', 'guru', 'supervisor'] },
       { id: 'data-lulusan', label: 'Data Lulusan', icon: Award, roles: ['admin', 'guru', 'supervisor'] },
     ]

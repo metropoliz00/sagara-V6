@@ -1082,6 +1082,16 @@ export const apiService = {
     return await supabase.from('guests').delete().eq('id', id);
   },
 
+  // --- GTK Data ---
+  getGtkData: async (): Promise<any[]> => {
+    const { data, error } = await supabase.from('class_config').select('data').eq('class_id', 'global_gtk_data').single();
+    if (error || !data) return [];
+    return data.data?.records || [];
+  },
+  saveGtkData: async (records: any[]): Promise<void> => {
+    await supabase.from('class_config').upsert({ class_id: 'global_gtk_data', data: { records } }, { onConflict: 'class_id' });
+  },
+
   // --- Class Config (Schedule, Piket, Seating, KKTP) ---
   getClassConfig: async (classId: string): Promise<{
       schedule: ScheduleItem[], 

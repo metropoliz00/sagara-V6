@@ -437,7 +437,8 @@ export type ViewState =
   | 'administrasi/dana-bos'
   | 'administrasi/peminjaman-buku'
   | 'sumatif'
-  | 'sumatif/manage';
+  | 'sumatif/manage'
+  | 'data-gtk';
 
 export type QuestionType = 'pg' | 'pgk' | 'bs';
 
@@ -512,4 +513,27 @@ export interface BookInventory {
   stock: number;
   totalStock: number;
   coverUrl?: string;
+}
+
+export interface GtkRecord {
+  id: string;
+  userId?: string;
+  nama: string;
+  nip: string;
+  nuptk: string;
+  jenisKelamin: 'L' | 'P' | '';
+  tempatLahir: string;
+  tanggalLahir: string;
+  ijazahTertinggi: string;
+  jabatan: string;
+  statusPegawai: string;
+  tmtPengangkatan: string;
+  mulaiBekerjaDiSini: string;
+  pangkatGolongan: string;
+  masaKerjaTahun: number;
+  masaKerjaBulan: number;
+  skTerakhir: string;
+  emailPribadi: string;
+  emailBelajar: string;
+  foto: string;
 }

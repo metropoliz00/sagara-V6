@@ -30,6 +30,7 @@ import ClassroomAdmin from './components/ClassroomAdmin';
 import TeacherProfile from './components/TeacherProfile';
 import AttendanceView from './components/AttendanceView';
 import GradesView from './components/GradesView';
+import GtkDataView from './components/GtkDataView';
 import CounselingView from './components/CounselingView';
 import ActivitiesView from './components/ActivitiesView';
 import IntroductionView from './components/IntroductionView';
@@ -58,7 +59,7 @@ import ManualBookView from './components/ManualBookView';
 import CustomModal from './components/CustomModal'; 
 import PaperPlaneIcon from './components/PaperPlaneIcon';
 import OnlineUsersWidget from './components/OnlineUsersWidget';
-import { ViewState, Student, AgendaItem, Material, Extracurricular, BehaviorLog, GradeRecord, TeacherProfileData, SchoolProfileData, User, Holiday, SikapAssessment, KarakterAssessment, EmploymentLink, LearningReport, LiaisonLog, PermissionRequest, LearningJournalEntry, SupportDocument, InventoryItem, SchoolAsset, BOSTransaction, LearningDocumentation, BookLoan, BookInventory, Sumatif } from './types';
+import { ViewState, Student, AgendaItem, Material, Extracurricular, BehaviorLog, GradeRecord, TeacherProfileData, SchoolProfileData, User, Holiday, SikapAssessment, KarakterAssessment, EmploymentLink, LearningReport, LiaisonLog, PermissionRequest, LearningJournalEntry, SupportDocument, InventoryItem, SchoolAsset, BOSTransaction, LearningDocumentation, BookLoan, BookInventory, Sumatif, GtkRecord } from './types';
 import { MOCK_SUBJECTS, MOCK_STUDENTS, MOCK_EXTRACURRICULARS } from './constants';
 import { apiService } from './services/apiService';
 import { cacheService } from './src/services/cacheService';
@@ -185,6 +186,7 @@ const AppContent: React.FC = () => {
   const [bookLoans, setBookLoans] = useState<BookLoan[]>(() => cacheService.get<BookLoan[]>('bookLoans') || []);
   const [sumatifs, setSumatifs] = useState<Sumatif[]>(() => cacheService.get<Sumatif[]>('sumatifs') || []);
   const [kktpMap, setKktpMap] = useState<Record<string, number>>({});
+  const [gtkData, setGtkData] = useState<GtkRecord[]>(() => cacheService.get<GtkRecord[]>('gtkData') || []);
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error' | 'warning'} | null>(null);
   
   // ... (Rest of existing state code)
@@ -1413,6 +1415,7 @@ const AppContent: React.FC = () => {
         apiService.getBookLoans(currentUser),
         apiService.getSumatifs(classIdToFetch),
         apiService.getClassConfig(classIdToFetch),
+        apiService.getGtkData(),
       ];
 
       // Add inventory fetch if admin/supervisor
@@ -1447,7 +1450,7 @@ const AppContent: React.FC = () => {
       const [
           fUsers, fStudents, fAgendas, fMaterials, fGrades, fCounseling, fExtracurriculars, 
           fProfiles, fHolidays, fAttendance, fSikap, fKarakter, fLinks, fReports, 
-          fLearningDocs, fLiaison, fPermissions, fSupportDocs, fBookLoans, fSumatifs, fClassConfig, fInventory, fSchoolAssets, fBOS,
+          fLearningDocs, fLiaison, fPermissions, fSupportDocs, fBookLoans, fSumatifs, fClassConfig, fGtkData, fInventory, fSchoolAssets, fBOS,
           _delay // Placeholder for minDelay
       ] = results;
       
@@ -1487,6 +1490,11 @@ const AppContent: React.FC = () => {
       // Set BOS state
       if (fBOS !== null && Array.isArray(fBOS)) {
           setBosTransactions(fBOS as BOSTransaction[]);
+      }
+
+      if (fGtkData !== null && Array.isArray(fGtkData)) {
+          setGtkData(fGtkData as GtkRecord[]);
+          cacheService.set('gtkData', fGtkData);
       }
 
       if (fClassConfig !== null) {
@@ -1985,6 +1993,19 @@ const AppContent: React.FC = () => {
                         }}
                         onShowNotification={handleShowNotification}
                         isReadOnly={isGlobalReadOnly} 
+                    />
+                } />
+                <Route path="/data-gtk" element={
+                    isStudentRole ? <Navigate to="/dashboard-student" replace /> :
+                    <GtkDataView
+                        gtkData={gtkData}
+                        users={users}
+                        onSaveGtk={async (records) => {
+                            setGtkData(records);
+                            cacheService.set('gtkData', records);
+                            await apiService.saveGtkData(records);
+                        }}
+                        onShowNotification={handleShowNotification}
                     />
                 } />
                 <Route path="/data-lulusan" element={
