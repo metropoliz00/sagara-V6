@@ -392,8 +392,8 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, currentUser, 
       </div>
 
       {isModalOpen && editingRecord && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+        <div className="fixed inset-0 bg-black/50 z-[110] flex items-center justify-center p-2 sm:p-4 pb-20 sm:pb-4">
+          <div className="bg-white rounded-xl w-full max-w-4xl max-h-[85vh] sm:max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
             <div className="flex justify-between items-center p-4 border-b">
               <h3 className="font-bold text-lg text-gray-800">Formulir Data GTK</h3>
               <button disabled={isSaving} onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-700 p-1">
