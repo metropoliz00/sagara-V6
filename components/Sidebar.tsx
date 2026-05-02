@@ -20,7 +20,7 @@ interface SidebarProps {
 const dashboardItem = { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'guru', 'siswa'] };
 
 // 2. Overview KS dipisahkan sebagai item mandiri (Moved from Utama)
-const supervisorItem = { id: 'supervisi', label: 'Overview KS', icon: Activity, roles: ['supervisor', 'admin'] };
+const supervisorItem = { id: 'supervisi', label: 'Supervisi KS', icon: Activity, roles: ['supervisor', 'admin'] };
 
 // 3. Menu Groups (Updated)
 const menuGroups = [

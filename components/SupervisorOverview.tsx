@@ -235,7 +235,7 @@ const SupervisorOverview: React.FC<SupervisorOverviewProps> = ({
                     : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  <Activity size={16} /> Overview
+                  <Activity size={16} /> Supervisi
                 </button>
                 <button 
                   onClick={() => setActiveTab('monitoring')}
