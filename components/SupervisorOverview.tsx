@@ -223,7 +223,7 @@ const SupervisorOverview: React.FC<SupervisorOverviewProps> = ({
                 <h2 className="text-2xl font-bold text-gray-800 flex items-center">
                     <Activity className="mr-3 text-indigo-600"/> Supervisi & Monitoring
                 </h2>
-                <p className="text-gray-500 text-sm">Panel kendali untuk supervisor dan pimpinan sekolah.</p>
+                <p className="text-gray-500 text-sm">Dashboard pendampingan oleh Kepala Sekolah</p>
             </div>
             
             <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200 mt-4 md:mt-0">
