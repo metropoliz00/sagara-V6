@@ -19,6 +19,24 @@ const parseDate = (dateString: string) => {
   return 0;
 };
 
+const months = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
+
+const formatDate = (dateString: string) => {
+  if (!dateString) return '-';
+  // dateString format is YYYY-MM-DD
+  const parts = dateString.split('-');
+  if (parts.length === 3) {
+    const year = parts[0];
+    const month = months[parseInt(parts[1]) - 1];
+    const day = parts[2];
+    return `${day}, ${month}, ${year}`;
+  }
+  return dateString;
+};
+
 const getRankValue = (rank: string) => {
   if (!rank) return 0;
   // Convert standard rank format e.g. "IV/a", "III/b" to numeric value
@@ -105,7 +123,7 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, onSaveGtk, on
 
   // Sort logic
   const sortedData = useMemo(() => {
-    let result = [...data];
+    let result = [...data].filter(r => r.jabatan && r.jabatan.trim() !== '');
     if (searchTerm) {
         const lowerSearch = searchTerm.toLowerCase();
         result = result.filter(r => r.nama.toLowerCase().includes(lowerSearch) || r.nip.includes(lowerSearch));
@@ -274,13 +292,13 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, onSaveGtk, on
                   <tr key={row.id} className="border-b hover:bg-gray-50 whitespace-nowrap">
                     <td className="p-3 text-center">{index + 1}</td>
                     <td className="p-3 font-semibold text-gray-800 flex items-center gap-2">
-                        {row.foto ? <img src={row.foto} alt="Foto" className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold">{row.nama.charAt(0) || '?'}</div>}
+                        {row.foto ? <img src={row.foto} alt="Foto" className="w-8 h-12 rounded object-cover" /> : <div className="w-8 h-12 bg-indigo-100 rounded flex items-center justify-center text-indigo-700 font-bold">{row.nama.charAt(0) || '?'}</div>}
                         {row.nama}
                     </td>
                     <td className="p-3">{row.nip}</td>
                     <td className="p-3">{row.nuptk}</td>
                     <td className="p-3 text-center">{row.jenisKelamin}</td>
-                    <td className="p-3">{row.tempatLahir ? `${row.tempatLahir}, ${row.tanggalLahir}` : row.tanggalLahir}</td>
+                    <td className="p-3">{row.tempatLahir ? `${row.tempatLahir}, ${formatDate(row.tanggalLahir)}` : formatDate(row.tanggalLahir)}</td>
                     <td className="p-3">{row.ijazahTertinggi}</td>
                     <td className="p-3">{row.jabatan}</td>
                     <td className="p-3">
