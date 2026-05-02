@@ -32,7 +32,7 @@ const formatDate = (dateString: string) => {
     const year = parts[0];
     const month = months[parseInt(parts[1]) - 1];
     const day = parts[2];
-    return `${day}, ${month}, ${year}`;
+    return `${day} ${month} ${year}`;
   }
   return dateString;
 };
