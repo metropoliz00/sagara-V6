@@ -430,12 +430,12 @@ const StudentList: React.FC<StudentListProps> = ({
         if (row.length === 0) return;
         const classIdInput = row[0] ? String(row[0]) : classId;
         const nis = row[1] ? String(row[1]) : '';
-        const name = row[3] ? String(row[3]) : '';
+        const name = row[3] ? String(row[3]).toUpperCase() : '';
         if (nis && name) {
           const newStudent: Omit<Student, 'id'> = {
             classId: classIdInput, nis: nis, nisn: row[2] ? String(row[2]) : '', name: name, gender: (row[4] && String(row[4]).toUpperCase().includes('P')) ? 'P' : 'L', birthPlace: row[5] ? String(row[5]) : '', birthDate: row[6] ? String(row[6]) : '', religion: row[7] ? String(row[7]) : 'Islam', address: row[8] ? String(row[8]) : '',
-            fatherName: row[9] ? String(row[9]) : '', fatherJob: row[10] ? String(row[10]) : '', fatherEducation: row[11] ? String(row[11]) : '', motherName: row[12] ? String(row[12]) : '', motherJob: row[13] ? String(row[13]) : '', motherEducation: row[14] ? String(row[14]) : '',
-            parentName: row[15] ? String(row[15]) : (row[9] ? String(row[9]) : (row[12] ? String(row[12]) : '')), parentPhone: row[16] ? String(row[16]) : '', parentJob: row[17] ? String(row[17]) : '',
+            fatherName: row[9] ? String(row[9]).toUpperCase() : '', fatherJob: row[10] ? String(row[10]) : '', fatherEducation: row[11] ? String(row[11]) : '', motherName: row[12] ? String(row[12]).toUpperCase() : '', motherJob: row[13] ? String(row[13]) : '', motherEducation: row[14] ? String(row[14]) : '',
+            parentName: row[15] ? String(row[15]).toUpperCase() : (row[9] ? String(row[9]).toUpperCase() : (row[12] ? String(row[12]).toUpperCase() : '')), parentPhone: row[16] ? String(row[16]) : '', parentJob: row[17] ? String(row[17]) : '',
             economyStatus: (row[18] as any) || 'Mampu', height: Number(row[19]) || 0, weight: Number(row[20]) || 0, bloodType: row[21] ? String(row[21]) : '', healthNotes: row[22] ? String(row[22]) : '', hobbies: row[23] ? String(row[23]) : '', ambition: row[24] ? String(row[24]) : '',
             achievements: row[25] ? String(row[25]).split(',').map(s=>s.trim()) : [], violations: row[26] ? String(row[26]).split(',').map(s=>s.trim()) : [], behaviorScore: 100, attendance: { present: 0, sick: 0, permit: 0, alpha: 0 }
           };
@@ -536,7 +536,7 @@ const StudentList: React.FC<StudentListProps> = ({
     if (isReadOnly) return;
     if(selectedStudent) {
       let updated = { ...selectedStudent, [field]: value };
-      if (field === 'fatherName' || field === 'motherName') { const f = field === 'fatherName' ? value : updated.fatherName; const m = field === 'motherName' ? value : updated.motherName; updated.parentName = f ? f : m; }
+      if (field === 'fatherName' || field === 'motherName') { const f = field === 'fatherName' ? value : updated.fatherName; const m = field === 'motherName' ? value : updated.motherName; updated.parentName = (f ? f : m).toUpperCase(); }
       setSelectedStudent(updated);
     }
   };
@@ -2058,8 +2058,8 @@ const StudentList: React.FC<StudentListProps> = ({
                        </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <input required className="border p-2 rounded" placeholder="Nama" value={newStudent.name} onChange={e=>setNewStudent({...newStudent, name:e.target.value})}/>
-                        <input required className="border p-2 rounded" placeholder="NIS" value={newStudent.nis} onChange={e=>setNewStudent({...newStudent, nis:e.target.value})}/>
+                        <input required className="border p-2 rounded uppercase" placeholder="Nama" value={newStudent.name} onChange={e=>setNewStudent({...newStudent, name:e.target.value.toUpperCase()})}/>
+                        <input required className="border p-2 rounded uppercase" placeholder="NIS" value={newStudent.nis} onChange={e=>setNewStudent({...newStudent, nis:e.target.value})}/>
                         <input className="border p-2 rounded" placeholder="Kelas" value={newStudent.classId} onChange={e=>setNewStudent({...newStudent, classId:e.target.value})}/>
                         <select className="border p-2 rounded" value={newStudent.gender} onChange={e=>setNewStudent({...newStudent, gender:e.target.value as any})}><option value="L">Laki-laki</option><option value="P">Perempuan</option></select>
                     </div>

@@ -14,7 +14,7 @@ const BiodataTab: React.FC<BiodataTabProps> = ({ student, onChange }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
                 <label className="block text-sm font-medium mb-1">Nama Lengkap</label>
-                <input type="text" value={student.name} onChange={(e) => onChange('name', e.target.value)} className="w-full border p-2 rounded focus:ring-2 focus:ring-indigo-500 outline-none print:border-none print:p-0" />
+                <input type="text" value={student.name} onChange={(e) => onChange('name', e.target.value.toUpperCase())} className="w-full border p-2 rounded focus:ring-2 focus:ring-indigo-500 outline-none print:border-none print:p-0 uppercase" />
             </div>
             <div>
                 <label className="block text-sm font-medium mb-1">Gender</label>
@@ -66,7 +66,7 @@ const BiodataTab: React.FC<BiodataTabProps> = ({ student, onChange }) => {
             
             <div>
                 <label className="block text-sm font-medium mb-1">Nama Ayah</label>
-                <input type="text" value={student.fatherName || ''} onChange={(e) => onChange('fatherName', e.target.value)} className="w-full border p-2 rounded focus:ring-2 focus:ring-indigo-500 outline-none print:border-none print:p-0" />
+                <input type="text" value={student.fatherName || ''} onChange={(e) => onChange('fatherName', e.target.value.toUpperCase())} className="w-full border p-2 rounded focus:ring-2 focus:ring-indigo-500 outline-none print:border-none print:p-0 uppercase" />
             </div>
             <div>
                 <label className="block text-sm font-medium mb-1">Pekerjaan Ayah</label>
@@ -79,7 +79,7 @@ const BiodataTab: React.FC<BiodataTabProps> = ({ student, onChange }) => {
             
             <div>
                 <label className="block text-sm font-medium mb-1">Nama Ibu</label>
-                <input type="text" value={student.motherName || ''} onChange={(e) => onChange('motherName', e.target.value)} className="w-full border p-2 rounded focus:ring-2 focus:ring-indigo-500 outline-none print:border-none print:p-0" />
+                <input type="text" value={student.motherName || ''} onChange={(e) => onChange('motherName', e.target.value.toUpperCase())} className="w-full border p-2 rounded focus:ring-2 focus:ring-indigo-500 outline-none print:border-none print:p-0 uppercase" />
             </div>
             <div>
                 <label className="block text-sm font-medium mb-1">Pekerjaan Ibu</label>
