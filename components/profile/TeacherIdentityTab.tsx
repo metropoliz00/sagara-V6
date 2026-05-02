@@ -201,7 +201,7 @@ const TeacherIdentityTab: React.FC<TeacherIdentityTabProps> = ({ profile, setPro
             
             <div className="flex gap-2">
                 <button 
-                    onClick={() => navigate('/data-gtk')}
+                    onClick={() => navigate('/data-gtk', { state: { autoEditUserGtk: true } })}
                     className="flex items-center space-x-2 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 flex-1 sm:flex-none justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
                 >
                     <Edit size={16} />

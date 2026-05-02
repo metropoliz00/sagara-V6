@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { GtkRecord, User } from '../types';
 import { Save, Plus, Trash2, Edit2, Download, Search, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
@@ -63,6 +64,9 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, currentUser, 
   const [editingRecord, setEditingRecord] = useState<GtkRecord | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
   useEffect(() => {
     // Merge users into GTK list
     const gtkMap = new Map(gtkData.map(g => [g.id, g]));
@@ -126,6 +130,20 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, currentUser, 
     
     setData(mergedData);
   }, [gtkData, users]);
+
+  useEffect(() => {
+    if (location.state?.autoEditUserGtk && currentUser && data.length > 0) {
+      const userRecord = data.find(g => g.userId === currentUser.id);
+      if (userRecord) {
+        setEditingRecord(userRecord);
+        setIsModalOpen(true);
+      }
+      
+      const newState = { ...location.state };
+      delete newState.autoEditUserGtk;
+      navigate(location.pathname, { replace: true, state: newState });
+    }
+  }, [location.state, currentUser, data, navigate, location.pathname]);
 
   // Sort logic
   const sortedData = useMemo(() => {
