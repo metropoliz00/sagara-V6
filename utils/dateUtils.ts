@@ -1,4 +1,3 @@
-
 /**
  * Returns a YYYY-MM-DD string representing the local date.
  * Avoids timezone shifts that happen with new Date().toISOString().
@@ -6,6 +5,20 @@
 export const getLocalISODate = (date: Date = new Date()): string => {
   const offset = date.getTimezoneOffset() * 60000;
   return new Date(date.getTime() - offset).toISOString().split('T')[0];
+};
+
+/**
+ * Returns date in DD Month YYYY format
+ */
+export const formatDateID = (dateString?: string): string => {
+  if (!dateString) return '-';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  } catch {
+    return dateString;
+  }
 };
 
 /**

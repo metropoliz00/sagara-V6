@@ -3,6 +3,7 @@ import { Student, TeacherProfileData, SchoolProfileData, Graduate } from '../typ
 import * as XLSX from 'xlsx';
 import JSZip from 'jszip';
 import { compressImage } from '../utils/imageHelper';
+import { formatDateID } from '../utils/dateUtils';
 import QRCode from 'react-qr-code';
 import { 
   Search, Plus, ArrowLeft, Save, User, Heart, Activity, DollarSign, 
@@ -179,7 +180,7 @@ const StudentList: React.FC<StudentListProps> = ({
           <td style="text-align: center;">${s.nisn || '-'}</td>
           <td>${s.name}</td>
           <td>${s.birthPlace || '-'}</td>
-          <td style="text-align: center;">${s.birthDate}</td>
+          <td style="text-align: center;">${s.birthDate ? formatDateID(s.birthDate) : '-'}</td>
           <td>${s.hobbies || '-'}</td>
           <td>${s.ambition || '-'}</td>
         </tr>
@@ -209,7 +210,7 @@ const StudentList: React.FC<StudentListProps> = ({
           <td>${s.nisn || '-'}</td>
           <td style="text-align: center;">${s.gender}</td>
           <td>${s.birthPlace || '-'}</td>
-          <td>${s.birthDate}</td>
+          <td>${s.birthDate ? formatDateID(s.birthDate) : '-'}</td>
           <td>${s.religion || '-'}</td>
           <td>${s.fatherName || '-'}</td>
           <td>${s.motherName || '-'}</td>
@@ -1995,7 +1996,7 @@ const StudentList: React.FC<StudentListProps> = ({
                                     {student.name}
                                 </td>
                                 <td className="px-4 py-3 whitespace-nowrap">{student.birthPlace || '-'}</td>
-                                <td className="px-4 py-3 whitespace-nowrap">{student.birthDate}</td>
+                                <td className="px-4 py-3 whitespace-nowrap">{student.birthDate ? formatDateID(student.birthDate) : '-'}</td>
                                 <td className="px-4 py-3">{student.hobbies || '-'}</td>
                                 <td className="px-4 py-3">{student.ambition || '-'}</td>
                             </tr>
@@ -2028,7 +2029,7 @@ const StudentList: React.FC<StudentListProps> = ({
                     <td className="px-4 py-3 font-medium flex items-center whitespace-nowrap">{student.photo && !isPhotoError(student.photo) && <img src={student.photo} className="w-8 h-8 rounded-full mr-3 object-cover"/>}{student.name}</td>
                     <td className="px-4 py-3 text-center">{student.gender}</td>
                     <td className="px-4 py-3 whitespace-nowrap">{student.birthPlace || '-'}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">{student.birthDate}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{student.birthDate ? formatDateID(student.birthDate) : '-'}</td>
                     <td className="px-4 py-3">{student.religion || '-'}</td>
                     <td className="px-4 py-3">{student.fatherName || '-'}</td>
                     <td className="px-4 py-3">{student.motherName || '-'}</td>

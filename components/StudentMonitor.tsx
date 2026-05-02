@@ -5,6 +5,7 @@ import {
   LiaisonLog, User, BehaviorLog, PermissionRequest
 } from '../types';
 import { MOCK_SUBJECTS } from '../constants';
+import { formatDateID } from '../utils/dateUtils';
 import { 
   UserCheck, BookOpen, Calendar, Send, 
   PieChart as PieIcon, List, FileText, ChevronDown, CheckCircle, XCircle, Clock,
@@ -194,7 +195,7 @@ const StudentMonitor: React.FC<StudentMonitorProps> = ({
 
                             <div className="mt-2 text-xs space-y-2 text-left w-full border-t pt-4 text-gray-600">
                                 <p className="flex justify-between border-b border-dashed pb-1"><span>Jenis Kelamin:</span> <span className="font-semibold text-gray-800">{selectedStudent.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</span></p>
-                                <p className="flex justify-between border-b border-dashed pb-1"><span>Tgl Lahir:</span> <span className="font-semibold text-gray-800">{selectedStudent.birthDate}</span></p>
+                                <p className="flex justify-between border-b border-dashed pb-1"><span>Tgl Lahir:</span> <span className="font-semibold text-gray-800">{selectedStudent.birthDate ? formatDateID(selectedStudent.birthDate) : '-'}</span></p>
                                 <p className="flex justify-between border-b border-dashed pb-1"><span>Wali:</span> <span className="font-semibold text-gray-800">{selectedStudent.parentName}</span></p>
                                 <p className="flex justify-between border-b border-dashed pb-1"><span>No. HP:</span> <span className="font-semibold text-gray-800">{selectedStudent.parentPhone}</span></p>
                                 <div className="pt-1">

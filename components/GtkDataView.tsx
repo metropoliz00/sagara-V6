@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { GtkRecord, User } from '../types';
 import { Save, Plus, Trash2, Edit2, Download, Search, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { formatDateID } from '../utils/dateUtils';
 
 interface GtkDataViewProps {
   gtkData: GtkRecord[];
@@ -27,16 +28,7 @@ const months = [
 ];
 
 const formatDate = (dateString: string) => {
-  if (!dateString) return '-';
-  // dateString format is YYYY-MM-DD
-  const parts = dateString.split('-');
-  if (parts.length === 3) {
-    const year = parts[0];
-    const month = months[parseInt(parts[1]) - 1];
-    const day = parts[2];
-    return `${day} ${month} ${year}`;
-  }
-  return dateString;
+  return formatDateID(dateString);
 };
 
 const getRankValue = (rank: string) => {

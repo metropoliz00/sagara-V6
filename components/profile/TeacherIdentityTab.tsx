@@ -3,6 +3,7 @@ import React, { useRef } from 'react';
 import { Upload, Printer, Save, Loader2, Trash2, Edit } from 'lucide-react';
 import { TeacherProfileData } from '../../types';
 import { compressImage } from '../../utils/imageHelper';
+import { formatDateID } from '../../utils/dateUtils';
 import { useModal } from '../../context/ModalContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -361,7 +362,7 @@ const TeacherIdentityTab: React.FC<TeacherIdentityTabProps> = ({ profile, setPro
                         <tr>
                             <td className="label">Tempat, Tgl Lahir</td>
                             <td className="separator">:</td>
-                            <td>{profile.birthPlace ? `${profile.birthPlace}, ` : ''}{profile.birthDate || '-'}</td>
+                            <td>{profile.birthPlace ? `${profile.birthPlace}, ` : ''}{profile.birthDate ? formatDateID(profile.birthDate) : '-'}</td>
                         </tr>
                         <tr>
                             <td className="label">Pendidikan Terakhir</td>
