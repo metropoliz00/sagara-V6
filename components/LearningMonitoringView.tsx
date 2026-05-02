@@ -244,7 +244,6 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
                            {journal.classId}
                          </span>
                       </h4>
-                      <p className="text-[10px] text-gray-500 line-clamp-1 italic">"{journal.topic}"</p>
                     </div>
 
                     <div>
