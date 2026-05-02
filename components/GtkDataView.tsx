@@ -148,7 +148,7 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, currentUser, 
         'pns': 4,
         'pppk': 3,
         'pppk pw': 2,
-        'honorer': 1
+        'honorer': 0
       };
 
       // 1. Role priority
@@ -156,7 +156,13 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, currentUser, 
       const bRole = getRolePriority(b.jabatan);
       if (aRole !== bRole) return bRole - aRole;
 
-      const getPriority = (status: string) => statusPriority[status.toLowerCase().trim()] || 0;
+      const getPriority = (status: string) => {
+        const s = status.toLowerCase().trim();
+        if (statusPriority.hasOwnProperty(s)) {
+          return statusPriority[s];
+        }
+        return 1; // Prioritize unknowns above Honorer, but below others
+      };
 
       // 2. Status Pegawai sorting
       const aPriority = getPriority(a.statusPegawai);
