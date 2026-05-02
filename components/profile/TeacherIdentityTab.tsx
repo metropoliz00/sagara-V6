@@ -1,9 +1,10 @@
 
 import React, { useRef } from 'react';
-import { Upload, Printer, Save, Loader2, Trash2 } from 'lucide-react';
+import { Upload, Printer, Save, Loader2, Trash2, Edit } from 'lucide-react';
 import { TeacherProfileData } from '../../types';
 import { compressImage } from '../../utils/imageHelper';
 import { useModal } from '../../context/ModalContext';
+import { useNavigate } from 'react-router-dom';
 
 interface TeacherIdentityTabProps {
   profile: TeacherProfileData;
@@ -15,6 +16,7 @@ interface TeacherIdentityTabProps {
 const TeacherIdentityTab: React.FC<TeacherIdentityTabProps> = ({ profile, setProfile, onSave, isSaving }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { showAlert } = useModal();
+  const navigate = useNavigate();
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -197,13 +199,22 @@ const TeacherIdentityTab: React.FC<TeacherIdentityTabProps> = ({ profile, setPro
                 </div>
             </div>
             
-            <button 
-                onClick={printData}
-                className="flex items-center space-x-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
-            >
-                <Printer size={16} />
-                <span>Cetak Biodata</span>
-            </button>
+            <div className="flex gap-2">
+                <button 
+                    onClick={() => navigate('/data-gtk')}
+                    className="flex items-center space-x-2 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 flex-1 sm:flex-none justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+                >
+                    <Edit size={16} />
+                    <span>Lengkapi Data GTK</span>
+                </button>
+                <button 
+                    onClick={printData}
+                    className="flex items-center space-x-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 flex-1 sm:flex-none justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+                >
+                    <Printer size={16} />
+                    <span>Cetak Biodata</span>
+                </button>
+            </div>
         </div>
 
         {/* Layout Baru Sesuai Request */}
