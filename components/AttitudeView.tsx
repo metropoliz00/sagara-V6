@@ -276,6 +276,7 @@ const AttitudeView: React.FC<AttitudeViewProps> = ({ students, initialSikap, ini
                                         <select 
                                             value={assessment[key] || ''}
                                             onChange={(e) => !isReadOnly && updateKarakter(student.id, key, e.target.value)}
+                                            onBlur={() => !isReadOnly && onSaveKarakter(student.id, getStudentKarakter(student.id))}
                                             disabled={isReadOnly}
                                             className={`w-full p-2 rounded text-xs font-semibold outline-none appearance-none text-center transition-colors ${
                                                 isReadOnly ? 'cursor-not-allowed' : 'cursor-pointer'
@@ -302,6 +303,7 @@ const AttitudeView: React.FC<AttitudeViewProps> = ({ students, initialSikap, ini
                                         rows={1}
                                         value={assessment.catatan || ''}
                                         onChange={(e) => !isReadOnly && updateKarakterNotes(student.id, e.target.value)}
+                                        onBlur={() => !isReadOnly && onSaveKarakter(student.id, getStudentKarakter(student.id))}
                                         disabled={isReadOnly}
                                         className={`w-full bg-transparent border-none outline-none resize-none text-gray-700 placeholder-gray-400 focus:bg-white focus:ring-1 focus:ring-yellow-300 rounded p-1 ${isReadOnly ? 'cursor-not-allowed' : ''}`}
                                         placeholder={isReadOnly ? '' : "Tulis catatan..."}

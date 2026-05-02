@@ -209,6 +209,12 @@ const GradesView: React.FC<GradesViewProps> = ({
     return Math.round(sum / filledScores.length);
   };
 
+  const handleAutoSaveRow = (studentId: string) => {
+    if (!isSubjectEditable) return;
+    const gradeData = getStudentGrade(studentId);
+    onSave(studentId, selectedSubject, gradeData, classId);
+  };
+
   const handleSaveRow = (studentId: string) => {
     if (!isSubjectEditable) return;
     const gradeData = getStudentGrade(studentId);
@@ -678,7 +684,7 @@ const GradesView: React.FC<GradesViewProps> = ({
                                          </div>
                                        ) : (
                                         <div>
-                                            <input type="number" min="0" max="100" value={score} onChange={e=>updateLocalGrade(s.id, f, Number(e.target.value))} className={`w-full text-center py-2 focus:bg-white focus:ring-1 focus:ring-indigo-500 outline-none rounded-lg print:border-none print:p-0 ${f === 'sas' ? 'font-bold' : ''} ${colorClass}`}/>
+                                            <input type="number" min="0" max="100" value={score} onChange={e=>updateLocalGrade(s.id, f, Number(e.target.value))} onBlur={() => handleAutoSaveRow(s.id)} className={`w-full text-center py-2 focus:bg-white focus:ring-1 focus:ring-indigo-500 outline-none rounded-lg print:border-none print:p-0 ${f === 'sas' ? 'font-bold' : ''} ${colorClass}`}/>
                                             {f !== 'sas' && score > 0 && (
                                                 <div className="text-center text-[9px] font-bold mt-1">
                                                     {score < currentKktp ? <span className="text-rose-600">Remedial</span> : <span className="text-emerald-600">Pengayaan</span>}
