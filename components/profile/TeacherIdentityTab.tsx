@@ -209,44 +209,49 @@ const TeacherIdentityTab: React.FC<TeacherIdentityTabProps> = ({ profile, setPro
         {/* Layout Baru Sesuai Request */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                <input type="text" placeholder="Nama Lengkap" value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-600">Nama Lengkap</label>
+                <input type="text" placeholder="Nama Lengkap" value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} className="w-full text-sm border rounded-lg p-2 bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
             </div>
             
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">NIP</label>
-                <input type="text" placeholder="NIP" value={profile.nip} onChange={(e) => setProfile({...profile, nip: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-600">NIP</label>
+                <input type="text" placeholder="NIP" value={profile.nip} onChange={(e) => setProfile({...profile, nip: e.target.value})} className="w-full text-sm border rounded-lg p-2 bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
             </div>
             
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">NUPTK</label>
-                <input type="text" placeholder="NUPTK" value={profile.nuptk || ''} onChange={(e) => setProfile({...profile, nuptk: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-600">NUPTK</label>
+                <input type="text" placeholder="NUPTK" value={profile.nuptk || ''} onChange={(e) => setProfile({...profile, nuptk: e.target.value})} className="w-full text-sm border rounded-lg p-2 bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
             </div>
 
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tempat, Tgl Lahir</label>
-                <input type="text" placeholder="Tempat, dd-mm-yyyy" value={profile.birthInfo || ''} onChange={(e) => setProfile({...profile, birthInfo: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-600">Tempat Lahir</label>
+                <input type="text" placeholder="Tempat Lahir" value={profile.birthPlace || ''} onChange={(e) => setProfile({...profile, birthPlace: e.target.value})} className="w-full text-sm border rounded-lg p-2 bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
             </div>
 
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Pendidikan Terakhir</label>
-                <input type="text" placeholder="Pendidikan Terakhir" value={profile.education || ''} onChange={(e) => setProfile({...profile, education: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-600">Tanggal Lahir</label>
+                <input type="date" value={profile.birthDate || ''} onChange={(e) => setProfile({...profile, birthDate: e.target.value})} className="w-full text-sm border rounded-lg p-2 bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
             </div>
 
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Jabatan Guru</label>
-                <input type="text" placeholder="Jabatan Guru" value={profile.position || ''} onChange={(e) => setProfile({...profile, position: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-600">Pendidikan Terakhir</label>
+                <input type="text" placeholder="Pendidikan Terakhir" value={profile.education || ''} onChange={(e) => setProfile({...profile, education: e.target.value})} className="w-full text-sm border rounded-lg p-2 bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
             </div>
 
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Pangkat / Gol</label>
-                <input type="text" placeholder="Pangkat / Gol" value={profile.rank || ''} onChange={(e) => setProfile({...profile, rank: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-600">Jabatan Guru</label>
+                <input type="text" placeholder="Jabatan Guru" value={profile.position || ''} onChange={(e) => setProfile({...profile, position: e.target.value})} className="w-full text-sm border rounded-lg p-2 bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
             </div>
 
-            <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tugas Mengajar Kelas (Sesuai ID Kelas)</label>
-                <input type="text" placeholder="Tugas Mengajar Kelas" value={profile.teachingClass || ''} onChange={(e) => setProfile({...profile, teachingClass: e.target.value})} className="w-full px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
+            <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-600">Pangkat / Gol</label>
+                <input type="text" placeholder="Pangkat / Gol" value={profile.rank || ''} onChange={(e) => setProfile({...profile, rank: e.target.value})} className="w-full text-sm border rounded-lg p-2 bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
+            </div>
+
+            <div className="md:col-span-2 space-y-1">
+                <label className="text-xs font-semibold text-gray-600">Tugas Mengajar Kelas (Sesuai ID Kelas)</label>
+                <input type="text" placeholder="Tugas Mengajar Kelas" value={profile.teachingClass || ''} onChange={(e) => setProfile({...profile, teachingClass: e.target.value})} className="w-full text-sm border rounded-lg p-2 bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
                 <p className="text-[10px] text-gray-400 mt-1">*Disarankan sesuai dengan Class ID akun Anda.</p>
             </div>
         </div>
@@ -345,7 +350,7 @@ const TeacherIdentityTab: React.FC<TeacherIdentityTabProps> = ({ profile, setPro
                         <tr>
                             <td className="label">Tempat, Tgl Lahir</td>
                             <td className="separator">:</td>
-                            <td>{profile.birthInfo || '-'}</td>
+                            <td>{profile.birthPlace ? `${profile.birthPlace}, ` : ''}{profile.birthDate || '-'}</td>
                         </tr>
                         <tr>
                             <td className="label">Pendidikan Terakhir</td>
