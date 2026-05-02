@@ -148,7 +148,7 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, currentUser, 
         'pns': 4,
         'pppk': 3,
         'pppk pw': 2,
-        'honorer': 0
+        'honorer': 1
       };
 
       // 1. Role priority
@@ -161,7 +161,7 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, currentUser, 
         if (statusPriority.hasOwnProperty(s)) {
           return statusPriority[s];
         }
-        return 1; // Prioritize unknowns above Honorer, but below others
+        return 0; // Unknowns at the very bottom
       };
 
       // 2. Status Pegawai sorting
@@ -345,7 +345,9 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, currentUser, 
                     <td className="p-3">{row.tmtPengangkatan}</td>
                     <td className="p-3">{row.mulaiBekerjaDiSini}</td>
                     <td className="p-3">{row.pangkatGolongan}</td>
-                    <td className="p-3 text-center">{row.masaKerjaTahun} th, {row.masaKerjaBulan} bln</td>
+                    <td className="p-3 text-center">
+                      {String(row.masaKerjaTahun).padStart(2, '0')} Th {String(row.masaKerjaBulan).padStart(2, '0')} Bln
+                    </td>
                     <td className="p-3">{row.skTerakhir}</td>
                     <td className="p-3 text-blue-600">{row.emailPribadi}</td>
                     <td className="p-3 text-emerald-600">{row.emailBelajar}</td>
