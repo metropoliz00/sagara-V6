@@ -186,15 +186,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#FFF9D0]/30 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4"></div>
       </div>
 
-      {/* Watermark Logo */}
-      <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-          <img 
-            src="https://www.image2url.com/r2/default/images/1776528081180-f5356afe-2059-4426-8309-4f5af1b9227e.png" 
-            alt="Watermark" 
-            className="w-[500px] h-[500px] md:w-[700px] md:h-[700px] object-contain opacity-[0.01] grayscale animate-pulse-slow"
-          />
-      </div>
-
       <div className="relative z-10 w-full max-w-md px-6">
         
         {initialLoading ? (
