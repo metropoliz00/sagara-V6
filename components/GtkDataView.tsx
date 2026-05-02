@@ -130,10 +130,20 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, onSaveGtk, on
     }
 
     return result.sort((a, b) => {
-      // 1. PNS group sorting
-      const aIsPns = a.statusPegawai.toLowerCase() === 'pns' ? 1 : 0;
-      const bIsPns = b.statusPegawai.toLowerCase() === 'pns' ? 1 : 0;
-      if (aIsPns !== bIsPns) return bIsPns - aIsPns;
+      // Prioritization map
+      const statusPriority: Record<string, number> = {
+        'pns': 4,
+        'pppk': 3,
+        'pppk pw': 2,
+        'honorer': 1
+      };
+
+      const getPriority = (status: string) => statusPriority[status.toLowerCase().trim()] || 0;
+
+      // 1. Status Pegawai sorting
+      const aPriority = getPriority(a.statusPegawai);
+      const bPriority = getPriority(b.statusPegawai);
+      if (aPriority !== bPriority) return bPriority - aPriority;
 
       // 2. Rank sorting (descending)
       const aRank = getRankValue(a.pangkatGolongan);

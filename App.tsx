@@ -215,7 +215,7 @@ const AppContent: React.FC = () => {
   const [processingPermissionId, setProcessingPermissionId] = useState<string | null>(null);
   const [adminPercentage, setAdminPercentage] = useState<number>(0);
   const [teacherProfile, setTeacherProfile] = useState<TeacherProfileData>({
-    name: 'Guru', nip: '', nuptk: '', birthInfo: '', education: '', position: '', rank: '', teachingClass: '', phone: '', email: '', address: ''
+    name: 'Guru', nip: '', nuptk: '', birthPlace: '', birthDate: '', education: '', position: '', rank: '', teachingClass: '', phone: '', email: '', address: ''
   });
   const [schoolProfile, setSchoolProfile] = useState<SchoolProfileData>({
     name: 'Sekolah', npsn: '', address: '', headmaster: '', headmasterNip: '', headmasterSignature: '', year: new Date().getFullYear().toString(), semester: '1',
@@ -885,7 +885,7 @@ const AppContent: React.FC = () => {
     if (type === 'teacher') { 
       setTeacherProfile(data); 
       if (!currentUser) return; 
-      const updatedUser: User = { ...currentUser, fullName: data.name, nip: data.nip, nuptk: data.nuptk, birthInfo: data.birthInfo, education: data.education, position: data.position, rank: data.rank, classId: data.teachingClass, email: data.email, phone: data.phone, address: data.address, photo: data.photo, signature: data.signature }; 
+      const updatedUser: User = { ...currentUser, fullName: data.name, nip: data.nip, nuptk: data.nuptk, birthPlace: data.birthPlace, birthDate: data.birthDate, education: data.education, position: data.position, rank: data.rank, classId: data.teachingClass, email: data.email, phone: data.phone, address: data.address, photo: data.photo, signature: data.signature }; 
       setCurrentUser(updatedUser); 
       if (!isDemoMode) {
         try {
@@ -1562,7 +1562,8 @@ const AppContent: React.FC = () => {
               nuptk: currentUser.nuptk || prev.nuptk,
               position: currentUser.position,
               teachingClass: currentUser.classId || prev.teachingClass,
-              birthInfo: currentUser.birthInfo || prev.birthInfo,
+              birthPlace: currentUser.birthPlace || prev.birthPlace,
+              birthDate: currentUser.birthDate || prev.birthDate,
               education: currentUser.education || prev.education,
               rank: currentUser.rank || prev.rank,
               email: currentUser.email || prev.email,

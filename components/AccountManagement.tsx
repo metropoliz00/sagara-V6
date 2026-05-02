@@ -217,7 +217,7 @@ const AccountManagement: React.FC<AccountManagementProps> = ({ users, students, 
         if (!row[0] || !row[3]) continue; 
         newUsersBatch.push({
           username: String(row[0]), password: String(row[1] || '123456'), role: String(row[2] || 'guru').toLowerCase() as any, fullName: String(row[3]),
-          nip: row[4] ? String(row[4]) : '', nuptk: row[5] ? String(row[5]) : '', birthInfo: row[6] ? String(row[6]) : '', education: row[7] ? String(row[7]) : '',
+          nip: row[4] ? String(row[4]) : '', nuptk: row[5] ? String(row[5]) : '', birthPlace: row[6] ? String(row[6]) : '', birthDate: '', education: row[7] ? String(row[7]) : '',
           position: row[8] ? String(row[8]) : 'Guru Kelas', rank: row[9] ? String(row[9]) : '', classId: row[10] ? String(row[10]) : '', email: row[11] ? String(row[11]) : '',
           phone: row[12] ? String(row[12]) : '', address: row[13] ? String(row[13]) : ''
         });

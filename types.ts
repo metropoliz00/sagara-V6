@@ -7,7 +7,8 @@ export interface User {
   fullName: string;
   nip?: string;
   nuptk?: string;
-  birthInfo?: string;
+  birthPlace?: string;
+  birthDate?: string;
   education?: string;
   position: string;
   rank?: string;
