@@ -229,69 +229,78 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
                   : 'border-rose-200 bg-rose-50/10 ring-1 ring-rose-100 animate-pulse-slow'
               }`}
             >
-              <div className="p-4 flex items-center gap-4">
+              <div className="p-4 flex items-stretch gap-4">
                 {/* Status Indicator */}
-                <div className={`w-1.5 h-14 rounded-full ${journal.isTeacherPresent ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                <div className={`w-1.5 rounded-full ${journal.isTeacherPresent ? 'bg-emerald-500' : 'bg-rose-500'}`} />
 
                 {/* Details */}
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase leading-none">Pelajaran</p>
-                    <h4 className="font-extrabold text-gray-800 text-sm leading-tight flex items-center gap-2">
-                       {journal.subject}
-                       <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[9px] rounded-md font-black">
-                         {journal.classId}
-                       </span>
-                    </h4>
-                    <p className="text-[10px] text-gray-500 line-clamp-1 italic">"{journal.topic}"</p>
-                  </div>
+                <div className="flex-1 space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase leading-none">Pelajaran</p>
+                      <h4 className="font-extrabold text-gray-800 text-sm leading-tight flex items-center gap-2">
+                         {journal.subject}
+                         <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[9px] rounded-md font-black">
+                           {journal.classId}
+                         </span>
+                      </h4>
+                      <p className="text-[10px] text-gray-500 line-clamp-1 italic">"{journal.topic}"</p>
+                    </div>
 
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">Guru Pengajar</p>
-                    <p className="font-bold text-gray-700 text-sm truncate">
-                      {journal.teacherName || `Guru Kelas ${journal.classId}`}
-                    </p>
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500">
-                        <Clock size={11} className="text-indigo-400" /> {journal.timeSlot}
-                      </div>
-                      <div className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider ${journal.isTeacherPresent ? 'text-emerald-600' : 'text-rose-500'}`}>
-                        {journal.isTeacherPresent ? <CheckCircle2 size={11}/> : <AlertCircle size={11}/>}
-                        {journal.isTeacherPresent ? 'Guru Hadir' : 'Guru Tidak Hadir'}
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">Guru Pengajar</p>
+                      <p className="font-bold text-gray-700 text-sm truncate">
+                        {journal.teacherName || `Guru Kelas ${journal.classId}`}
+                      </p>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500">
+                          <Clock size={11} className="text-indigo-400" /> {journal.timeSlot}
+                        </div>
+                        <div className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider ${journal.isTeacherPresent ? 'text-emerald-600' : 'text-rose-500'}`}>
+                          {journal.isTeacherPresent ? <CheckCircle2 size={11}/> : <AlertCircle size={11}/>}
+                          {journal.isTeacherPresent ? 'Guru Hadir' : 'Guru Tidak Hadir'}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="md:col-span-2 flex justify-end gap-2">
-                    {journal.supervisionFeedback ? (
-                      <div className="flex-1 bg-white p-2.5 rounded-xl border border-gray-100 flex items-start gap-2 max-w-md shadow-sm">
-                        <MessageSquare size={14} className="text-emerald-500 mt-0.5 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[9px] text-gray-400 font-bold uppercase mb-0.5">Umpan Balik</p>
-                          <p className="text-xs text-gray-600 line-clamp-2 italic leading-tight">"{journal.supervisionFeedback}"</p>
+                    <div className="md:col-span-2 flex justify-end gap-2">
+                      {journal.supervisionFeedback ? (
+                        <div className="flex-1 bg-white p-2.5 rounded-xl border border-gray-100 flex items-start gap-2 max-w-md shadow-sm">
+                          <MessageSquare size={14} className="text-emerald-500 mt-0.5 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-0.5">Umpan Balik</p>
+                            <p className="text-xs text-gray-600 line-clamp-2 italic leading-tight">"{journal.supervisionFeedback}"</p>
+                          </div>
+                          <button 
+                            onClick={() => {
+                              setSelectedEntry(journal);
+                              setFeedback(journal.supervisionFeedback || '');
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-gray-50 rounded-lg transition-colors"
+                          >
+                            <Filter size={14} />
+                          </button>
                         </div>
+                      ) : (
                         <button 
                           onClick={() => {
                             setSelectedEntry(journal);
-                            setFeedback(journal.supervisionFeedback || '');
+                            setFeedback('');
                           }}
-                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-gray-50 rounded-lg transition-colors"
+                          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-black hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 active:scale-95"
                         >
-                          <Filter size={14} />
+                           <MessageSquare size={14} />
+                           Input Respon
                         </button>
-                      </div>
-                    ) : (
-                      <button 
-                        onClick={() => {
-                          setSelectedEntry(journal);
-                          setFeedback('');
-                        }}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-black hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 active:scale-95"
-                      >
-                         <MessageSquare size={14} />
-                         Input Respon
-                      </button>
-                    )}
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-[11px] text-gray-600">
+                    <div><span className="font-bold text-gray-800 block mb-0.5">Materi/Topik</span><span className="italic">"{journal.topic}"</span></div>
+                    <div><span className="font-bold text-gray-800 block mb-0.5">Kegiatan</span>{journal.activities || '-'}</div>
+                    <div><span className="font-bold text-gray-800 block mb-0.5">Evaluasi</span>{journal.evaluation || '-'}</div>
+                    <div><span className="font-bold text-gray-800 block mb-0.5">Refleksi & TL</span>Refleksi: {journal.reflection || '-'}<br/>TL: {journal.followUp || '-'}</div>
                   </div>
                 </div>
               </div>
