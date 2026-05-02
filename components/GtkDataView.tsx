@@ -131,6 +131,13 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, onSaveGtk, on
 
     return result.sort((a, b) => {
       // Prioritization map
+      const getRolePriority = (jabatan: string) => {
+        const j = jabatan.toLowerCase();
+        if (j.includes('kepala sekolah')) return 3;
+        if (j.includes('guru')) return 2;
+        return 1;
+      };
+
       const statusPriority: Record<string, number> = {
         'pns': 4,
         'pppk': 3,
@@ -138,19 +145,24 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, onSaveGtk, on
         'honorer': 1
       };
 
+      // 1. Role priority
+      const aRole = getRolePriority(a.jabatan);
+      const bRole = getRolePriority(b.jabatan);
+      if (aRole !== bRole) return bRole - aRole;
+
       const getPriority = (status: string) => statusPriority[status.toLowerCase().trim()] || 0;
 
-      // 1. Status Pegawai sorting
+      // 2. Status Pegawai sorting
       const aPriority = getPriority(a.statusPegawai);
       const bPriority = getPriority(b.statusPegawai);
       if (aPriority !== bPriority) return bPriority - aPriority;
 
-      // 2. Rank sorting (descending)
+      // 3. Rank sorting (descending)
       const aRank = getRankValue(a.pangkatGolongan);
       const bRank = getRankValue(b.pangkatGolongan);
       if (aRank !== bRank) return bRank - aRank;
 
-      // 3. Birth date (older first)
+      // 4. Birth date (older first)
       const aDate = parseDate(a.tanggalLahir);
       const bDate = parseDate(b.tanggalLahir);
       return aDate - bDate;
