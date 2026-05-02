@@ -2001,6 +2001,7 @@ const AppContent: React.FC = () => {
                     <GtkDataView
                         gtkData={gtkData}
                         users={users}
+                        currentUser={currentUser}
                         onSaveGtk={async (records) => {
                             setGtkData(records);
                             cacheService.set('gtkData', records);

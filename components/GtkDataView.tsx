@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 interface GtkDataViewProps {
   gtkData: GtkRecord[];
   users: User[];
+  currentUser: User | null;
   onSaveGtk: (records: GtkRecord[]) => Promise<void>;
   onShowNotification: (message: string, type: 'success' | 'error' | 'warning') => void;
 }
@@ -50,7 +51,12 @@ const getRankValue = (rank: string) => {
   return rankMap[r] || 0;
 };
 
-const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, onSaveGtk, onShowNotification }) => {
+const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, currentUser, onSaveGtk, onShowNotification }) => {
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'supervisor';
+
+  const canEdit = (record: GtkRecord) => {
+    return isAdmin || (currentUser && record.userId === currentUser.id);
+  };
   const [data, setData] = useState<GtkRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -250,22 +256,24 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, onSaveGtk, on
             <Download size={18} />
             <span>Export Excel</span>
           </button>
-          <button 
-            onClick={() => {
-              setEditingRecord({
-                id: `gtk-${Date.now()}`,
-                nama: '', nip: '', nuptk: '', jenisKelamin: '', tempatLahir: '', tanggalLahir: '',
-                ijazahTertinggi: '', jabatan: '', statusPegawai: '', tmtPengangkatan: '',
-                mulaiBekerjaDiSini: '', pangkatGolongan: '', masaKerjaTahun: 0, masaKerjaBulan: 0,
-                skTerakhir: '', emailPribadi: '', emailBelajar: '', foto: ''
-              });
-              setIsModalOpen(true);
-            }}
-            className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-          >
-            <Plus size={18} />
-            <span>Tambah Pendidik</span>
-          </button>
+          {isAdmin && (
+            <button 
+              onClick={() => {
+                setEditingRecord({
+                  id: `gtk-${Date.now()}`,
+                  nama: '', nip: '', nuptk: '', jenisKelamin: '', tempatLahir: '', tanggalLahir: '',
+                  ijazahTertinggi: '', jabatan: '', statusPegawai: '', tmtPengangkatan: '',
+                  mulaiBekerjaDiSini: '', pangkatGolongan: '', masaKerjaTahun: 0, masaKerjaBulan: 0,
+                  skTerakhir: '', emailPribadi: '', emailBelajar: '', foto: ''
+                });
+                setIsModalOpen(true);
+              }}
+              className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+            >
+              <Plus size={18} />
+              <span>Tambah Pendidik</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -337,12 +345,16 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, onSaveGtk, on
                     <td className="p-3 text-emerald-600">{row.emailBelajar}</td>
                     <td className="p-3 text-center sticky right-0 bg-white group-hover:bg-gray-50">
                       <div className="flex justify-center gap-2">
-                        <button onClick={() => { setEditingRecord(row); setIsModalOpen(true); }} className="text-blue-600 p-1 hover:bg-blue-50 rounded" title="Edit">
-                          <Edit2 size={16} />
-                        </button>
-                        <button onClick={() => handleDelete(row.id)} className="text-red-600 p-1 hover:bg-red-50 rounded" title="Hapus">
-                          <Trash2 size={16} />
-                        </button>
+                        {canEdit(row) && (
+                          <button onClick={() => { setEditingRecord(row); setIsModalOpen(true); }} className="text-blue-600 p-1 hover:bg-blue-50 rounded" title="Edit">
+                            <Edit2 size={16} />
+                          </button>
+                        )}
+                        {isAdmin && (
+                          <button onClick={() => handleDelete(row.id)} className="text-red-600 p-1 hover:bg-red-50 rounded" title="Hapus">
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
