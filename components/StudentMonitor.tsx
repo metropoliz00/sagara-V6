@@ -153,12 +153,12 @@ const StudentMonitor: React.FC<StudentMonitorProps> = ({
                         <div className="flex flex-col items-center">
                             <div className="w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden bg-gray-100 mb-4">
                                 {selectedStudent.photo && !selectedStudent.photo.startsWith('ERROR') ? (
-                                    <img src={selectedStudent.photo} alt={selectedStudent.name} className="w-full h-full object-cover" />
+                                    <img src={selectedStudent.photo} alt={selectedStudent.name.toUpperCase()} className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-indigo-300 bg-indigo-50"><UserIcon size={48}/></div>
                                 )}
                             </div>
-                            <h3 className="text-lg font-bold text-gray-800 text-center leading-tight">{selectedStudent.name}</h3>
+                            <h3 className="text-lg font-bold text-gray-800 text-center leading-tight uppercase">{selectedStudent.name.toUpperCase()}</h3>
                             
                             {/* NIS & NISN Badges */}
                             <div className="flex flex-wrap gap-2 justify-center mt-2 mb-4">
@@ -196,7 +196,7 @@ const StudentMonitor: React.FC<StudentMonitorProps> = ({
                             <div className="mt-2 text-xs space-y-2 text-left w-full border-t pt-4 text-gray-600">
                                 <p className="flex justify-between border-b border-dashed pb-1"><span>Jenis Kelamin:</span> <span className="font-semibold text-gray-800">{selectedStudent.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</span></p>
                                 <p className="flex justify-between border-b border-dashed pb-1"><span>Tgl Lahir:</span> <span className="font-semibold text-gray-800">{selectedStudent.birthDate ? formatDateID(selectedStudent.birthDate) : '-'}</span></p>
-                                <p className="flex justify-between border-b border-dashed pb-1"><span>Wali:</span> <span className="font-semibold text-gray-800">{selectedStudent.parentName}</span></p>
+                                <p className="flex justify-between border-b border-dashed pb-1"><span>Wali:</span> <span className="font-semibold text-gray-800 uppercase">{selectedStudent.parentName?.toUpperCase()}</span></p>
                                 <p className="flex justify-between border-b border-dashed pb-1"><span>No. HP:</span> <span className="font-semibold text-gray-800">{selectedStudent.parentPhone}</span></p>
                                 <div className="pt-1">
                                     <span className="block mb-1">Alamat:</span>

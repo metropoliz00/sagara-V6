@@ -1360,7 +1360,7 @@ const StudentList: React.FC<StudentListProps> = ({
           <div className="relative group">
             <div className="w-32 h-32 rounded-full bg-[#CAF4FF]/50 flex items-center justify-center border-4 border-white shadow-md overflow-hidden print:border-gray-300">
                {selectedStudent.photo && !isPhotoError(selectedStudent.photo) ? (
-                 <img src={selectedStudent.photo} alt={selectedStudent.name} className="w-full h-full object-cover" />
+                 <img src={selectedStudent.photo} alt={selectedStudent.name.toUpperCase()} className="w-full h-full object-cover" />
                ) : (
                  <div className="flex flex-col items-center text-center">
                     <UserCircle size={80} className="text-[#A0DEFF]" />
@@ -1383,7 +1383,7 @@ const StudentList: React.FC<StudentListProps> = ({
             </div>
           </div>
           <div className="text-center md:text-left flex-1">
-                <input className="text-2xl font-bold text-gray-800 border-b border-dashed border-transparent hover:border-gray-300 focus:border-[#5AB2FF] outline-none w-full md:w-auto bg-transparent print:border-none" value={selectedStudent.name} onChange={(e) => handleChange('name', e.target.value)} />
+                <input className="text-2xl font-bold text-gray-800 border-b border-dashed border-transparent hover:border-gray-300 focus:border-[#5AB2FF] outline-none w-full md:w-auto bg-transparent print:border-none uppercase" value={selectedStudent.name} onChange={(e) => handleChange('name', e.target.value)} />
             <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-2 text-sm text-gray-500">
                <span className="bg-gray-100 px-3 py-1 rounded-full font-medium">NIS: {selectedStudent.nis}</span>
                {selectedStudent.nisn && <span className="bg-[#CAF4FF] text-[#5AB2FF] px-3 py-1 rounded-full font-medium">NISN: {selectedStudent.nisn}</span>}
@@ -1591,7 +1591,7 @@ const StudentList: React.FC<StudentListProps> = ({
               <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-[#CAF4FF]/30">
                  <div>
                    <h3 className="font-bold text-xl text-gray-800">Input Manual History Nilai</h3>
-                   <p className="text-sm text-gray-500">{selectedStudent.name}</p>
+                   <p className="text-sm text-gray-500 uppercase">{selectedStudent.name.toUpperCase()}</p>
                  </div>
                  <button onClick={() => setIsHistoryModalOpen(false)} className="p-2 hover:bg-gray-200 rounded-full"><X size={20}/></button>
               </div>
@@ -1823,12 +1823,12 @@ const StudentList: React.FC<StudentListProps> = ({
                       <div className="relative shrink-0">
                          <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center text-2xl font-bold text-[#5AB2FF] border-2 border-white shadow-sm overflow-hidden">
                             {student.photo && !isPhotoError(student.photo) ? (
-                                <img src={student.photo} alt={student.name} className="w-full h-full object-cover" />
+                                <img src={student.photo} alt={student.name.toUpperCase()} className="w-full h-full object-cover" />
                             ) : ( student.gender === 'L' ? '👦' : '👧' )}
                          </div>
                       </div>
                       <div className="flex-1 min-w-0 min-h-16">
-                         <h3 className={`font-bold text-gray-800 group-hover:text-[#5AB2FF] transition-colors ${student.name.length > 22 ? 'text-base leading-tight' : 'text-lg'}`}>{student.name}</h3>
+                         <h3 className={`font-bold text-gray-800 group-hover:text-[#5AB2FF] transition-colors uppercase ${student.name.length > 22 ? 'text-base leading-tight' : 'text-lg'}`}>{student.name.toUpperCase()}</h3>
                          <div className="flex flex-wrap gap-1.5 mt-2">
                             <span className="bg-white/80 text-gray-600 text-[10px] px-2 py-0.5 rounded font-mono border border-gray-200 shadow-sm flex items-center" title="NIS">
                                 NIS: {student.nis}
@@ -1882,7 +1882,7 @@ const StudentList: React.FC<StudentListProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {filteredStudents.map((student) => (
                         <div key={student.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 flex flex-col items-center text-center">
-                            <h3 className="font-bold text-gray-800 text-sm mb-1 truncate w-full">{student.name}</h3>
+                            <h3 className="font-bold text-gray-800 text-sm mb-1 truncate w-full uppercase">{student.name.toUpperCase()}</h3>
                             <span className="text-xs font-mono text-gray-500 mb-3 bg-gray-100 px-2 py-0.5 rounded">NIS: {student.nis}</span>
                             
                             <div className="bg-white p-2 rounded-lg border border-gray-100 shadow-inner mb-3">
@@ -1922,9 +1922,9 @@ const StudentList: React.FC<StudentListProps> = ({
                         {filteredStudents.map((student, index) => (
                             <tr key={student.id} className={`hover:bg-[#CAF4FF]/20 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-[#CAF4FF]/10'}`} onClick={() => setSelectedStudent(student)}>
                                 <td className="px-4 py-3 font-mono text-gray-500 whitespace-nowrap">{student.nis}</td>
-                                <td className="px-4 py-3 font-medium flex items-center whitespace-nowrap">
+                                <td className="px-4 py-3 font-medium flex items-center whitespace-nowrap uppercase">
                                     {student.photo && !isPhotoError(student.photo) && <img src={student.photo} className="w-8 h-8 rounded-full mr-3 object-cover" alt=""/>}
-                                    {student.name}
+                                    {student.name.toUpperCase()}
                                 </td>
                                 <td className="px-4 py-3 text-center font-mono">{student.weight || '-'}</td>
                                 <td className="px-4 py-3 text-center font-mono">{student.height || '-'}</td>
@@ -1955,14 +1955,14 @@ const StudentList: React.FC<StudentListProps> = ({
                         {filteredStudents.map((student, index) => (
                             <tr key={student.id} className={`hover:bg-[#CAF4FF]/20 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-[#CAF4FF]/10'}`} onClick={() => setSelectedStudent(student)}>
                                 <td className="px-4 py-3 font-mono text-gray-500 whitespace-nowrap">{student.nis}</td>
-                                <td className="px-4 py-3 font-medium flex items-center whitespace-nowrap">
+                                <td className="px-4 py-3 font-medium flex items-center whitespace-nowrap uppercase">
                                     {student.photo && !isPhotoError(student.photo) && <img src={student.photo} className="w-8 h-8 rounded-full mr-3 object-cover" alt=""/>}
-                                    {student.name}
+                                    {student.name.toUpperCase()}
                                 </td>
-                                <td className="px-4 py-3">{student.fatherName || '-'}</td>
+                                <td className="px-4 py-3 uppercase">{student.fatherName?.toUpperCase() || '-'}</td>
                                 <td className="px-4 py-3">{student.fatherEducation || '-'}</td>
                                 <td className="px-4 py-3">{student.fatherJob || '-'}</td>
-                                <td className="px-4 py-3">{student.motherName || '-'}</td>
+                                <td className="px-4 py-3 uppercase">{student.motherName?.toUpperCase() || '-'}</td>
                                 <td className="px-4 py-3">{student.motherEducation || '-'}</td>
                                 <td className="px-4 py-3">{student.motherJob || '-'}</td>
                                 <td className="px-4 py-3 truncate max-w-[200px]">{student.address}</td>
@@ -1991,9 +1991,9 @@ const StudentList: React.FC<StudentListProps> = ({
                             <tr key={student.id} className={`hover:bg-[#CAF4FF]/20 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-[#CAF4FF]/10'}`} onClick={() => setSelectedStudent(student)}>
                                 <td className="px-4 py-3 font-mono text-gray-500 whitespace-nowrap">{student.nis}</td>
                                 <td className="px-4 py-3 font-mono text-gray-500 whitespace-nowrap">{student.nisn || '-'}</td>
-                                <td className="px-4 py-3 font-medium flex items-center whitespace-nowrap">
+                                <td className="px-4 py-3 font-medium flex items-center whitespace-nowrap uppercase">
                                     {student.photo && !isPhotoError(student.photo) && <img src={student.photo} className="w-8 h-8 rounded-full mr-3 object-cover" alt=""/>}
-                                    {student.name}
+                                    {student.name.toUpperCase()}
                                 </td>
                                 <td className="px-4 py-3 whitespace-nowrap">{student.birthPlace || '-'}</td>
                                 <td className="px-4 py-3 whitespace-nowrap">{student.birthDate ? formatDateID(student.birthDate) : '-'}</td>
@@ -2026,13 +2026,13 @@ const StudentList: React.FC<StudentListProps> = ({
                   <tr key={student.id} className={`hover:bg-[#CAF4FF]/20 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-[#CAF4FF]/10'}`} onClick={() => setSelectedStudent(student)}>
                     <td className="px-4 py-3 font-mono text-gray-500 whitespace-nowrap">{student.nis}</td>
                     <td className="px-4 py-3 font-mono text-gray-500 whitespace-nowrap">{student.nisn || '-'}</td>
-                    <td className="px-4 py-3 font-medium flex items-center whitespace-nowrap">{student.photo && !isPhotoError(student.photo) && <img src={student.photo} className="w-8 h-8 rounded-full mr-3 object-cover"/>}{student.name}</td>
+                    <td className="px-4 py-3 font-medium flex items-center whitespace-nowrap uppercase">{student.photo && !isPhotoError(student.photo) && <img src={student.photo} className="w-8 h-8 rounded-full mr-3 object-cover"/>}{student.name.toUpperCase()}</td>
                     <td className="px-4 py-3 text-center">{student.gender}</td>
                     <td className="px-4 py-3 whitespace-nowrap">{student.birthPlace || '-'}</td>
                     <td className="px-4 py-3 whitespace-nowrap">{student.birthDate ? formatDateID(student.birthDate) : '-'}</td>
                     <td className="px-4 py-3">{student.religion || '-'}</td>
-                    <td className="px-4 py-3">{student.fatherName || '-'}</td>
-                    <td className="px-4 py-3">{student.motherName || '-'}</td>
+                    <td className="px-4 py-3 uppercase">{student.fatherName?.toUpperCase() || '-'}</td>
+                    <td className="px-4 py-3 uppercase">{student.motherName?.toUpperCase() || '-'}</td>
                     <td className="px-4 py-3 truncate max-w-[150px]">{student.address}</td>
                   </tr>
                 ))}

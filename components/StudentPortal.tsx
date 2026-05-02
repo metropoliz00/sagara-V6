@@ -798,7 +798,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
           <div className="relative z-10 flex flex-col md:flex-row items-center md:items-end gap-6">
               <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white shrink-0">
                   {student.photo && !student.photo.startsWith('ERROR') ? (
-                      <img src={student.photo} alt={student.name} className="w-full h-full object-cover object-top" />
+                      <img src={student.photo} alt={student.name.toUpperCase()} className="w-full h-full object-cover object-top" />
                   ) : (
                       <div className="w-full h-full flex items-center justify-center text-indigo-300 bg-indigo-50"><User size={48}/></div>
                   )}
@@ -806,7 +806,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
 
               <div className="flex-1 text-center md:text-left mb-1">
                   <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#5AB2FF] to-blue-500 mb-2">
-                      {student.name}
+                      {student.name.toUpperCase()}
                   </h1>
                   <div className="inline-flex flex-wrap items-center justify-center md:justify-start gap-3 text-sm text-gray-600">
                       <span className="bg-gray-100 px-3 py-1 rounded-full font-bold border border-gray-200 shadow-sm flex items-center text-slate-700">
@@ -1698,7 +1698,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                       </h3>
                       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                           <div className="space-y-4 text-sm">
-                              <div><strong className="block text-xs text-gray-500">Nama Lengkap</strong> <span className="font-semibold text-gray-800">{student.name}</span></div>
+                              <div><strong className="block text-xs text-gray-500">Nama Lengkap</strong> <span className="font-semibold text-gray-800 uppercase">{student.name.toUpperCase()}</span></div>
                               <div><strong className="block text-xs text-gray-500">NIS / NISN</strong> <span className="font-semibold text-gray-800">{student.nis} / {student.nisn || '-'}</span></div>
                               <div><strong className="block text-xs text-gray-500">Alamat</strong> <span className="font-semibold text-gray-800">{student.address}</span></div>
                               <div><strong className="block text-xs text-gray-500">No. HP Wali</strong> <span className="font-semibold text-gray-800">{student.parentPhone}</span></div>
@@ -1998,7 +1998,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({
                                   <div className="bg-white print:bg-transparent print:border print:border-gray-300 rounded-xl p-5 text-left space-y-3 shadow-inner my-6 max-w-xl mx-auto">
                                       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 border-b border-gray-100 print:border-gray-300 pb-3">
                                           <span className="text-gray-500 print:text-black text-sm font-medium">Nama Lengkap</span>
-                                          <span className="col-span-2 sm:col-span-3 text-gray-800 print:text-black font-bold uppercase">: {graduationData.name || student.name}</span>
+                                          <span className="col-span-2 sm:col-span-3 text-gray-800 print:text-black font-bold uppercase">: {(graduationData.name || student.name).toUpperCase()}</span>
                                       </div>
                                       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 border-b border-gray-100 print:border-gray-300 pb-3">
                                           <span className="text-gray-500 print:text-black text-sm font-medium">NIS / NISN</span>
