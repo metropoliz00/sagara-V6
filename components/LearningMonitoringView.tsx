@@ -48,7 +48,8 @@ const LearningMonitoringView: React.FC<LearningMonitoringViewProps> = ({
   const groupedJournals = useMemo(() => {
     const academicExcludedKeywords = [
       'istirahat', 'pembiasaan', 'upacara', 'sholat', 'dhuha', 'dzuhur', 
-      'senam', 'apel', 'istirahat 1', 'istirahat 2', 'upacara bendera'
+      'senam', 'apel', 'istirahat 1', 'istirahat 2', 'upacara bendera',
+      'literasi/numerasi', 'literasi', 'numerasi'
     ];
 
     const filtered = journals.filter(j => {
