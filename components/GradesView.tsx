@@ -4,7 +4,7 @@ import { Student, GradeRecord, GradeData, Subject, SchoolProfileData, TeacherPro
 import { MOCK_SUBJECTS } from '../constants';
 import { apiService } from '../services/apiService';
 import * as XLSX from 'xlsx';
-import { Save, FileSpreadsheet, Printer, Upload, Download, Calculator, CheckCircle, AlertCircle, Settings2, Lock, ChevronDown, Trophy, List, Grid, Eye, EyeOff, Loader2, Plus } from 'lucide-react';
+import { Save, FileSpreadsheet, Printer, Upload, Download, Calculator, CheckCircle, AlertCircle, Settings2, Lock, ChevronDown, Trophy, List, Grid, Eye, EyeOff, Loader2, Plus, Minus } from 'lucide-react';
 import { useModal } from '../context/ModalContext';
 
 interface GradesViewProps {
@@ -41,6 +41,7 @@ const GradesView: React.FC<GradesViewProps> = ({
 
   const [customColumns, setCustomColumns] = useState<string[]>([]);
   const [isAddingColumn, setIsAddingColumn] = useState(false);
+  const [isRemovingColumn, setIsRemovingColumn] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -267,6 +268,26 @@ const GradesView: React.FC<GradesViewProps> = ({
     } finally {
       setIsAddingColumn(false);
     }
+  };
+
+  const handleRemoveCustomColumn = async () => {
+    if (!isSubjectEditable || customColumns.length === 0) return;
+    
+    showConfirm('Apakah Anda yakin ingin menghapus kolom sumatif terakhir? Data nilai pada kolom tersebut tetap akan ada di database namun disembunyikan.', async () => {
+        setIsRemovingColumn(true);
+        try {
+          const newColumns = [...customColumns];
+          const removedCol = newColumns.pop();
+          setCustomColumns(newColumns);
+          await apiService.saveCustomGradeColumns(classId, selectedSubject, newColumns);
+          onShowNotification(`Kolom ${removedCol?.toUpperCase()} berhasil dihapus!`, 'success');
+        } catch (e) {
+          console.error(e);
+          onShowNotification('Gagal menghapus kolom nilai', 'error');
+        } finally {
+          setIsRemovingColumn(false);
+        }
+    });
   };
 
   const handleSaveRow = (studentId: string) => {
@@ -579,15 +600,29 @@ const GradesView: React.FC<GradesViewProps> = ({
           
           <div className="flex flex-wrap items-center gap-3">
               {viewMode === 'input' && !isReadOnly && (
-                  <button 
-                    onClick={handleAddCustomColumn}
-                    disabled={isAddingColumn}
-                    className="flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
-                    title="Tambah Kolom Sumatif"
-                  >
-                      {isAddingColumn ? <Loader2 size={14} className="animate-spin mr-1.5"/> : <Plus size={14} className="mr-1.5"/>}
-                      <span>Tambah Kolom</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                      <button 
+                        onClick={handleAddCustomColumn}
+                        disabled={isAddingColumn}
+                        className="flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                        title="Tambah Kolom Sumatif"
+                      >
+                          {isAddingColumn ? <Loader2 size={14} className="animate-spin mr-1.5"/> : <Plus size={14} className="mr-1.5"/>}
+                          <span>Tambah Kolom</span>
+                      </button>
+                      
+                      {customColumns.length > 0 && (
+                          <button 
+                            onClick={handleRemoveCustomColumn}
+                            disabled={isRemovingColumn}
+                            className="flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100"
+                            title="Hapus Kolom Sumatif Terakhir"
+                          >
+                              {isRemovingColumn ? <Loader2 size={14} className="animate-spin mr-1.5"/> : <Minus size={14} className="mr-1.5"/>}
+                              <span>Hapus Kolom</span>
+                          </button>
+                      )}
+                  </div>
               )}
 
               {/* NEW TOGGLE FOR SUMMATIVE VISIBILITY */}
