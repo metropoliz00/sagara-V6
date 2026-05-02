@@ -413,8 +413,14 @@ const GtkDataView: React.FC<GtkDataViewProps> = ({ gtkData, users, currentUser, 
                   <input type="text" value={editingRecord.jabatan} onChange={e => setEditingRecord({...editingRecord, jabatan: e.target.value})} className="w-full text-sm border rounded-lg p-2 bg-gray-50" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-600">Status Pegawai (PNS/PPPK/Honda/dkk)</label>
-                  <input type="text" value={editingRecord.statusPegawai} onChange={e => setEditingRecord({...editingRecord, statusPegawai: e.target.value})} className="w-full text-sm border rounded-lg p-2 bg-gray-50" />
+                  <label className="text-xs font-semibold text-gray-600">Status Pegawai</label>
+                  <select value={editingRecord.statusPegawai} onChange={e => setEditingRecord({...editingRecord, statusPegawai: e.target.value})} className="w-full text-sm border rounded-lg p-2 bg-gray-50">
+                    <option value="">Pilih Status</option>
+                    <option value="PNS">PNS</option>
+                    <option value="PPPK">PPPK</option>
+                    <option value="PPPK PW">PPPK PW</option>
+                    <option value="Honorer">Honorer</option>
+                  </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-gray-600">Pangkat/Gologan</label>

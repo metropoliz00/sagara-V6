@@ -191,7 +191,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           <img 
             src="https://www.image2url.com/r2/default/images/1776528081180-f5356afe-2059-4426-8309-4f5af1b9227e.png" 
             alt="Watermark" 
-            className="w-[500px] h-[500px] md:w-[700px] md:h-[700px] object-contain opacity-[0.03] grayscale animate-pulse-slow"
+            className="w-[500px] h-[500px] md:w-[700px] md:h-[700px] object-contain opacity-[0.30] grayscale animate-pulse-slow"
           />
       </div>
 
