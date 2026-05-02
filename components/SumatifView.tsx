@@ -1319,7 +1319,7 @@ const SumatifTokenEntry: React.FC<{
               <UserIcon size={20} className="text-blue-200" />
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-blue-200 font-bold">Nama Peserta</p>
-                <p className="font-bold">{student.name}</p>
+                <p className="font-bold uppercase">{student.name.toUpperCase()}</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">

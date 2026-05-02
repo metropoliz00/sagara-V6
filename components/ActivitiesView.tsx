@@ -427,7 +427,7 @@ const ActivitiesView: React.FC<ActivitiesViewProps> = ({
                                        const isSelected = editingActivity.members.includes(student.id);
                                        return (
                                            <div key={student.id} onClick={() => toggleMemberInEdit(student.id)} className={`flex justify-between items-center px-4 py-2 text-sm cursor-pointer border-b last:border-0 hover:bg-[#CAF4FF]/50 ${isSelected ? 'bg-[#CAF4FF]/50' : ''}`}>
-                                               <span className="font-medium text-gray-700">{student.name} <span className="text-gray-400 text-xs">({student.nis})</span></span>
+                                               <span className="font-medium text-gray-700 uppercase">{student.name.toUpperCase()} <span className="text-gray-400 text-xs">({student.nis})</span></span>
                                                <div className={`w-5 h-5 rounded flex items-center justify-center border ${isSelected ? 'bg-[#5AB2FF] border-[#5AB2FF]' : 'border-gray-300'}`}>{isSelected && <CheckSquare size={14} className="text-white"/>}</div>
                                            </div>
                                        );

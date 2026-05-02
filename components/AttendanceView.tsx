@@ -882,7 +882,7 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
 
                                     return (
                                         <tr key={s.id} className="hover:bg-gray-50 group">
-                                            <td className="p-2 border font-medium sticky left-0 bg-white z-10 whitespace-nowrap group-hover:bg-gray-50">{s.name}</td>
+                                            <td className="p-2 border font-medium sticky left-0 bg-white z-10 whitespace-nowrap group-hover:bg-gray-50 uppercase">{s.name.toUpperCase()}</td>
                                             {daysArray.map(d => {
                                                 const dateStr = getDateKeyForDay(d);
                                                 const {isRed, holidayDesc, type} = getHolidayForDay(d);
@@ -1114,7 +1114,7 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
                     <tbody>
                         {students.map(s => (
                             <tr key={s.id} className="border-t">
-                                <td className="p-4 font-medium">{s.name}</td>
+                                <td className="p-4 font-medium uppercase">{s.name.toUpperCase()}</td>
                                 {['present','dispensation','sick','permit','alpha'].map(type => (
                                     <td key={type} className="p-2 text-center">
                                         <button onClick={()=>handleStatusChange(s.id, type as AttendanceStatus)} className={`p-2 rounded-lg ${dailyAttendance[s.id]?.status === type ? 'bg-[#5AB2FF] text-white' : 'bg-gray-100'}`} title={type === 'dispensation' ? 'Dispensasi' : type}>
@@ -1199,7 +1199,7 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
                      <tbody className="divide-y divide-gray-100">
                          {students.map(s => (
                              <tr key={s.id} className="hover:bg-[#CAF4FF]/30 transition-colors">
-                                 <td className="p-4 font-medium text-gray-800">{s.name}</td>
+                                 <td className="p-4 font-medium text-gray-800 uppercase">{s.name.toUpperCase()}</td>
                                  <td className="p-4">
                                      <div className="relative">
                                          <select 

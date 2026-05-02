@@ -280,7 +280,7 @@ const CounselingView: React.FC<CounselingViewProps> = ({ students, logs, onCreat
                     <div className="flex-1 w-full">
                         <div className="flex justify-between items-start">
                             <div>
-                                <h4 className="font-bold text-gray-800 text-base print:text-black">{log.studentName}</h4>
+                                <h4 className="font-bold text-gray-800 text-base print:text-black uppercase">{log.studentName.toUpperCase()}</h4>
                                 <div className="flex items-center gap-2 mt-1">
                                     <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${
                                         log.type==='positive'?'bg-emerald-50 text-emerald-700 border-emerald-100':

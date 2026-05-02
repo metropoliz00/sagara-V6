@@ -322,7 +322,7 @@ const GraduatesView: React.FC<GraduatesViewProps> = ({ onShowNotification, isRea
                 <tr>
                   <td>${i + 1}</td>
                   <td>${g.nisn}</td>
-                  <td>${g.name}</td>
+                  <td>${g.name.toUpperCase()}</td>
                   <td>${g.ijazahNumber}</td>
                   <td>${g.status}</td>
                   <td>${g.graduationYear}</td>
@@ -474,7 +474,7 @@ const GraduatesView: React.FC<GraduatesViewProps> = ({ onShowNotification, isRea
                   <tr key={graduate.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 text-sm text-slate-600">{index + 1}</td>
                     <td className="px-6 py-4 text-sm font-medium text-slate-800">{graduate.nisn}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-slate-800">{graduate.name}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-slate-800 uppercase">{graduate.name.toUpperCase()}</td>
                     <td className="px-6 py-4 text-sm text-slate-600">{graduate.ijazahNumber || '-'}</td>
                     <td className="px-6 py-4">
                       <span className="px-2.5 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">

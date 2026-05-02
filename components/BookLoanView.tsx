@@ -577,7 +577,7 @@ const BookLoanView: React.FC<BookLoanViewProps> = ({
                   <tr key={loan.id} className="hover:bg-indigo-50/30 transition-colors">
                     <td className="p-4 text-center text-gray-500 font-mono">{idx + 1}</td>
                     <td className="p-4">
-                      <div className="font-bold text-gray-800">{loan.studentName}</div>
+                      <div className="font-bold text-gray-800 uppercase">{loan.studentName.toUpperCase()}</div>
                       <div className="text-xs text-gray-500">Pinjam pada {formatDateIndo(loan.date)}</div>
                     </td>
                     <td className="p-4">

@@ -243,7 +243,7 @@ const AttitudeView: React.FC<AttitudeViewProps> = ({ students, initialSikap, ini
                                 
                                 return (
                                 <tr key={student.id} className="hover:bg-gray-50">
-                                    <td className="p-2 border font-medium sticky left-0 bg-white z-10 group-hover:bg-gray-50">{student.name}</td>
+                                    <td className="p-2 border font-medium sticky left-0 bg-white z-10 group-hover:bg-gray-50 uppercase">{student.name.toUpperCase()}</td>
                                     {selectedIndicators.map(key => {
                                         const value = assessment[key] || 0;
                                         return (
@@ -299,7 +299,7 @@ const AttitudeView: React.FC<AttitudeViewProps> = ({ students, initialSikap, ini
                             const score = countTerbiasa(assessment);
                             return (
                             <tr key={student.id} className="hover:bg-gray-50">
-                                <td className="p-3 border font-medium sticky left-0 bg-white z-10 group-hover:bg-gray-50">{student.name}</td>
+                                <td className="p-3 border font-medium sticky left-0 bg-white z-10 group-hover:bg-gray-50 uppercase">{student.name.toUpperCase()}</td>
                                 {(Object.keys(KARAKTER_INDICATORS) as KarakterIndicatorKey[]).map(key => (
                                     <td key={key} className="p-1 border text-center">
                                         <select 

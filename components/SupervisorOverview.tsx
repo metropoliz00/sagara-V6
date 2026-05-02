@@ -593,7 +593,7 @@ const SupervisorOverview: React.FC<SupervisorOverviewProps> = ({
                                         const s = getStudentInfo(log.studentId);
                                         return (
                                             <tr key={log.id}>
-                                                <td className="p-4 font-semibold">{s?.name || log.studentName}</td>
+                                                <td className="p-4 font-semibold uppercase">{(s?.name || log.studentName)?.toUpperCase()}</td>
                                                 <td className="p-4">{s?.classId || '-'}</td>
                                                 <td className="p-4 text-gray-500 font-mono text-xs">
                                                     {s?.nis || '-'} / {s?.nisn || '-'}
@@ -619,7 +619,7 @@ const SupervisorOverview: React.FC<SupervisorOverviewProps> = ({
                                 <tbody className="divide-y divide-gray-100">
                                     {students.filter(s => !s.nisn || !s.parentPhone).map(s => (
                                         <tr key={s.id}>
-                                            <td className="p-4 font-semibold">{s.name}</td>
+                                            <td className="p-4 font-semibold uppercase">{s.name.toUpperCase()}</td>
                                             <td className="p-4">{s.classId}</td>
                                             <td className="p-4 font-mono">{s.nis}</td>
                                             <td className="p-4 text-red-500 text-xs font-bold">

@@ -137,8 +137,8 @@ const SeatingTab: React.FC<SeatingTabProps> = ({ seatingLayouts, setSeatingLayou
                         </div>
                     )}
                     <div className="text-[8px] font-bold text-center leading-tight px-1 w-full pointer-events-none">
-                        <div className="truncate">{student.name.split(' ')[0]}</div>
-                        <div className="truncate">{student.name.split(' ')[1] || '\u00A0'}</div>
+                        <div className="truncate uppercase">{student.name.toUpperCase().split(' ')[0]}</div>
+                        <div className="truncate uppercase">{student.name.toUpperCase().split(' ')[1] || '\u00A0'}</div>
                     </div>
                     
                     <div className="absolute inset-0 bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 flex items-center justify-center no-print">
@@ -324,7 +324,7 @@ const SeatingTab: React.FC<SeatingTabProps> = ({ seatingLayouts, setSeatingLayou
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white font-bold shrink-0 ${student.gender === 'L' ? 'bg-blue-500' : 'bg-pink-500'}`}>
                             {student.gender}
                         </div>
-                        <span className="text-xs font-medium text-gray-700 truncate">{student.name}</span>
+                        <span className="text-xs font-medium text-gray-700 truncate uppercase">{student.name.toUpperCase()}</span>
                     </div>
                     <GripVertical size={14} className="text-gray-300" />
                     </div>

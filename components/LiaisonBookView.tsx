@@ -233,7 +233,7 @@ const LiaisonBookView: React.FC<LiaisonBookViewProps> = ({ logs, students, onRep
                         <div className="flex-1">
                             <div className="flex justify-between items-start mb-2">
                                 <div className="flex items-center gap-2">
-                                    <h4 className="font-bold text-gray-800">{log.studentName}</h4>
+                                    <h4 className="font-bold text-gray-800 uppercase">{log.studentName.toUpperCase()}</h4>
                                     <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded border border-gray-200">{log.studentNis}</span>
                                 </div>
                                 <span className="text-xs text-gray-400 flex items-center shrink-0">

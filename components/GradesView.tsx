@@ -376,7 +376,7 @@ const GradesView: React.FC<GradesViewProps> = ({
                         return `
                         <tr>
                             <td style="text-align: center">${idx + 1}</td>
-                            <td>${s.name}</td>
+                            <td>${s.name.toUpperCase()}</td>
                             <td>${s.nis}</td>
                             <td>${s.nisn || '-'}</td>
                             <td style="text-align: center">${g.sum1 || '-'}</td>
@@ -416,7 +416,7 @@ const GradesView: React.FC<GradesViewProps> = ({
                     ${recapData.map((s, idx) => `
                         <tr>
                             <td style="text-align: center">${idx + 1}</td>
-                            <td>${s.name}</td>
+                            <td>${s.name.toUpperCase()}</td>
                             <td>${s.nis}</td>
                             <td>${s.nisn || '-'}</td>
                             ${MOCK_SUBJECTS.map(subj => `<td style="text-align: center">${s.scores[subj.id] || '-'}</td>`).join('')}
@@ -487,7 +487,7 @@ const GradesView: React.FC<GradesViewProps> = ({
               s.rank, 
               s.nis, 
               s.nisn || '-',
-              s.name, 
+              s.name.toUpperCase(), 
               ...MOCK_SUBJECTS.map(subj => s.scores[subj.id] || 0),
               s.totalScore
           ]);
@@ -502,7 +502,7 @@ const GradesView: React.FC<GradesViewProps> = ({
              const g = getStudentGrade(s.id);
              const avg = calculateFinalAverage(g);
              const status = avg >= currentKktp ? 'Tuntas' : 'Belum Tuntas';
-             return [s.nis, s.name, subjectName, g.sum1, g.sum2, g.sum3, g.sum4, g.sas, avg, status];
+             return [s.nis, s.name.toUpperCase(), subjectName, g.sum1, g.sum2, g.sum3, g.sum4, g.sas, avg, status];
           });
           const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
           const workbook = XLSX.utils.book_new();
@@ -765,7 +765,7 @@ const GradesView: React.FC<GradesViewProps> = ({
                           <tr key={s.id} className="hover:bg-indigo-50/30 transition-colors print:hover:bg-transparent border-b">
                              <td className="p-4 sticky left-0 bg-white font-medium print:text-black border-r whitespace-nowrap">
                                 <div className="flex flex-col">
-                                    <span>{s.name}</span>
+                                    <span>{s.name.toUpperCase()}</span>
                                     <div className="flex gap-2 text-[10px] text-gray-400 no-print">
                                         <span>NIS: {s.nis}</span>
                                         {s.nisn && <span>• NISN: {s.nisn}</span>}
@@ -846,7 +846,7 @@ const GradesView: React.FC<GradesViewProps> = ({
                                    <td className="p-3 text-center text-gray-500 border-r sticky left-0 bg-white group-hover:bg-gray-50 z-10">{idx + 1}</td>
                                    <td className="p-3 font-medium text-gray-800 border-r sticky left-10 bg-white group-hover:bg-gray-50 z-10 truncate max-w-[200px]">
                                        <div className="flex flex-col">
-                                           <span>{s.name}</span>
+                                           <span className="uppercase">{s.name.toUpperCase()}</span>
                                            <div className="flex items-center gap-1 text-[9px] text-gray-500 no-print">
                                                <span>{s.nis}</span>
                                                {s.nisn && <span className="text-indigo-600 font-mono">• {s.nisn}</span>}

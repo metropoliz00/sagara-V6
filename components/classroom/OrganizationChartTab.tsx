@@ -200,7 +200,7 @@ const OrganizationChartTab: React.FC<OrganizationChartTabProps> = ({ students, t
                                                 <UserIcon size={16} />
                                             </div>
                                         )}
-                                        <p className="text-xs font-bold text-gray-800 mt-1 leading-tight">{student.name.split(' ').slice(0, 2).join(' ')}</p>
+                                        <p className="text-xs font-bold text-gray-800 mt-1 leading-tight uppercase">{student.name.toUpperCase().split(' ').slice(0, 2).join(' ')}</p>
                                     </div>
                                 );
                             })}
@@ -227,7 +227,7 @@ const OrganizationChartTab: React.FC<OrganizationChartTabProps> = ({ students, t
                     {unassignedStudents.map(student => (
                         <div key={student.id} draggable onDragStart={(e) => handleDragStart(e, student.id, 'unassigned')} className="bg-white border p-2 rounded-lg flex items-center gap-2 cursor-grab active:cursor-grabbing hover:shadow-md">
                             <GripVertical size={14} className="text-gray-400" />
-                            <span className="text-xs font-medium">{student.name}</span>
+                            <span className="text-xs font-medium uppercase">{student.name.toUpperCase()}</span>
                         </div>
                     ))}
                 </div>
