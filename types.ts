@@ -76,6 +76,7 @@ export interface GradeData {
   sum3: number;
   sum4: number;
   sas: number;
+  [key: string]: number;
 }
 
 export interface GradeRecord {

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Student, SikapAssessment, KarakterAssessment, SIKAP_INDICATORS, KARAKTER_INDICATORS, SikapIndicatorKey, KarakterIndicatorKey } from '../types';
 import * as XLSX from 'xlsx';
+import { apiService } from '../services/apiService';
 import { Save, FileSpreadsheet, Printer, Upload, Download, Smile, Heart, Loader2, CheckSquare, Settings } from 'lucide-react';
 
 interface AttitudeViewProps {
@@ -25,6 +26,22 @@ const AttitudeView: React.FC<AttitudeViewProps> = ({ students, initialSikap, ini
   // -- DPL Selection State --
   const [selectedIndicators, setSelectedIndicators] = useState<SikapIndicatorKey[]>(Object.keys(SIKAP_INDICATORS) as SikapIndicatorKey[]);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+
+  useEffect(() => {
+    const loadIndicators = async () => {
+      try {
+        const config = await apiService.getClassConfig(classId);
+        if (config.dpl_indicators && Array.isArray(config.dpl_indicators) && config.dpl_indicators.length > 0) {
+          setSelectedIndicators(config.dpl_indicators as SikapIndicatorKey[]);
+        }
+      } catch (error) {
+        console.error("Failed to load DPL indicators:", error);
+      }
+    };
+    if (classId) {
+      loadIndicators();
+    }
+  }, [classId]);
 
   useEffect(() => setSikapData(initialSikap), [initialSikap]);
   useEffect(() => setKarakterData(initialKarakter), [initialKarakter]);
@@ -60,11 +77,23 @@ const AttitudeView: React.FC<AttitudeViewProps> = ({ students, initialSikap, ini
       return parseFloat(avg.toFixed(2));
   };
 
-  const toggleIndicator = (key: SikapIndicatorKey) => {
+  const toggleIndicator = async (key: SikapIndicatorKey) => {
+      let newIndicators: SikapIndicatorKey[] = [];
       setSelectedIndicators(prev => {
-          if (prev.includes(key)) return prev.filter(k => k !== key);
-          return [...prev, key];
+          if (prev.includes(key)) {
+              newIndicators = prev.filter(k => k !== key);
+          } else {
+              newIndicators = [...prev, key];
+          }
+          return newIndicators;
       });
+      try {
+          await apiService.saveClassConfig('dpl_indicators', newIndicators, classId);
+          onShowNotification(`Indikator DPL otomatis tersimpan.`, 'success');
+      } catch (error) {
+          console.error("Failed to save DPL indicators:", error);
+          onShowNotification(`Gagal menyimpan indikator DPL.`, 'error');
+      }
   };
 
   // --- Karakter Helpers ---

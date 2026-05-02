@@ -672,7 +672,8 @@ export const apiService = {
         sum2: Number(row.sum2),
         sum3: Number(row.sum3),
         sum4: Number(row.sum4),
-        sas: Number(row.sas)
+        sas: Number(row.sas),
+        ...(row.extra_data || {})
       };
     });
     return Object.values(gradeMap);
@@ -693,7 +694,8 @@ export const apiService = {
         sum2: Number(row.sum2),
         sum3: Number(row.sum3),
         sum4: Number(row.sum4),
-        sas: Number(row.sas)
+        sas: Number(row.sas),
+        ...(row.extra_data || {})
       };
     });
     return record;
@@ -723,17 +725,34 @@ export const apiService = {
     await supabase.from('class_config').upsert({ class_id: historyId, data: currentData }, { onConflict: 'class_id' });
   },
   saveGrade: async (studentId: string, subjectId: string, gradeData: GradeData, classId: string): Promise<void> => {
+    // Extract dynamic fields into extra_data
+    const { sum1, sum2, sum3, sum4, sas, ...extra_data } = gradeData;
+    
     const { error } = await supabase.from('grades').upsert({
       student_id: studentId,
       subject_id: subjectId,
       class_id: classId,
-      sum1: gradeData.sum1,
-      sum2: gradeData.sum2,
-      sum3: gradeData.sum3,
-      sum4: gradeData.sum4,
-      sas: gradeData.sas
+      sum1: sum1 || 0,
+      sum2: sum2 || 0,
+      sum3: sum3 || 0,
+      sum4: sum4 || 0,
+      sas: sas || 0,
+      extra_data: extra_data
     }, { onConflict: 'student_id,subject_id' });
     if (error) console.error('Error saving grade:', error);
+  },
+  
+  getCustomGradeColumns: async (classId: string, subjectId: string): Promise<string[]> => {
+    const { data, error } = await supabase.from('class_config').select('data').eq('class_id', `grade_columns_${classId}_${subjectId}`).single();
+    if (error || !data) return [];
+    return data.data?.columns || [];
+  },
+  
+  saveCustomGradeColumns: async (classId: string, subjectId: string, columns: string[]): Promise<void> => {
+    await supabase.from('class_config').upsert({ 
+      class_id: `grade_columns_${classId}_${subjectId}`, 
+      data: { columns } 
+    }, { onConflict: 'class_id' });
   },
 
   // --- Counseling ---
@@ -1072,7 +1091,8 @@ export const apiService = {
       academicCalendar?: AcademicCalendarData, 
       timeSlots?: string[], 
       organization?: OrganizationStructure,
-      settings?: { showStudentRecap?: boolean; showSummativeToStudents?: boolean } 
+      settings?: { showStudentRecap?: boolean; showSummativeToStudents?: boolean },
+      dpl_indicators?: string[]
   }> => {
      const defaultConfig = {schedule: [], piket: [], seats: { classical: [], groups: [], ushape: [] }, academicCalendar: {}, timeSlots: [], organization: { roles: {}, sections: [] }, settings: {} };
      if (!classId) return defaultConfig;

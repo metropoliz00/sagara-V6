@@ -4,7 +4,7 @@ import { Student, GradeRecord, GradeData, Subject, SchoolProfileData, TeacherPro
 import { MOCK_SUBJECTS } from '../constants';
 import { apiService } from '../services/apiService';
 import * as XLSX from 'xlsx';
-import { Save, FileSpreadsheet, Printer, Upload, Download, Calculator, CheckCircle, AlertCircle, Settings2, Lock, ChevronDown, Trophy, List, Grid, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Save, FileSpreadsheet, Printer, Upload, Download, Calculator, CheckCircle, AlertCircle, Settings2, Lock, ChevronDown, Trophy, List, Grid, Eye, EyeOff, Loader2, Plus } from 'lucide-react';
 import { useModal } from '../context/ModalContext';
 
 interface GradesViewProps {
@@ -39,9 +39,27 @@ const GradesView: React.FC<GradesViewProps> = ({
   const [showSummativeToStudents, setShowSummativeToStudents] = useState(false);
   const [isTogglingSummative, setIsTogglingSummative] = useState(false);
 
+  const [customColumns, setCustomColumns] = useState<string[]>([]);
+  const [isAddingColumn, setIsAddingColumn] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { setGrades(initialGrades); }, [initialGrades]);
+
+  // Fetch custom columns for the current subject
+  useEffect(() => {
+    const loadCustomColumns = async () => {
+      try {
+        const columns = await apiService.getCustomGradeColumns(classId, selectedSubject);
+        setCustomColumns(columns || []);
+      } catch (error) {
+        console.error("Error loading custom columns:", error);
+      }
+    };
+    if (selectedSubject) {
+      loadCustomColumns();
+    }
+  }, [classId, selectedSubject]);
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -183,7 +201,7 @@ const GradesView: React.FC<GradesViewProps> = ({
     return record?.subjects[selectedSubject] || { sum1: 0, sum2: 0, sum3: 0, sum4: 0, sas: 0 };
   };
 
-  const updateLocalGrade = (studentId: string, field: keyof GradeData, value: number) => {
+  const updateLocalGrade = (studentId: string, field: string, value: number) => {
     if (!isSubjectEditable) return;
     const val = Math.min(100, Math.max(0, value));
     setGrades(prevGrades => {
@@ -202,7 +220,21 @@ const GradesView: React.FC<GradesViewProps> = ({
   };
   
   const calculateFinalAverage = (g: GradeData) => {
-    const scores = [g.sum1, g.sum2, g.sum3, g.sum4, g.sas];
+    // Include sum1..4, sas, and any dynamic sum fields from extra_data
+    const scores = [];
+    if (g.sum1) scores.push(g.sum1);
+    if (g.sum2) scores.push(g.sum2);
+    if (g.sum3) scores.push(g.sum3);
+    if (g.sum4) scores.push(g.sum4);
+    if (g.sas) scores.push(g.sas);
+    
+    // Add extra sum fields dynamically (e.g. sum5, sum6)
+    Object.keys(g).forEach(k => {
+      if (k.startsWith('sum') && k !== 'sum1' && k !== 'sum2' && k !== 'sum3' && k !== 'sum4') {
+        if (g[k]) scores.push(Number(g[k]));
+      }
+    });
+
     const filledScores = scores.filter(s => s > 0);
     if (filledScores.length === 0) return 0;
     const sum = filledScores.reduce((acc, curr) => acc + curr, 0);
@@ -213,6 +245,28 @@ const GradesView: React.FC<GradesViewProps> = ({
     if (!isSubjectEditable) return;
     const gradeData = getStudentGrade(studentId);
     onSave(studentId, selectedSubject, gradeData, classId);
+  };
+
+  const handleAddCustomColumn = async () => {
+    if (!isSubjectEditable) return;
+    setIsAddingColumn(true);
+    try {
+      // Find the next column number
+      let nextNum = 5;
+      while (customColumns.includes(`sum${nextNum}`)) {
+        nextNum++;
+      }
+      const newCol = `sum${nextNum}`;
+      const newColumns = [...customColumns, newCol];
+      setCustomColumns(newColumns);
+      await apiService.saveCustomGradeColumns(classId, selectedSubject, newColumns);
+      onShowNotification(`Kolom SUM ${nextNum} berhasil ditambahkan!`, 'success');
+    } catch (e) {
+      console.error(e);
+      onShowNotification('Gagal menambahkan kolom nilai', 'error');
+    } finally {
+      setIsAddingColumn(false);
+    }
   };
 
   const handleSaveRow = (studentId: string) => {
@@ -524,6 +578,18 @@ const GradesView: React.FC<GradesViewProps> = ({
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
+              {viewMode === 'input' && !isReadOnly && (
+                  <button 
+                    onClick={handleAddCustomColumn}
+                    disabled={isAddingColumn}
+                    className="flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                    title="Tambah Kolom Sumatif"
+                  >
+                      {isAddingColumn ? <Loader2 size={14} className="animate-spin mr-1.5"/> : <Plus size={14} className="mr-1.5"/>}
+                      <span>Tambah Kolom</span>
+                  </button>
+              )}
+
               {/* NEW TOGGLE FOR SUMMATIVE VISIBILITY */}
               {viewMode === 'input' && !isReadOnly && (
                   <button 
@@ -647,6 +713,9 @@ const GradesView: React.FC<GradesViewProps> = ({
                        <th className="p-2 w-20 text-center border-r">SUM 2</th>
                        <th className="p-2 w-20 text-center border-r">SUM 3</th>
                        <th className="p-2 w-20 text-center border-r">SUM 4</th>
+                       {customColumns.map(col => (
+                          <th key={col} className="p-2 w-20 text-center border-r uppercase">{col.replace('sum', 'SUM ')}</th>
+                       ))}
                        <th className="p-2 w-24 text-center border-r bg-blue-50/50 print:bg-white">SAS</th>
                        <th className="p-2 w-28 text-center bg-indigo-600 text-white print:bg-white print:text-black border-l">Nilai Akhir</th>
                        {isSubjectEditable && <th className="p-2 w-16 text-center no-print">Aksi</th>}
@@ -668,8 +737,8 @@ const GradesView: React.FC<GradesViewProps> = ({
                                     </div>
                                 </div>
                              </td>
-                             {(['sum1','sum2','sum3','sum4','sas'] as (keyof GradeData)[]).map(f => {
-                                const score = g[f] || 0;
+                             {(['sum1','sum2','sum3','sum4', ...customColumns, 'sas'] as string[]).map(f => {
+                                const score = Number(g[f]) || 0;
                                 const colorClass = getInputColor(score);
                                 return (
                                    <td key={String(f)} className={`p-1 border-r align-top ${f === 'sas' ? 'bg-blue-50/30 print:bg-white' : ''}`}>
