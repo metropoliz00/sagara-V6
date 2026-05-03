@@ -218,8 +218,8 @@ const AppContent: React.FC = () => {
     name: 'Guru', nip: '', nuptk: '', birthPlace: '', birthDate: '', education: '', position: '', rank: '', teachingClass: '', phone: '', email: '', address: ''
   });
   const [schoolProfile, setSchoolProfile] = useState<SchoolProfileData>({
-    name: 'Sekolah', npsn: '', address: '', headmaster: '', headmasterNip: '', headmasterSignature: '', year: new Date().getFullYear().toString(), semester: '1',
-    developerInfo: { name: '', moto: '', photo: '' }
+    name: 'Sekolah', npsn: '', address: '', headmaster: '', headmasterNip: '', headmasterSignature: '', year: '2024/2025', semester: '1',
+    developerInfo: { name: '', moto: '', photo: '', email: '' }
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1585,7 +1585,8 @@ const AppContent: React.FC = () => {
                   whatsapp: profilesTyped.school?.developerInfo?.whatsapp || prev.developerInfo?.whatsapp || '',
                   facebook: profilesTyped.school?.developerInfo?.facebook || prev.developerInfo?.facebook || '',
                   instagram: profilesTyped.school?.developerInfo?.instagram || prev.developerInfo?.instagram || '',
-                  tiktok: profilesTyped.school?.developerInfo?.tiktok || prev.developerInfo?.tiktok || ''
+                  tiktok: profilesTyped.school?.developerInfo?.tiktok || prev.developerInfo?.tiktok || '',
+                  email: profilesTyped.school?.developerInfo?.email || prev.developerInfo?.email || ''
               }
           }));
       }

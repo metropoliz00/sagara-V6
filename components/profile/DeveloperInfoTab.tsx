@@ -11,25 +11,32 @@ interface DeveloperInfoTabProps {
 }
 
 const DeveloperInfoTab: React.FC<DeveloperInfoTabProps> = ({ school, setSchool, isReadOnly }) => {
-    const devInfo: any = school.developerInfo || { name: '', moto: '', photo: '', whatsapp: '', facebook: '', instagram: '', tiktok: '', email: '' };
+    const devInfo = school.developerInfo || { name: '', moto: '', photo: '', email: '', whatsapp: '', facebook: '', instagram: '', tiktok: '' };
 
-    const handleFieldChange = (field: 'name' | 'moto' | 'whatsapp' | 'facebook' | 'instagram' | 'tiktok' | 'email', value: string) => {
+    const handleFieldChange = (field: string, value: string) => {
         if (isReadOnly) return;
-        setSchool(prev => ({
-            ...prev,
-            developerInfo: { ...(prev.developerInfo || { name: '', moto: '', photo: '' }), [field]: value }
-        }));
+        setSchool(prev => {
+            const currentDevInfo = prev.developerInfo || { name: '', moto: '', photo: '' };
+            return {
+                ...prev,
+                developerInfo: { ...currentDevInfo, [field]: value }
+            };
+        });
     };
     
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (isReadOnly) return;
         const file = e.target.files?.[0];
         if (file) {
-            const base64 = await compressImage(file, 200, 0.7);
-            setSchool(prev => ({
-                ...prev,
-                developerInfo: { ...(prev.developerInfo || { name: '', moto: '', photo: '' }), photo: base64 }
-            }));
+            try {
+                const base64 = await compressImage(file, 200, 0.7);
+                setSchool(prev => ({
+                    ...prev,
+                    developerInfo: { ...(prev.developerInfo || { name: '', moto: '', photo: '' }), photo: base64 }
+                }));
+            } catch (error) {
+                console.error("Gagal upload foto pengembang", error);
+            }
         }
     };
 

@@ -306,6 +306,7 @@ export interface SchoolProfileData {
     facebook?: string;
     instagram?: string;
     tiktok?: string;
+    email?: string;
   };
   isGraduationAnnounced?: boolean;
   loginPosterUrl?: string;

@@ -809,7 +809,7 @@ const AttendanceView: React.FC<AttendanceViewProps> = ({
                             {['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'].map((m,i) => (<option key={i} value={i+1}>{m}</option>))}
                         </select>
                         <select value={selectedYear} onChange={e=>setSelectedYear(Number(e.target.value))} className="bg-[#FFF9D0]/50 border border-amber-100 rounded-lg p-2 font-semibold text-gray-700">
-                            {[2024, 2025, 2026, 2027].map(y => (<option key={y} value={y}>{y}</option>))}
+                            {Array.from({ length: 40 }, (_, i) => 2020 + i).map(y => (<option key={y} value={y}>{y}</option>))}
                         </select>
                      </div>
                      <div className="flex items-center gap-2">

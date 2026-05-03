@@ -42,7 +42,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         try {
           const profiles = await apiService.getProfiles();
           if (profiles.school) {
-            if (profiles.school.developerInfo && profiles.school.developerInfo.name) {
+            if (profiles.school.developerInfo && (profiles.school.developerInfo.name || profiles.school.developerInfo.email)) {
               setDevInfo(profiles.school.developerInfo);
             }
             if (profiles.school.loginPosterUrl) {
