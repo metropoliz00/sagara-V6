@@ -37,6 +37,8 @@ const GradesView: React.FC<GradesViewProps> = ({
   const [isArchiving, setIsArchiving] = useState(false);
   const [isDeletingHistory, setIsDeletingHistory] = useState(false);
   const [selectedHistoryCohort, setSelectedHistoryCohort] = useState<string>('');
+  const [historyViewSubMode, setHistoryViewSubMode] = useState<'recap' | 'summative'>('recap');
+  const [selectedHistorySubject, setSelectedHistorySubject] = useState<string>(MOCK_SUBJECTS[0].id);
   const historyFileInputRef = useRef<HTMLInputElement>(null);
   
   // New State for Student Recap Visibility
@@ -648,6 +650,7 @@ const GradesView: React.FC<GradesViewProps> = ({
             const year = schoolProfile?.year || new Date().getFullYear().toString();
             const semester = schoolProfile?.semester || '1';
             for (const s of recapData) {
+                const studentRecord = grades.find(g => g.studentId === s.id);
                 const historyEntry: GradeHistoryRecord = {
                     id: `${year}_${semester}_${s.id}`.replace(/\//g, '-'),
                     studentId: s.id,
@@ -659,6 +662,7 @@ const GradesView: React.FC<GradesViewProps> = ({
                     rank: s.rank,
                     subjectsCount: s.subjectsCount,
                     scores: s.scores,
+                    fullScores: studentRecord?.subjects || {},
                     createdAt: new Date().toISOString()
                 };
                 await apiService.saveClassGradeHistory(classId, historyEntry);
@@ -821,18 +825,21 @@ const GradesView: React.FC<GradesViewProps> = ({
               )}
 
               {viewMode === 'history' && historyCohorts.length > 0 && (
-                  <div className="relative">
-                      <select 
-                          value={selectedHistoryCohort} 
-                          onChange={(e) => setSelectedHistoryCohort(e.target.value)} 
-                          className="appearance-none bg-white border border-indigo-200 text-indigo-700 py-2.5 pl-4 pr-10 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-sm cursor-pointer min-w-[250px]"
-                      >
-                          {historyCohorts.map(cohort => {
-                              const [year, sem] = cohort.split('|');
-                              return <option key={cohort} value={cohort}>{`TA ${year} - Semester ${sem}`}</option>;
-                          })}
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-indigo-500"><ChevronDown size={16} /></div>
+                  <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-indigo-400 uppercase mb-1 ml-1">Pilih Periode Riwayat</span>
+                      <div className="relative">
+                          <select 
+                              value={selectedHistoryCohort} 
+                              onChange={(e) => setSelectedHistoryCohort(e.target.value)} 
+                              className="appearance-none bg-white border border-indigo-200 text-indigo-700 py-2.5 pl-4 pr-10 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-sm cursor-pointer min-w-[250px]"
+                          >
+                              {historyCohorts.map(cohort => {
+                                  const [year, sem] = cohort.split('|');
+                                  return <option key={cohort} value={cohort}>{`TA ${year} - Semester ${sem}`}</option>;
+                              })}
+                          </select>
+                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-indigo-500"><ChevronDown size={16} /></div>
+                      </div>
                   </div>
               )}
 
@@ -950,10 +957,42 @@ const GradesView: React.FC<GradesViewProps> = ({
            </div>
        ) : (
            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden no-print">
-               <div className="p-4 bg-indigo-50 border-b border-indigo-100 flex justify-between items-center">
+               <div className="p-4 bg-indigo-50 border-b border-indigo-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                    <div className="flex items-center gap-2 text-indigo-800 font-bold">
                        <History size={18}/>
-                       <span>{selectedHistoryCohort ? `Rekap Nilai: TA ${selectedHistoryCohort.split('|')[0]} - Sem ${selectedHistoryCohort.split('|')[1]}` : 'Riwayat Nilai Semester Sebelumnya'}</span>
+                       <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                                <History size={18}/>
+                                <span>{selectedHistoryCohort ? `Riwayat Nilai: TA ${selectedHistoryCohort.split('|')[0]} - Semester ${selectedHistoryCohort.split('|')[1]}` : 'Riwayat Nilai Semester Sebelumnya'}</span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1 px-1">
+                                <div className="bg-white p-0.5 rounded-lg border border-indigo-200 flex shadow-sm">
+                                    <button 
+                                        type="button"
+                                        onClick={() => setHistoryViewSubMode('recap')} 
+                                        className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${historyViewSubMode === 'recap' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                    >
+                                        Rapor
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setHistoryViewSubMode('summative')} 
+                                        className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${historyViewSubMode === 'summative' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                    >
+                                        Sumatif
+                                    </button>
+                                </div>
+                                {historyViewSubMode === 'summative' && (
+                                    <select 
+                                        value={selectedHistorySubject}
+                                        onChange={(e) => setSelectedHistorySubject(e.target.value)}
+                                        className="text-xs bg-white border border-indigo-200 rounded-lg px-2 py-1 outline-none text-indigo-700 font-bold"
+                                    >
+                                        {MOCK_SUBJECTS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    </select>
+                                )}
+                            </div>
+                        </div>
                    </div>
                    <div className="flex items-center gap-2">
                        <div className="text-xs text-indigo-600 bg-white px-3 py-1 rounded-full border border-indigo-200">{filteredHistoryData.length} Siswa</div>
@@ -970,11 +1009,83 @@ const GradesView: React.FC<GradesViewProps> = ({
                        <table className="w-full text-xs text-left border-collapse min-w-[1000px]">
                            <thead className="bg-slate-50 text-slate-700 font-bold uppercase">
                                <tr className="border-b">
-                                   <th className="p-3 w-10 text-center border-r">No</th>
-                                   <th className="p-3 min-w-[200px] border-r sticky left-0 bg-slate-50 z-10">Nama Siswa</th>
-                                   {MOCK_SUBJECTS.map(subj => <th key={subj.id} className="p-2 w-16 text-center border-r" title={subj.name}>{getSubjectInitials(subj.name)}</th>)}
-                                   <th className="p-3 w-20 text-center border-r bg-emerald-50 text-emerald-800">Jumlah</th>
-                                   <th className="p-3 w-20 text-center bg-amber-50 text-amber-800">Rank</th>
+                                   <th className="p-3 w-10 text-center border-r sticky left-0 bg-slate-50 z-20">No</th>
+                                    <th className="p-3 min-w-[200px] border-r sticky left-10 bg-slate-50 z-20">Nama Siswa</th>
+                                    {historyViewSubMode === 'recap' ? (
+                                        <>
+                                            {MOCK_SUBJECTS.map(subj => <th key={subj.id} className="p-2 w-16 text-center border-r" title={subj.name}>{getSubjectInitials(subj.name)}</th>)}
+                                            <th className="p-3 w-20 text-center border-r bg-emerald-50 text-emerald-800">Jumlah</th>
+                                            <th className="p-3 w-20 text-center bg-amber-50 text-amber-800">Rank</th>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <th className="p-2 w-16 text-center border-r">SUM 1</th>
+                                            <th className="p-2 w-16 text-center border-r">SUM 2</th>
+                                            <th className="p-2 w-16 text-center border-r">SUM 3</th>
+                                            <th className="p-2 w-16 text-center border-r">SUM 4</th>
+                                            <th className="p-2 w-16 text-center border-r">SAS</th>
+                                            <th className="p-3 w-20 text-center bg-indigo-50 text-indigo-800 font-bold">AVG</th>
+                                        </>
+                                    )}
+                            <tbody className="divide-y divide-gray-100">
+                                {filteredHistoryData.map((h, idx) => {
+                                    const student = students.find(s => s.id === h.studentId);
+                                    const rank = Number(h.rank);
+                                    const isTop3 = rank > 0 && rank <= 3;
+                                    
+                                    // Summative data from fullScores
+                                    const fullScores = (h.fullScores || {}) as Record<string, any>;
+                                    const subjData = fullScores[selectedHistorySubject] || { sum1: 0, sum2: 0, sum3: 0, sum4: 0, sas: 0 };
+                                    const values = [subjData.sum1, subjData.sum2, subjData.sum3, subjData.sum4, subjData.sas].filter(v => v > 0);
+                                    const summativeAvg = values.length > 0 ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0;
+
+                                    return (
+                                        <tr key={h.id} className="hover:bg-indigo-50/20 transition-colors">
+                                            <td className="p-3 text-center text-gray-500 border-r">{idx + 1}</td>
+                                            <td className="p-3 border-r font-medium uppercase sticky left-10 bg-white group-hover:bg-indigo-50/20 z-10">
+                                                <div className="flex flex-col">
+                                                    <span>{student?.name.toUpperCase() || 'Siswa Dihapus'}</span>
+                                                    <span className="text-[9px] text-gray-400 font-mono">{student?.nis}</span>
+                                                </div>
+                                            </td>
+                                            
+                                            {historyViewSubMode === 'recap' ? (
+                                                <>
+                                                    {MOCK_SUBJECTS.map(subj => (
+                                                        <td key={subj.id} className="p-2 text-center border-r font-medium text-gray-600">
+                                                            {h.scores[subj.id] || '-'}
+                                                        </td>
+                                                    ))}
+                                                    <td className="p-3 text-center border-r font-bold text-emerald-600 bg-emerald-50/30">
+                                                        {h.totalScore}
+                                                    </td>
+                                                    <td className={`p-3 text-center font-black ${isTop3 ? 'bg-amber-50 text-amber-600' : 'text-gray-500'}`}>
+                                                        <div className="flex items-center justify-center gap-1">
+                                                            {rank === 1 && <Trophy size={14} className="text-yellow-500 fill-yellow-500"/>}
+                                                            {rank === 2 && <Trophy size={14} className="text-gray-400 fill-gray-400"/>}
+                                                            {rank === 3 && <Trophy size={14} className="text-amber-700 fill-amber-700"/>}
+                                                            {h.rank}
+                                                        </div>
+                                                    </td>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <td className="p-2 text-center border-r font-medium text-gray-600">{subjData.sum1 || '-'}</td>
+                                                    <td className="p-2 text-center border-r font-medium text-gray-600">{subjData.sum2 || '-'}</td>
+                                                    <td className="p-2 text-center border-r font-medium text-gray-600">{subjData.sum3 || '-'}</td>
+                                                    <td className="p-2 text-center border-r font-medium text-gray-600">{subjData.sum4 || '-'}</td>
+                                                    <td className="p-2 text-center border-r font-bold text-indigo-600">{subjData.sas || '-'}</td>
+                                                    <td className="p-3 text-center font-black bg-indigo-50/50 text-indigo-700">{summativeAvg || '-'}</td>
+                                                </>
+                                            )}
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
                                </tr>
                            </thead>
                            <tbody className="divide-y divide-gray-100">

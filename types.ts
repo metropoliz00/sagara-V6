@@ -97,6 +97,7 @@ export interface GradeHistoryRecord {
   rank: number | string;
   subjectsCount: number;
   scores: Record<string, number>;
+  fullScores?: Record<string, GradeData>;
   createdAt: string;
 }
 
