@@ -7,7 +7,7 @@ import {
   AcademicCalendarData, EmploymentLink, LearningReport, LiaisonLog, PermissionRequest, 
   LearningJournalEntry, SupportDocument, OrganizationStructure, SchoolAsset, 
   BOSTransaction, LearningDocumentation, BookLoan, BookInventory, Graduate, Material,
-  Sumatif, SumatifResult
+  Sumatif, SumatifResult, GradeHistoryRecord
 } from '../types';
 
 const isApiConfigured = () => {

@@ -36,6 +36,7 @@ const GradesView: React.FC<GradesViewProps> = ({
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
   const [isDeletingHistory, setIsDeletingHistory] = useState(false);
+  const [selectedHistoryCohort, setSelectedHistoryCohort] = useState<string>('');
   const historyFileInputRef = useRef<HTMLInputElement>(null);
   
   // New State for Student Recap Visibility
@@ -581,12 +582,62 @@ const GradesView: React.FC<GradesViewProps> = ({
     try {
       const history = await apiService.getClassGradeHistory(classId);
       setGradeHistory(history || []);
+      
+      // Auto select latest cohort if not selected
+      if (history && history.length > 0) {
+          const cohorts = Array.from(new Set(history.map(h => `${h.academicYear}|${h.semester}`)));
+          cohorts.sort((a, b) => b.localeCompare(a)); // Sort descending
+          if (cohorts.length > 0) {
+              setSelectedHistoryCohort(cohorts[0]);
+          }
+      }
     } catch (e) {
       console.error(e);
       onShowNotification('Gagal memuat riwayat nilai.', 'error');
     } finally {
       setIsLoadingHistory(false);
     }
+  };
+
+  const historyCohorts = useMemo(() => {
+    const cohorts = Array.from(new Set(gradeHistory.map(h => `${h.academicYear}|${h.semester}`)));
+    return cohorts.sort((a, b) => b.localeCompare(a));
+  }, [gradeHistory]);
+
+  const filteredHistoryData = useMemo(() => {
+    if (!selectedHistoryCohort) return [];
+    const [year, sem] = selectedHistoryCohort.split('|');
+    const records = gradeHistory.filter(h => h.academicYear === year && h.semester === sem);
+    
+    // Sort by total score for ranking
+    records.sort((a, b) => b.totalScore - a.totalScore);
+    
+    return records.map((r, idx) => ({
+      ...r,
+      rank: r.totalScore > 0 ? idx + 1 : '-'
+    }));
+  }, [gradeHistory, selectedHistoryCohort]);
+
+  const handleDeleteCohort = async () => {
+    if (isReadOnly || !selectedHistoryCohort) return;
+    const [year, sem] = selectedHistoryCohort.split('|');
+    
+    showConfirm(`Hapus seluruh data riwayat untuk Tahun ${year} Semester ${sem}?`, async () => {
+        setIsDeletingHistory(true);
+        try {
+            const recordsToDelete = gradeHistory.filter(h => h.academicYear === year && h.semester === sem);
+            for (const record of recordsToDelete) {
+                await apiService.deleteClassGradeHistory(classId, record.id);
+            }
+            setGradeHistory(prev => prev.filter(h => !(h.academicYear === year && h.semester === sem)));
+            setSelectedHistoryCohort('');
+            onShowNotification('Seluruh riwayat periode tersebut berhasil dihapus.', 'success');
+        } catch (e) {
+            onShowNotification('Gagal menghapus riwayat.', 'error');
+        } finally {
+            setIsDeletingHistory(false);
+        }
+    });
   };
 
   const handleArchiveSemester = async () => {
@@ -769,6 +820,22 @@ const GradesView: React.FC<GradesViewProps> = ({
                   </>
               )}
 
+              {viewMode === 'history' && historyCohorts.length > 0 && (
+                  <div className="relative">
+                      <select 
+                          value={selectedHistoryCohort} 
+                          onChange={(e) => setSelectedHistoryCohort(e.target.value)} 
+                          className="appearance-none bg-white border border-indigo-200 text-indigo-700 py-2.5 pl-4 pr-10 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-sm cursor-pointer min-w-[250px]"
+                      >
+                          {historyCohorts.map(cohort => {
+                              const [year, sem] = cohort.split('|');
+                              return <option key={cohort} value={cohort}>{`TA ${year} - Semester ${sem}`}</option>;
+                          })}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-indigo-500"><ChevronDown size={16} /></div>
+                  </div>
+              )}
+
               <div className="flex gap-1">
                 {!isReadOnly && (
                     <>
@@ -884,26 +951,59 @@ const GradesView: React.FC<GradesViewProps> = ({
        ) : (
            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden no-print">
                <div className="p-4 bg-indigo-50 border-b border-indigo-100 flex justify-between items-center">
-                   <div className="flex items-center gap-2 text-indigo-800 font-bold"><History size={18}/><span>Riwayat Nilai Semester Sebelumnya</span></div>
-                   <div className="text-xs text-indigo-600 bg-white px-3 py-1 rounded-full border border-indigo-200">{gradeHistory.length} Data</div>
+                   <div className="flex items-center gap-2 text-indigo-800 font-bold">
+                       <History size={18}/>
+                       <span>{selectedHistoryCohort ? `Rekap Nilai: TA ${selectedHistoryCohort.split('|')[0]} - Sem ${selectedHistoryCohort.split('|')[1]}` : 'Riwayat Nilai Semester Sebelumnya'}</span>
+                   </div>
+                   <div className="flex items-center gap-2">
+                       <div className="text-xs text-indigo-600 bg-white px-3 py-1 rounded-full border border-indigo-200">{filteredHistoryData.length} Siswa</div>
+                       {!isReadOnly && selectedHistoryCohort && (
+                           <button onClick={handleDeleteCohort} disabled={isDeletingHistory} className="text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-bold" title="Hapus Seluruh Periode">
+                               {isDeletingHistory ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                               <span>Hapus Periode</span>
+                           </button>
+                       )}
+                   </div>
                </div>
-               {isLoadingHistory ? <div className="p-20 flex flex-col items-center justify-center text-gray-400"><Loader2 size={40} className="animate-spin mb-4 text-indigo-400"/><p>Memuat riwayat...</p></div> : gradeHistory.length === 0 ? <div className="p-20 flex flex-col items-center justify-center text-gray-400 text-center"><History size={48} className="text-gray-300 mb-4"/><h3 className="text-lg font-bold text-gray-700">Belum Ada Riwayat</h3></div> : (
+               {isLoadingHistory ? <div className="p-20 flex flex-col items-center justify-center text-gray-400"><Loader2 size={40} className="animate-spin mb-4 text-indigo-400"/><p>Memuat riwayat...</p></div> : gradeHistory.length === 0 ? <div className="p-20 flex flex-col items-center justify-center text-gray-400 text-center"><History size={48} className="text-gray-300 mb-4"/><h3 className="text-lg font-bold text-gray-700">Belum Ada Riwayat</h3><p className="text-sm mt-1">Gunakan tombol arsipkan di rekap rapor untuk menyimpan data.</p></div> : (
                    <div className="overflow-x-auto">
-                       <table className="w-full text-xs text-left border-collapse">
-                           <thead className="bg-gray-50 text-gray-600 font-bold uppercase"><tr className="border-b"><th className="p-3 w-32 border-r">Tahun Ajaran</th><th className="p-3 w-20 text-center border-r">Sem</th><th className="p-3 min-w-[180px] border-r">Nama Siswa</th><th className="p-3 w-20 text-center border-r">Mapel</th><th className="p-3 w-20 text-center border-r">Total</th><th className="p-3 w-20 text-center border-r">Rata2</th><th className="p-3 w-16 text-center border-r">Rank</th><th className="p-3 w-16 text-center">Aksi</th></tr></thead>
+                       <table className="w-full text-xs text-left border-collapse min-w-[1000px]">
+                           <thead className="bg-slate-50 text-slate-700 font-bold uppercase">
+                               <tr className="border-b">
+                                   <th className="p-3 w-10 text-center border-r">No</th>
+                                   <th className="p-3 min-w-[200px] border-r sticky left-0 bg-slate-50 z-10">Nama Siswa</th>
+                                   {MOCK_SUBJECTS.map(subj => <th key={subj.id} className="p-2 w-16 text-center border-r" title={subj.name}>{getSubjectInitials(subj.name)}</th>)}
+                                   <th className="p-3 w-20 text-center border-r bg-emerald-50 text-emerald-800">Jumlah</th>
+                                   <th className="p-3 w-20 text-center bg-amber-50 text-amber-800">Rank</th>
+                               </tr>
+                           </thead>
                            <tbody className="divide-y divide-gray-100">
-                               {[...gradeHistory].sort((a,b)=>b.academicYear.localeCompare(a.academicYear)||b.semester.localeCompare(a.semester)).map((h) => {
-                                   const student = students.find(s=>s.id===h.studentId);
+                               {filteredHistoryData.map((h, idx) => {
+                                   const student = students.find(s => s.id === h.studentId);
+                                   const rank = Number(h.rank);
+                                   const isTop3 = rank > 0 && rank <= 3;
                                    return (
                                        <tr key={h.id} className="hover:bg-indigo-50/20 transition-colors">
-                                           <td className="p-3 font-bold text-gray-700 border-r">{h.academicYear}</td>
-                                           <td className="p-3 text-center border-r">{h.semester}</td>
-                                           <td className="p-3 border-r font-medium uppercase">{student?.name.toUpperCase() || 'Siswa Dihapus'}</td>
-                                           <td className="p-3 text-center border-r">{h.subjectsCount}</td>
-                                           <td className="p-3 text-center border-r font-bold text-emerald-600">{h.totalScore}</td>
-                                           <td className="p-3 text-center border-r font-bold text-indigo-600">{h.averageScore}</td>
-                                           <td className="p-3 text-center border-r font-medium text-gray-600">{h.rank}</td>
-                                           <td className="p-3 text-center">{!isReadOnly && <button onClick={()=>handleDeleteHistoryEntry(h.id)} className="text-gray-300 hover:text-rose-600"><Trash2 size={16}/></button>}</td>
+                                           <td className="p-3 text-center text-gray-500 border-r">{idx + 1}</td>
+                                           <td className="p-3 border-r font-medium uppercase sticky left-0 bg-white group-hover:bg-indigo-50/20 z-10">
+                                               {student?.name.toUpperCase() || 'Siswa Dihapus'}
+                                           </td>
+                                           {MOCK_SUBJECTS.map(subj => (
+                                               <td key={subj.id} className="p-2 text-center border-r font-medium text-gray-600">
+                                                   {h.scores[subj.id] || '-'}
+                                               </td>
+                                           ))}
+                                           <td className="p-3 text-center border-r font-bold text-emerald-600 bg-emerald-50/30">
+                                               {h.totalScore}
+                                           </td>
+                                           <td className={`p-3 text-center font-black ${isTop3 ? 'bg-amber-50 text-amber-600' : 'text-gray-500'}`}>
+                                               <div className="flex items-center justify-center gap-1">
+                                                   {rank === 1 && <Trophy size={14} className="text-yellow-500 fill-yellow-500"/>}
+                                                   {rank === 2 && <Trophy size={14} className="text-gray-400 fill-gray-400"/>}
+                                                   {rank === 3 && <Trophy size={14} className="text-amber-700 fill-amber-700"/>}
+                                                   {h.rank}
+                                               </div>
+                                           </td>
                                        </tr>
                                    );
                                })}
