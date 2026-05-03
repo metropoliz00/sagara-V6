@@ -1027,6 +1027,8 @@ const GradesView: React.FC<GradesViewProps> = ({
                                             <th className="p-3 w-20 text-center bg-indigo-50 text-indigo-800 font-bold">AVG</th>
                                         </>
                                     )}
+                                </tr>
+                            </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {filteredHistoryData.map((h, idx) => {
                                     const student = students.find(s => s.id === h.studentId);
@@ -1084,46 +1086,9 @@ const GradesView: React.FC<GradesViewProps> = ({
                             </tbody>
                         </table>
                     </div>
-                )}
-            </div>
-                               </tr>
-                           </thead>
-                           <tbody className="divide-y divide-gray-100">
-                               {filteredHistoryData.map((h, idx) => {
-                                   const student = students.find(s => s.id === h.studentId);
-                                   const rank = Number(h.rank);
-                                   const isTop3 = rank > 0 && rank <= 3;
-                                   return (
-                                       <tr key={h.id} className="hover:bg-indigo-50/20 transition-colors">
-                                           <td className="p-3 text-center text-gray-500 border-r">{idx + 1}</td>
-                                           <td className="p-3 border-r font-medium uppercase sticky left-0 bg-white group-hover:bg-indigo-50/20 z-10">
-                                               {student?.name.toUpperCase() || 'Siswa Dihapus'}
-                                           </td>
-                                           {MOCK_SUBJECTS.map(subj => (
-                                               <td key={subj.id} className="p-2 text-center border-r font-medium text-gray-600">
-                                                   {h.scores[subj.id] || '-'}
-                                               </td>
-                                           ))}
-                                           <td className="p-3 text-center border-r font-bold text-emerald-600 bg-emerald-50/30">
-                                               {h.totalScore}
-                                           </td>
-                                           <td className={`p-3 text-center font-black ${isTop3 ? 'bg-amber-50 text-amber-600' : 'text-gray-500'}`}>
-                                               <div className="flex items-center justify-center gap-1">
-                                                   {rank === 1 && <Trophy size={14} className="text-yellow-500 fill-yellow-500"/>}
-                                                   {rank === 2 && <Trophy size={14} className="text-gray-400 fill-gray-400"/>}
-                                                   {rank === 3 && <Trophy size={14} className="text-amber-700 fill-amber-700"/>}
-                                                   {h.rank}
-                                               </div>
-                                           </td>
-                                       </tr>
-                                   );
-                               })}
-                           </tbody>
-                       </table>
-                   </div>
-               )}
-           </div>
-       )}
+        )}
+    </div>
+)}
 
        {viewMode === 'input' && (
            <div className="flex flex-wrap items-center gap-4 text-xs no-print text-gray-400 italic">

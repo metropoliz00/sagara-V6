@@ -18,13 +18,10 @@ const SchoolDataTab: React.FC<SchoolDataTabProps> = ({ school, setSchool, onSave
   const [uploadingSchool, setUploadingSchool] = useState(false);
   const { showAlert } = useModal();
 
-  const academicYears = [
-    "2025/2026",
-    "2026/2027",
-    "2027/2028",
-    "2028/2029",
-    "2029/2030"
-  ];
+  const academicYears = Array.from({ length: 40 }, (_, i) => {
+    const startYear = 2020 + i;
+    return `${startYear}/${startYear + 1}`;
+  });
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'regency' | 'school') => {
     if (isReadOnly) return;
