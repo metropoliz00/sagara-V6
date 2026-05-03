@@ -323,7 +323,7 @@ const ActivitiesView: React.FC<ActivitiesViewProps> = ({
                                         {ekskul.members.map((mid: string, idx: number) => (
                                             <li key={idx} className="flex items-center justify-between group/item hover:bg-white p-1 rounded transition-colors">
                                                 <div className="flex items-center overflow-hidden">
-                                                    <span className="truncate max-w-[150px]">{students.find(st => st.id === mid)?.name || `ID: ${mid}`}</span>
+                                                    <span className="truncate max-w-[150px] uppercase">{students.find(st => st.id === mid)?.name.toUpperCase() || `ID: ${mid}`}</span>
                                                 </div>
                                                 <button 
                                                     onClick={() => handleQuickRemoveMember(ekskul, mid)}

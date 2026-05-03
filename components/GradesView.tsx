@@ -1,10 +1,10 @@
 
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { Student, GradeRecord, GradeData, Subject, SchoolProfileData, TeacherProfileData } from '../types';
+import { Student, GradeRecord, GradeData, Subject, SchoolProfileData, TeacherProfileData, GradeHistoryRecord } from '../types';
 import { MOCK_SUBJECTS } from '../constants';
 import { apiService } from '../services/apiService';
 import * as XLSX from 'xlsx';
-import { Save, FileSpreadsheet, Printer, Upload, Download, Calculator, CheckCircle, AlertCircle, Settings2, Lock, ChevronDown, Trophy, List, Grid, Eye, EyeOff, Loader2, Plus, Minus } from 'lucide-react';
+import { Save, FileSpreadsheet, Printer, Upload, Download, Calculator, CheckCircle, AlertCircle, Settings2, Lock, ChevronDown, Trophy, List, Grid, Eye, EyeOff, Loader2, Plus, Minus, History, Trash2 } from 'lucide-react';
 import { useModal } from '../context/ModalContext';
 
 interface GradesViewProps {
@@ -23,13 +23,20 @@ const GradesView: React.FC<GradesViewProps> = ({
   students, initialGrades, onSave, onShowNotification, classId, 
   isReadOnly = false, allowedSubjects = ['all'], schoolProfile, teacherProfile
 }) => {
-  const [viewMode, setViewMode] = useState<'input' | 'recap'>('input');
+  const [viewMode, setViewMode] = useState<'input' | 'recap' | 'history'>('input');
   const [selectedSubject, setSelectedSubject] = useState<string>(MOCK_SUBJECTS[0].id);
   const [grades, setGrades] = useState<GradeRecord[]>(initialGrades);
   const [isSavingAll, setIsSavingAll] = useState(false);
   const [kktpMap, setKktpMap] = useState<Record<string, number>>({});
   const [isSavingKktp, setIsSavingKktp] = useState(false);
   const { showConfirm } = useModal();
+  
+  // History States
+  const [gradeHistory, setGradeHistory] = useState<GradeHistoryRecord[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [isDeletingHistory, setIsDeletingHistory] = useState(false);
+  const historyFileInputRef = useRef<HTMLInputElement>(null);
   
   // New State for Student Recap Visibility
   const [showRecapToStudents, setShowRecapToStudents] = useState(false);
@@ -221,7 +228,6 @@ const GradesView: React.FC<GradesViewProps> = ({
   };
   
   const calculateFinalAverage = (g: GradeData) => {
-    // Include sum1..4, sas, and any dynamic sum fields from extra_data
     const scores = [];
     if (g.sum1) scores.push(g.sum1);
     if (g.sum2) scores.push(g.sum2);
@@ -229,7 +235,6 @@ const GradesView: React.FC<GradesViewProps> = ({
     if (g.sum4) scores.push(g.sum4);
     if (g.sas) scores.push(g.sas);
     
-    // Add extra sum fields dynamically (e.g. sum5, sum6)
     Object.keys(g).forEach(k => {
       if (k.startsWith('sum') && k !== 'sum1' && k !== 'sum2' && k !== 'sum3' && k !== 'sum4') {
         if (g[k]) scores.push(Number(g[k]));
@@ -252,7 +257,6 @@ const GradesView: React.FC<GradesViewProps> = ({
     if (!isSubjectEditable) return;
     setIsAddingColumn(true);
     try {
-      // Find the next column number
       let nextNum = 5;
       while (customColumns.includes(`sum${nextNum}`)) {
         nextNum++;
@@ -345,7 +349,6 @@ const GradesView: React.FC<GradesViewProps> = ({
       let content = '';
 
       if (viewMode === 'input') {
-          // Summative Recap
           const subjectName = activeSubject?.name || selectedSubject;
           content = `
             <div class="print-header">
@@ -393,7 +396,6 @@ const GradesView: React.FC<GradesViewProps> = ({
             ${signatureBlock}
           `;
       } else {
-          // Report Card Recap
           content = `
             <div class="print-header">
                 <h2>REKAP NILAI RAPOR</h2>
@@ -431,7 +433,6 @@ const GradesView: React.FC<GradesViewProps> = ({
       }
 
       const newWindow = window.open("", "", "width=1200,height=800");
-  
       newWindow?.document.write(`
         <html>
           <head>
@@ -457,12 +458,9 @@ const GradesView: React.FC<GradesViewProps> = ({
               }
             </style>
           </head>
-          <body>
-            ${content}
-          </body>
+          <body>${content}</body>
         </html>
       `);
-    
       newWindow?.document.close();
       setTimeout(() => {
           newWindow?.focus();
@@ -525,17 +523,13 @@ const GradesView: React.FC<GradesViewProps> = ({
         let updateCount = 0;
 
         if (viewMode === 'recap') {
-            // Mass Import for all subjects
             const headers = data[0] as string[];
-            // Find column indices for subjects
             const subjectCols: {id: string, index: number}[] = [];
             MOCK_SUBJECTS.forEach(subj => {
                 const idx = headers.findIndex(h => h && (h.toLowerCase() === subj.name.toLowerCase() || h.toLowerCase() === subj.id.toLowerCase()));
                 if (idx !== -1) subjectCols.push({ id: subj.id, index: idx });
             });
-
             const nisIdx = headers.findIndex(h => h && h.toLowerCase().includes('nis') && !h.toLowerCase().includes('nisn'));
-
             rows.forEach((row) => {
                 if (!row || row.length === 0) return;
                 const nis = row[nisIdx] ? String(row[nisIdx]) : '';
@@ -544,7 +538,6 @@ const GradesView: React.FC<GradesViewProps> = ({
                     subjectCols.forEach(sc => {
                         const score = Number(row[sc.index]);
                         if (!isNaN(score) && score > 0) {
-                            // For rekap import, we set it as the SAS score (final)
                             const newData = { sum1: 0, sum2: 0, sum3: 0, sum4: 0, sas: score };
                             onSave(student.id, sc.id, newData, classId);
                         }
@@ -554,7 +547,6 @@ const GradesView: React.FC<GradesViewProps> = ({
             });
             onShowNotification(`Berhasil memproses impor rekap untuk ${updateCount} siswa.`, 'success');
         } else {
-            // Single subject import
             rows.forEach((row) => {
               if (!row || row.length === 0) return;
               const nis = row[0] ? String(row[0]) : '';
@@ -571,12 +563,135 @@ const GradesView: React.FC<GradesViewProps> = ({
                   updateCount++;
               }
             });
-            onShowNotification(`Berhasil memproses impor untuk ${updateCount} siswa. Data sedang disimpan...`, 'success');
+            onShowNotification(`Berhasil memproses impor untuk ${updateCount} siswa.`, 'success');
         }
-        
         if(fileInputRef.current) fileInputRef.current.value = '';
       };
       reader.readAsBinaryString(file);
+  };
+
+  useEffect(() => {
+    if (viewMode === 'history' && classId) {
+      loadHistory();
+    }
+  }, [viewMode, classId]);
+
+  const loadHistory = async () => {
+    setIsLoadingHistory(true);
+    try {
+      const history = await apiService.getClassGradeHistory(classId);
+      setGradeHistory(history || []);
+    } catch (e) {
+      console.error(e);
+      onShowNotification('Gagal memuat riwayat nilai.', 'error');
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  const handleArchiveSemester = async () => {
+    if (isReadOnly) return;
+    showConfirm(`Simpan rekap semester ini ke Riwayat Nilai? Data tahun ${schoolProfile?.year || '-'} Semester ${schoolProfile?.semester || '-'} akan diarsipkan.`, async () => {
+        setIsArchiving(true);
+        try {
+            const year = schoolProfile?.year || new Date().getFullYear().toString();
+            const semester = schoolProfile?.semester || '1';
+            for (const s of recapData) {
+                const historyEntry: GradeHistoryRecord = {
+                    id: `${year}_${semester}_${s.id}`.replace(/\//g, '-'),
+                    studentId: s.id,
+                    classId: classId,
+                    academicYear: year,
+                    semester: semester,
+                    totalScore: s.totalScore,
+                    averageScore: s.subjectsCount > 0 ? Math.round(s.totalScore / s.subjectsCount) : 0,
+                    rank: s.rank,
+                    subjectsCount: s.subjectsCount,
+                    scores: s.scores,
+                    createdAt: new Date().toISOString()
+                };
+                await apiService.saveClassGradeHistory(classId, historyEntry);
+            }
+            onShowNotification('Seluruh rekap semester ini berhasil diarsipkan ke riwayat.', 'success');
+            if (viewMode === 'history') loadHistory();
+        } catch (e) {
+            console.error(e);
+            onShowNotification('Gagal mengarsipkan nilai.', 'error');
+        } finally {
+            setIsArchiving(false);
+        }
+    });
+  };
+
+  const handleDeleteHistoryEntry = async (id: string) => {
+    if (isReadOnly) return;
+    showConfirm('Hapus rekaman riwayat ini?', async () => {
+        setIsDeletingHistory(true);
+        try {
+            await apiService.deleteClassGradeHistory(classId, id);
+            setGradeHistory(prev => prev.filter(h => h.id !== id));
+            onShowNotification('Riwayat berhasil dihapus.', 'success');
+        } catch (e) {
+            onShowNotification('Gagal menghapus riwayat.', 'error');
+        } finally {
+            setIsDeletingHistory(false);
+        }
+    });
+  };
+
+  const handleDownloadHistoryTemplate = () => {
+    const headers = ["TAHUN AJARAN", "SEMESTER(1/2)", "NIS", "NAMA SISWA", ...MOCK_SUBJECTS.map(s => s.name)];
+    const example = ["2023/2024", "1", students[0]?.nis || "2024001", students[0]?.name || "Example Student", ...MOCK_SUBJECTS.map(() => "85")];
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, example]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Template Riwayat");
+    XLSX.writeFile(workbook, `Template_Riwayat_Nilai.xlsx`);
+  };
+
+  const handleFileChangeHistory = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        const rows = data.slice(1) as any[];
+        const headers = data[0] as string[];
+        const yearIdx = 0, semIdx = 1, nisIdx = 2;
+        const subjectCols: {id: string, index: number}[] = [];
+        MOCK_SUBJECTS.forEach(subj => {
+            const idx = headers.findIndex(h => h && h.toLowerCase().includes(subj.name.toLowerCase()));
+            if (idx !== -1) subjectCols.push({ id: subj.id, index: idx });
+        });
+        let count = 0;
+        for (const row of rows) {
+            if (!row || row.length < 3) continue;
+            const year = String(row[yearIdx]), sem = String(row[semIdx]), nis = String(row[nisIdx]);
+            const student = students.find(s => s.nis === nis);
+            if (student) {
+                const scores: Record<string, number> = {};
+                let total = 0, subCount = 0;
+                subjectCols.forEach(sc => {
+                    const score = Number(row[sc.index]);
+                    if (!isNaN(score) && score > 0) { scores[sc.id] = score; total += score; subCount++; }
+                });
+                const historyEntry: GradeHistoryRecord = {
+                    id: `${year}_${sem}_${student.id}`.replace(/\//g, '-'),
+                    studentId: student.id, classId: classId, academicYear: year, semester: sem,
+                    totalScore: total, averageScore: subCount > 0 ? Math.round(total / subCount) : 0,
+                    rank: '-', subjectsCount: subCount, scores, createdAt: new Date().toISOString()
+                };
+                await apiService.saveClassGradeHistory(classId, historyEntry);
+                count++;
+            }
+        }
+        onShowNotification(`Berhasil mengimpor ${count} rekaman riwayat.`, 'success');
+        loadHistory();
+        if (historyFileInputRef.current) historyFileInputRef.current.value = '';
+    };
+    reader.readAsBinaryString(file);
   };
 
   return (
@@ -584,40 +699,23 @@ const GradesView: React.FC<GradesViewProps> = ({
        <div className="flex flex-col xl:flex-row justify-between gap-4 no-print">
           <div>
              <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                {viewMode === 'input' 
-                    ? (isReadOnly ? 'Lihat Nilai Saya' : `Input Nilai ${activeSubject?.name}`) 
-                    : 'Rekap Nilai Rapor & Peringkat'
-                }
+                {viewMode === 'input' ? (isReadOnly ? 'Lihat Nilai Saya' : `Input Nilai ${activeSubject?.name}`) : (viewMode === 'recap' ? 'Rekap Nilai Rapor & Peringkat' : 'Riwayat Nilai Siswa')}
                 {!isSubjectEditable && !isReadOnly && viewMode === 'input' && <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded border border-gray-200 flex items-center"><Lock size={12} className="mr-1"/> Read Only</span>}
              </h2>
              <p className="text-gray-500 text-sm">
-                {viewMode === 'input' 
-                    ? `Kelola nilai sumatif & formatif. Ambang batas (KKTP): ${currentKktp}.` 
-                    : 'Ringkasan nilai akhir semua mapel dan kalkulasi peringkat siswa.'
-                }
+                {viewMode === 'input' ? `Kelola nilai sumatif & formatif. Ambang batas (KKTP): ${currentKktp}.` : (viewMode === 'recap' ? 'Ringkasan nilai akhir semua mapel dan kalkulasi peringkat siswa.' : 'Kumpulan data nilai siswa dari semester atau tahun ajaran sebelumnya.')}
              </p>
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
               {viewMode === 'input' && !isReadOnly && (
                   <div className="flex items-center gap-2">
-                      <button 
-                        onClick={handleAddCustomColumn}
-                        disabled={isAddingColumn}
-                        className="flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
-                        title="Tambah Kolom Sumatif"
-                      >
+                      <button onClick={handleAddCustomColumn} disabled={isAddingColumn} className="flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100">
                           {isAddingColumn ? <Loader2 size={14} className="animate-spin mr-1.5"/> : <Plus size={14} className="mr-1.5"/>}
                           <span>Tambah Kolom</span>
                       </button>
-                      
                       {customColumns.length > 0 && (
-                          <button 
-                            onClick={handleRemoveCustomColumn}
-                            disabled={isRemovingColumn}
-                            className="flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100"
-                            title="Hapus Kolom Sumatif Terakhir"
-                          >
+                          <button onClick={handleRemoveCustomColumn} disabled={isRemovingColumn} className="flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100">
                               {isRemovingColumn ? <Loader2 size={14} className="animate-spin mr-1.5"/> : <Minus size={14} className="mr-1.5"/>}
                               <span>Hapus Kolom</span>
                           </button>
@@ -625,100 +723,49 @@ const GradesView: React.FC<GradesViewProps> = ({
                   </div>
               )}
 
-              {/* NEW TOGGLE FOR SUMMATIVE VISIBILITY */}
               {viewMode === 'input' && !isReadOnly && (
-                  <button 
-                    onClick={toggleSummativeVisibility}
-                    disabled={isTogglingSummative}
-                    className={`flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                        showSummativeToStudents 
-                        ? 'bg-indigo-50 border-indigo-200 text-indigo-700' 
-                        : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
-                    }`}
-                    title={showSummativeToStudents ? "Sembunyikan nilai sumatif dari siswa" : "Tampilkan nilai sumatif ke siswa"}
-                  >
+                  <button onClick={toggleSummativeVisibility} disabled={isTogglingSummative} className={`flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${showSummativeToStudents ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'}`}>
                       {isTogglingSummative ? <Loader2 size={14} className="animate-spin mr-1.5"/> : showSummativeToStudents ? <Eye size={14} className="mr-1.5"/> : <EyeOff size={14} className="mr-1.5"/>}
                       <span>Portal Siswa (Sumatif): {showSummativeToStudents ? 'ON' : 'OFF'}</span>
                   </button>
               )}
               
-              
-              {/* NEW TOGGLE FOR STUDENT VISIBILITY */}
               {viewMode === 'recap' && !isReadOnly && (
-                  <button 
-                    onClick={toggleStudentRecapVisibility}
-                    disabled={isTogglingRecap}
-                    className={`flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                        showRecapToStudents 
-                        ? 'bg-indigo-50 border-indigo-200 text-indigo-700' 
-                        : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
-                    }`}
-                    title={showRecapToStudents ? "Sembunyikan dari siswa" : "Tampilkan ke siswa"}
-                  >
+                  <button onClick={toggleStudentRecapVisibility} disabled={isTogglingRecap} className={`flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${showRecapToStudents ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'}`}>
                       {isTogglingRecap ? <Loader2 size={14} className="animate-spin mr-1.5"/> : showRecapToStudents ? <Eye size={14} className="mr-1.5"/> : <EyeOff size={14} className="mr-1.5"/>}
                       <span>Portal Siswa: {showRecapToStudents ? 'ON' : 'OFF'}</span>
                   </button>
               )}
 
-              {/* View Toggle */}
               <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200">
-                  <button 
-                    onClick={() => setViewMode('input')}
-                    className={`flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'input' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-                  >
+                  <button onClick={() => setViewMode('input')} className={`flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'input' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}>
                       <Grid size={14} className="mr-1.5"/> Per Mapel
                   </button>
-                  <button 
-                    onClick={() => setViewMode('recap')}
-                    className={`flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'recap' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-                  >
+                  <button onClick={() => setViewMode('recap')} className={`flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'recap' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}>
                       <List size={14} className="mr-1.5"/> Rekap Rapor
+                  </button>
+                  <button onClick={() => setViewMode('history')} className={`flex items-center px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'history' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}>
+                      <History size={14} className="mr-1.5"/> Riwayat
                   </button>
               </div>
 
               {viewMode === 'input' && (
                   <>
-                    {/* KKTP Section */}
                     <div className="flex items-center bg-white border border-indigo-100 p-1 rounded-xl shadow-sm">
                         <div className="bg-indigo-50 p-2 rounded-lg text-indigo-600 mr-2"> <Settings2 size={16} /> </div>
                         <div className="flex flex-col mr-3">
                             <span className="text-[10px] font-bold text-gray-400 uppercase">KKTP</span>
-                            {!isSubjectEditable ? (
-                                <span className="font-bold text-indigo-700">{currentKktp}</span>
-                            ) : (
-                                <input type="number" min="0" max="100" value={currentKktp} onChange={(e) => handleKktpChange(Number(e.target.value))} className="w-16 font-bold text-indigo-700 outline-none bg-transparent"/>
-                            )}
+                            {!isSubjectEditable ? <span className="font-bold text-indigo-700">{currentKktp}</span> : <input type="number" min="0" max="100" value={currentKktp} onChange={(e) => handleKktpChange(Number(e.target.value))} className="w-16 font-bold text-indigo-700 outline-none bg-transparent"/>}
                         </div>
-                        {isSubjectEditable && (
-                            <button onClick={saveKktp} disabled={isSavingKktp} className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors disabled:opacity-50">
-                                {isSavingKktp ? '...' : 'Simpan'}
-                            </button>
-                        )}
+                        {isSubjectEditable && <button onClick={saveKktp} disabled={isSavingKktp} className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors disabled:opacity-50">{isSavingKktp ? '...' : 'Simpan'}</button>}
                     </div>
-                    
-                    {/* Subject Selection */}
                     <div className="relative">
-                        <select
-                            value={selectedSubject}
-                            onChange={(e) => setSelectedSubject(e.target.value)}
-                            className="appearance-none bg-white border border-gray-200 text-gray-700 py-2.5 pl-4 pr-10 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-sm cursor-pointer min-w-[200px]"
-                        >
-                            {MOCK_SUBJECTS.map((s: Subject) => (
-                                <option key={s.id} value={s.id}>
-                                    {s.name}
-                                </option>
-                            ))}
+                        <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} className="appearance-none bg-white border border-gray-200 text-gray-700 py-2.5 pl-4 pr-10 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-sm cursor-pointer min-w-[200px]">
+                            {MOCK_SUBJECTS.map((s: Subject) => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                            <ChevronDown size={16} />
-                        </div>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"><ChevronDown size={16} /></div>
                     </div>
-
-                    {isSubjectEditable && (
-                        <button onClick={handleSaveAll} disabled={isSavingAll} className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 shadow-md font-bold disabled:opacity-50">
-                            <Save size={18}/> <span className="hidden sm:inline">{isSavingAll ? 'Proses...' : 'Simpan Semua'}</span>
-                        </button>
-                    )}
+                    {isSubjectEditable && <button onClick={handleSaveAll} disabled={isSavingAll} className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 shadow-md font-bold disabled:opacity-50"><Save size={18}/> <span className="hidden sm:inline">{isSavingAll ? 'Proses...' : 'Simpan Semua'}</span></button>}
                   </>
               )}
 
@@ -726,10 +773,10 @@ const GradesView: React.FC<GradesViewProps> = ({
                 {!isReadOnly && (
                     <>
                         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".xlsx, .xls, .csv" />
-                        {viewMode === 'input' && isSubjectEditable && (
-                            <button onClick={handleDownloadTemplate} className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50" title="Download Template"><FileSpreadsheet size={18}/></button>
-                        )}
-                        <button onClick={handleImportClick} className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50" title={viewMode === 'recap' ? "Import Massal Rekap" : "Import Excel"}><Upload size={18}/></button>
+                        <input type="file" ref={historyFileInputRef} onChange={handleFileChangeHistory} className="hidden" accept=".xlsx, .xls, .csv" />
+                        {viewMode === 'history' && <button onClick={handleDownloadHistoryTemplate} className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50" title="Download Template Riwayat"><FileSpreadsheet size={18}/></button>}
+                        {viewMode === 'input' && isSubjectEditable && <button onClick={handleDownloadTemplate} className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50" title="Download Template"><FileSpreadsheet size={18}/></button>}
+                        <button onClick={viewMode === 'history' ? () => historyFileInputRef.current?.click() : handleImportClick} className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50" title={viewMode === 'recap' ? "Import Massal Rekap" : (viewMode === 'history' ? "Import Riwayat" : "Import Excel")}><Upload size={18}/></button>
                         <button onClick={handleExport} className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50" title="Export Excel"><Download size={18}/></button>
                     </>
                 )}
@@ -737,6 +784,15 @@ const GradesView: React.FC<GradesViewProps> = ({
               </div>
           </div>
        </div>
+
+       {viewMode === 'recap' && !isReadOnly && (
+          <div className="flex justify-end no-print">
+              <button onClick={handleArchiveSemester} disabled={isArchiving} className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 shadow-md transition-all font-bold">
+                  {isArchiving ? <Loader2 size={18} className="animate-spin" /> : <History size={18} />}
+                  <span>Simpan Rekap Semester ini ke Riwayat</span>
+              </button>
+          </div>
+       )}
 
        {viewMode === 'input' ? (
            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto print-container">
@@ -748,9 +804,7 @@ const GradesView: React.FC<GradesViewProps> = ({
                        <th className="p-2 w-20 text-center border-r">SUM 2</th>
                        <th className="p-2 w-20 text-center border-r">SUM 3</th>
                        <th className="p-2 w-20 text-center border-r">SUM 4</th>
-                       {customColumns.map(col => (
-                          <th key={col} className="p-2 w-20 text-center border-r uppercase">{col.replace('sum', 'SUM ')}</th>
-                       ))}
+                       {customColumns.map(col => <th key={col} className="p-2 w-20 text-center border-r uppercase">{col.replace('sum', 'SUM ')}</th>)}
                        <th className="p-2 w-24 text-center border-r bg-blue-50/50 print:bg-white">SAS</th>
                        <th className="p-2 w-28 text-center bg-indigo-600 text-white print:bg-white print:text-black border-l">Nilai Akhir</th>
                        {isSubjectEditable && <th className="p-2 w-16 text-center no-print">Aksi</th>}
@@ -760,16 +814,12 @@ const GradesView: React.FC<GradesViewProps> = ({
                     {students.map(s => {
                        const g = getStudentGrade(s.id);
                        const finalAvg = calculateFinalAverage(g);
-                       
                        return (
                           <tr key={s.id} className="hover:bg-indigo-50/30 transition-colors print:hover:bg-transparent border-b">
                              <td className="p-4 sticky left-0 bg-white font-medium print:text-black border-r whitespace-nowrap">
                                 <div className="flex flex-col">
                                     <span>{s.name.toUpperCase()}</span>
-                                    <div className="flex gap-2 text-[10px] text-gray-400 no-print">
-                                        <span>NIS: {s.nis}</span>
-                                        {s.nisn && <span>• NISN: {s.nisn}</span>}
-                                    </div>
+                                    <div className="flex gap-2 text-[10px] text-gray-400 no-print"><span>NIS: {s.nis}</span>{s.nisn && <span>• NISN: {s.nisn}</span>}</div>
                                 </div>
                              </td>
                              {(['sum1','sum2','sum3','sum4', ...customColumns, 'sas'] as string[]).map(f => {
@@ -780,58 +830,34 @@ const GradesView: React.FC<GradesViewProps> = ({
                                        {!isSubjectEditable ? (
                                          <div>
                                             <div className={`w-full text-center py-2 font-bold rounded-lg ${colorClass}`}>{score > 0 ? score : '-'}</div>
-                                            {f !== 'sas' && score > 0 && (
-                                                <div className="text-center text-[9px] font-bold mt-1">
-                                                    {score < currentKktp ? <span className="text-rose-600">Remedial</span> : <span className="text-emerald-600">Pengayaan</span>}
-                                                </div>
-                                            )}
+                                            {f !== 'sas' && score > 0 && <div className="text-center text-[9px] font-bold mt-1">{score < currentKktp ? <span className="text-rose-600">Remedial</span> : <span className="text-emerald-600">Pengayaan</span>}</div>}
                                          </div>
                                        ) : (
                                         <div>
                                             <input type="number" min="0" max="100" value={score} onChange={e=>updateLocalGrade(s.id, f, Number(e.target.value))} onBlur={() => handleAutoSaveRow(s.id)} className={`w-full text-center py-2 focus:bg-white focus:ring-1 focus:ring-indigo-500 outline-none rounded-lg print:border-none print:p-0 ${f === 'sas' ? 'font-bold' : ''} ${colorClass}`}/>
-                                            {f !== 'sas' && score > 0 && (
-                                                <div className="text-center text-[9px] font-bold mt-1">
-                                                    {score < currentKktp ? <span className="text-rose-600">Remedial</span> : <span className="text-emerald-600">Pengayaan</span>}
-                                                </div>
-                                            )}
+                                            {f !== 'sas' && score > 0 && <div className="text-center text-[9px] font-bold mt-1">{score < currentKktp ? <span className="text-rose-600">Remedial</span> : <span className="text-emerald-600">Pengayaan</span>}</div>}
                                         </div>
                                        )}
                                     </td>
                                 );
                              })}
-                             <td className={`p-2 text-center border-l font-black text-lg bg-indigo-50 text-indigo-700 print:bg-white print:text-black`}>
-                                <div className="flex flex-col items-center">
-                                    <span>{finalAvg > 0 ? finalAvg : '-'}</span>
-                                </div>
-                             </td>
-                             {isSubjectEditable && (
-                                <td className="p-2 text-center no-print">
-                                    <button onClick={()=>handleSaveRow(s.id)} className="text-gray-400 hover:text-emerald-600 transition-colors" title="Simpan Baris"><Save size={18}/></button>
-                                </td>
-                             )}
+                             <td className={`p-2 text-center border-l font-black text-lg bg-indigo-50 text-indigo-700 print:bg-white print:text-black`}><span>{finalAvg > 0 ? finalAvg : '-'}</span></td>
+                             {isSubjectEditable && <td className="p-2 text-center no-print"><button onClick={()=>handleSaveRow(s.id)} className="text-gray-400 hover:text-emerald-600 transition-colors" title="Simpan Baris"><Save size={18}/></button></td>}
                           </tr>
                        );
                     })}
                  </tbody>
               </table>
            </div>
-       ) : (
-           /* RECAP TABLE VIEW */
+       ) : viewMode === 'recap' ? (
            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto print-container">
-               <div className="hidden print-only text-center py-4 border-b">
-                   <h2 className="text-xl font-bold uppercase">REKAP NILAI RAPOR</h2>
-                   <p className="text-sm">Kelas {classId} • Tahun Ajaran {new Date().getFullYear()}</p>
-               </div>
+               <div className="hidden print-only text-center py-4 border-b"><h2 className="text-xl font-bold uppercase">REKAP NILAI RAPOR</h2><p className="text-sm">Kelas {classId}</p></div>
                <table className="w-full text-xs text-left border-collapse min-w-[1000px]">
                    <thead className="bg-indigo-50 text-indigo-900 font-bold uppercase print:bg-gray-100 print:text-black">
                        <tr className="border-b border-indigo-100">
                            <th className="p-3 w-10 text-center border-r border-indigo-100 sticky left-0 bg-indigo-50 z-20">No</th>
                            <th className="p-3 min-w-[200px] border-r border-indigo-100 sticky left-10 bg-indigo-50 z-20">Nama Siswa</th>
-                           {MOCK_SUBJECTS.map(subj => (
-                               <th key={subj.id} className="p-2 w-16 text-center border-r border-indigo-100" title={subj.name}>
-                                   {getSubjectInitials(subj.name)}
-                               </th>
-                           ))}
+                           {MOCK_SUBJECTS.map(subj => <th key={subj.id} className="p-2 w-16 text-center border-r border-indigo-100" title={subj.name}>{getSubjectInitials(subj.name)}</th>)}
                            <th className="p-3 w-20 text-center border-r border-indigo-100 bg-emerald-50 text-emerald-800">Jumlah</th>
                            <th className="p-3 w-20 text-center bg-amber-50 text-amber-800">Peringkat</th>
                        </tr>
@@ -840,53 +866,59 @@ const GradesView: React.FC<GradesViewProps> = ({
                        {recapData.map((s, idx) => {
                            const rank = Number(s.rank);
                            const isTop3 = rank > 0 && rank <= 3;
-                           
                            return (
                                <tr key={s.id} className="hover:bg-gray-50 transition-colors">
                                    <td className="p-3 text-center text-gray-500 border-r sticky left-0 bg-white group-hover:bg-gray-50 z-10">{idx + 1}</td>
                                    <td className="p-3 font-medium text-gray-800 border-r sticky left-10 bg-white group-hover:bg-gray-50 z-10 truncate max-w-[200px]">
-                                       <div className="flex flex-col">
-                                           <span className="uppercase">{s.name.toUpperCase()}</span>
-                                           <div className="flex items-center gap-1 text-[9px] text-gray-500 no-print">
-                                               <span>{s.nis}</span>
-                                               {s.nisn && <span className="text-indigo-600 font-mono">• {s.nisn}</span>}
-                                           </div>
-                                       </div>
+                                       <div className="flex flex-col"><span className="uppercase">{s.name.toUpperCase()}</span><div className="text-[9px] text-gray-500">{s.nis}</div></div>
                                    </td>
-                                   {MOCK_SUBJECTS.map(subj => (
-                                       <td key={subj.id} className="p-2 text-center border-r font-medium text-gray-600">
-                                           {s.scores[subj.id] || '-'}
-                                       </td>
-                                   ))}
-                                   <td className="p-3 text-center font-bold text-emerald-600 bg-emerald-50/30 border-r border-emerald-100">
-                                       {s.totalScore > 0 ? s.totalScore : '-'}
-                                   </td>
-                                   <td className={`p-3 text-center font-black ${isTop3 ? 'bg-amber-50 text-amber-600' : 'text-gray-500'}`}>
-                                       <div className="flex items-center justify-center gap-1">
-                                           {rank === 1 && <Trophy size={14} className="text-yellow-500 fill-yellow-500"/>}
-                                           {rank === 2 && <Trophy size={14} className="text-gray-400 fill-gray-400"/>}
-                                           {rank === 3 && <Trophy size={14} className="text-amber-700 fill-amber-700"/>}
-                                           {s.rank}
-                                       </div>
-                                   </td>
+                                   {MOCK_SUBJECTS.map(subj => <td key={subj.id} className="p-2 text-center border-r font-medium text-gray-600">{s.scores[subj.id] || '-'}</td>)}
+                                   <td className="p-3 text-center font-bold text-emerald-600 bg-emerald-50/30 border-r border-emerald-100">{s.totalScore > 0 ? s.totalScore : '-'}</td>
+                                   <td className={`p-3 text-center font-black ${isTop3 ? 'bg-amber-50 text-amber-600' : 'text-gray-500'}`}><div className="flex items-center justify-center gap-1">{rank === 1 && <Trophy size={14} className="text-yellow-500 fill-yellow-500"/>}{rank === 2 && <Trophy size={14} className="text-gray-400 fill-gray-400"/>}{rank === 3 && <Trophy size={14} className="text-amber-700 fill-amber-700"/>}{s.rank}</div></td>
                                </tr>
                            );
                        })}
                    </tbody>
                </table>
            </div>
+       ) : (
+           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden no-print">
+               <div className="p-4 bg-indigo-50 border-b border-indigo-100 flex justify-between items-center">
+                   <div className="flex items-center gap-2 text-indigo-800 font-bold"><History size={18}/><span>Riwayat Nilai Semester Sebelumnya</span></div>
+                   <div className="text-xs text-indigo-600 bg-white px-3 py-1 rounded-full border border-indigo-200">{gradeHistory.length} Data</div>
+               </div>
+               {isLoadingHistory ? <div className="p-20 flex flex-col items-center justify-center text-gray-400"><Loader2 size={40} className="animate-spin mb-4 text-indigo-400"/><p>Memuat riwayat...</p></div> : gradeHistory.length === 0 ? <div className="p-20 flex flex-col items-center justify-center text-gray-400 text-center"><History size={48} className="text-gray-300 mb-4"/><h3 className="text-lg font-bold text-gray-700">Belum Ada Riwayat</h3></div> : (
+                   <div className="overflow-x-auto">
+                       <table className="w-full text-xs text-left border-collapse">
+                           <thead className="bg-gray-50 text-gray-600 font-bold uppercase"><tr className="border-b"><th className="p-3 w-32 border-r">Tahun Ajaran</th><th className="p-3 w-20 text-center border-r">Sem</th><th className="p-3 min-w-[180px] border-r">Nama Siswa</th><th className="p-3 w-20 text-center border-r">Mapel</th><th className="p-3 w-20 text-center border-r">Total</th><th className="p-3 w-20 text-center border-r">Rata2</th><th className="p-3 w-16 text-center border-r">Rank</th><th className="p-3 w-16 text-center">Aksi</th></tr></thead>
+                           <tbody className="divide-y divide-gray-100">
+                               {[...gradeHistory].sort((a,b)=>b.academicYear.localeCompare(a.academicYear)||b.semester.localeCompare(a.semester)).map((h) => {
+                                   const student = students.find(s=>s.id===h.studentId);
+                                   return (
+                                       <tr key={h.id} className="hover:bg-indigo-50/20 transition-colors">
+                                           <td className="p-3 font-bold text-gray-700 border-r">{h.academicYear}</td>
+                                           <td className="p-3 text-center border-r">{h.semester}</td>
+                                           <td className="p-3 border-r font-medium uppercase">{student?.name.toUpperCase() || 'Siswa Dihapus'}</td>
+                                           <td className="p-3 text-center border-r">{h.subjectsCount}</td>
+                                           <td className="p-3 text-center border-r font-bold text-emerald-600">{h.totalScore}</td>
+                                           <td className="p-3 text-center border-r font-bold text-indigo-600">{h.averageScore}</td>
+                                           <td className="p-3 text-center border-r font-medium text-gray-600">{h.rank}</td>
+                                           <td className="p-3 text-center">{!isReadOnly && <button onClick={()=>handleDeleteHistoryEntry(h.id)} className="text-gray-300 hover:text-rose-600"><Trash2 size={16}/></button>}</td>
+                                       </tr>
+                                   );
+                               })}
+                           </tbody>
+                       </table>
+                   </div>
+               )}
+           </div>
        )}
 
        {viewMode === 'input' && (
-           <div className="flex flex-wrap items-center gap-4 text-xs no-print">
-              <div className="flex items-center text-gray-400 italic"> <Calculator size={12} className="mr-1" /> Nilai Akhir = Rata-rata dari kolom yang terisi. </div>
-              <div className="flex items-center text-rose-500 font-bold"> <AlertCircle size={12} className="mr-1" /> Merah = Di bawah KKTP ({currentKktp}). </div>
-              <div className="flex items-center text-emerald-500 font-bold"> <CheckCircle size={12} className="mr-1" /> Hijau = Tuntas. </div>
-              {!isSubjectEditable && !isReadOnly && (
-                  <div className="flex items-center text-indigo-600 font-bold ml-auto bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">
-                      <Lock size={12} className="mr-1" /> Akses Terbatas (Hanya Guru Mapel Terkait)
-                  </div>
-              )}
+           <div className="flex flex-wrap items-center gap-4 text-xs no-print text-gray-400 italic">
+               <div className="flex items-center"> <Calculator size={12} className="mr-1" /> Nilai Akhir = Rata-rata dari kolom yang terisi. </div>
+               <div className="flex items-center text-rose-500 font-bold"> <AlertCircle size={12} className="mr-1" /> Merah = Di bawah KKTP ({currentKktp}). </div>
+               <div className="flex items-center text-emerald-500 font-bold"> <CheckCircle size={12} className="mr-1" /> Hijau = Tuntas. </div>
            </div>
        )}
     </div>

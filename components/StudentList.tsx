@@ -123,7 +123,7 @@ const StudentList: React.FC<StudentListProps> = ({
         <tr style="background-color: ${index % 2 === 0 ? '#f8f9fa' : '#ffffff'};">
           <td style="text-align: center;">${index + 1}</td>
           <td style="text-align: center;">${s.nis}</td>
-          <td>${s.name}</td>
+          <td>${s.name.toUpperCase()}</td>
           <td style="text-align: center;">${s.weight || '-'}</td>
           <td style="text-align: center;">${s.height || '-'}</td>
           <td>${s.healthNotes || '-'}</td>
@@ -149,13 +149,13 @@ const StudentList: React.FC<StudentListProps> = ({
         <tr style="background-color: ${index % 2 === 0 ? '#f8f9fa' : '#ffffff'};">
           <td style="text-align: center;">${index + 1}</td>
           <td style="text-align: center;">${s.nis}</td>
-          <td>${s.name}</td>
-          <td>${s.fatherName || '-'}</td>
-          <td>${s.fatherEducation || '-'}</td>
-          <td>${s.fatherJob || '-'}</td>
-          <td>${s.motherName || '-'}</td>
-          <td>${s.motherEducation || '-'}</td>
-          <td>${s.motherJob || '-'}</td>
+          <td>${s.name.toUpperCase()}</td>
+          <td>${(s.fatherName || '-').toUpperCase()}</td>
+          <td>${(s.fatherEducation || '-').toUpperCase()}</td>
+          <td>${(s.fatherJob || '-').toUpperCase()}</td>
+          <td>${(s.motherName || '-').toUpperCase()}</td>
+          <td>${(s.motherEducation || '-').toUpperCase()}</td>
+          <td>${(s.motherJob || '-').toUpperCase()}</td>
           <td>${s.address}</td>
         </tr>
       `).join('');
@@ -178,7 +178,7 @@ const StudentList: React.FC<StudentListProps> = ({
           <td style="text-align: center;">${index + 1}</td>
           <td style="text-align: center;">${s.nis}</td>
           <td style="text-align: center;">${s.nisn || '-'}</td>
-          <td>${s.name}</td>
+          <td>${s.name.toUpperCase()}</td>
           <td>${s.birthPlace || '-'}</td>
           <td style="text-align: center;">${s.birthDate ? formatDateID(s.birthDate) : '-'}</td>
           <td>${s.hobbies || '-'}</td>
@@ -205,15 +205,15 @@ const StudentList: React.FC<StudentListProps> = ({
       rows = filteredStudents.map((s, index) => `
         <tr style="background-color: ${index % 2 === 0 ? '#f8f9fa' : '#ffffff'};">
           <td style="text-align: center;">${index + 1}</td>
-          <td>${s.name}</td>
+          <td>${s.name.toUpperCase()}</td>
           <td>${s.nis}</td>
           <td>${s.nisn || '-'}</td>
           <td style="text-align: center;">${s.gender}</td>
           <td>${s.birthPlace || '-'}</td>
           <td>${s.birthDate ? formatDateID(s.birthDate) : '-'}</td>
           <td>${s.religion || '-'}</td>
-          <td>${s.fatherName || '-'}</td>
-          <td>${s.motherName || '-'}</td>
+          <td>${(s.fatherName || '-').toUpperCase()}</td>
+          <td>${(s.motherName || '-').toUpperCase()}</td>
           <td>${s.address}</td>
         </tr>
       `).join('');

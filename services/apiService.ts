@@ -726,6 +726,35 @@ export const apiService = {
     
     await supabase.from('class_config').upsert({ class_id: historyId, data: currentData }, { onConflict: 'class_id' });
   },
+  getClassGradeHistory: async (classId: string): Promise<GradeHistoryRecord[]> => {
+    const { data, error } = await supabase.from('class_config').select('data').eq('class_id', `class_grade_history_${classId}`).single();
+    if (error || !data) return [];
+    return data.data?.history || [];
+  },
+  saveClassGradeHistory: async (classId: string, historyEntry: GradeHistoryRecord): Promise<void> => {
+    const historyId = `class_grade_history_${classId}`;
+    const { data: existing } = await supabase.from('class_config').select('data').eq('class_id', historyId).single();
+    const currentData = existing?.data || { history: [] };
+    
+    const existingIndex = currentData.history.findIndex((h: any) => h.id === historyEntry.id);
+    if (existingIndex >= 0) {
+      currentData.history[existingIndex] = historyEntry;
+    } else {
+      currentData.history.push(historyEntry);
+    }
+    
+    await supabase.from('class_config').upsert({ class_id: historyId, data: currentData }, { onConflict: 'class_id' });
+  },
+  deleteClassGradeHistory: async (classId: string, historyId: string): Promise<void> => {
+    const configId = `class_grade_history_${classId}`;
+    const { data: existing } = await supabase.from('class_config').select('data').eq('class_id', configId).single();
+    if (!existing) return;
+    
+    const currentData = existing.data || { history: [] };
+    currentData.history = currentData.history.filter((h: any) => h.id !== historyId);
+    
+    await supabase.from('class_config').upsert({ class_id: configId, data: currentData }, { onConflict: 'class_id' });
+  },
   saveGrade: async (studentId: string, subjectId: string, gradeData: GradeData, classId: string): Promise<void> => {
     // Extract dynamic fields into extra_data
     const { sum1, sum2, sum3, sum4, sas, ...extra_data } = gradeData;

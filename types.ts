@@ -86,6 +86,20 @@ export interface GradeRecord {
   subjects: Record<string, GradeData>;
 }
 
+export interface GradeHistoryRecord {
+  id: string; // academicYear_semester_studentId
+  studentId: string;
+  classId: string;
+  academicYear: string;
+  semester: string;
+  totalScore: number;
+  averageScore: number;
+  rank: number | string;
+  subjectsCount: number;
+  scores: Record<string, number>;
+  createdAt: string;
+}
+
 export interface ScheduleItem {
   id: string;
   day: string;
